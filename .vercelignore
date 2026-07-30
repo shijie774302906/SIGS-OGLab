@@ -1,0 +1,23 @@
+.git/
+.vercel/
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*
+mishi.md
+
+sample_data/
+process_logs/
+playwright-report/
+playwright-results/
+test-results/
+tests/
+docs/
+image/
+public/reference-screenshots/
+
+CPeT-IT data report.pdf
+Braintrust Web 150.png
+process*-feedback-*.png

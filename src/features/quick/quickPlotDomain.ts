@@ -507,7 +507,7 @@ function renderQuickPlotPage(
   const canvas = document.createElement('canvas');
   canvas.width = pixelSize?.width ?? logicalSize.width;
   canvas.height = pixelSize?.height ?? logicalSize.height;
-  const ctx = canvas.getContext('2d', { alpha: false });
+  const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
   if (!ctx) throw new Error('QUICK_PDF_CANVAS_UNAVAILABLE');
   ctx.setTransform(canvas.width / logicalSize.width, 0, 0, canvas.height / logicalSize.height, 0, 0);
   const box = pageFrame(ctx, logicalSize, spec.title, workspace, index + 1, prepared.methodIds[index]);

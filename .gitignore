@@ -37,3 +37,6 @@ process_logs/reviews/
 process_logs/evidence-audit*.json
 process_logs/*release-audit*.json
 process_logs/*.log
+
+.vercel
+.env*
