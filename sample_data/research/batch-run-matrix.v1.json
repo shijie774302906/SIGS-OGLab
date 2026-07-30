@@ -1,0 +1,229 @@
+{
+  "schemaVersion": "batch-run-matrix.v1",
+  "batchPlanId": "research-batch-current-project-example",
+  "projectId": "current-project",
+  "createdAtUtc": "2026-06-30T00:00:00Z",
+  "mode": "ResearchOnly",
+  "officialWriteAllowed": false,
+  "exportAllowed": false,
+  "scope": {
+    "pointIds": [
+      "current-cptu-point",
+      "comparison-cptu-point-a"
+    ],
+    "depthRangeM": {
+      "from": 0.0,
+      "to": 60.76
+    },
+    "requiredInputProfiles": [
+      "qt",
+      "fs",
+      "u2",
+      "depth"
+    ],
+    "outputObjectTypes": [
+      "LayerScheme",
+      "ParameterScheme",
+      "ClassificationEvidence"
+    ]
+  },
+  "methodRefs": [
+    {
+      "methodRefId": "method-ref-layer-a",
+      "methodId": "external-layer-method-a",
+      "capabilityId": "cap-layer-a",
+      "capabilityType": "LayerSchemeProducer",
+      "outputObjectType": "LayerScheme",
+      "identity": "Reference",
+      "engineeringUseLevel": "Reference",
+      "runtimeKind": "PythonExternal",
+      "officialWriteAllowedDefault": false,
+      "exportAllowedDefault": false
+    },
+    {
+      "methodRefId": "method-ref-parameter-b",
+      "methodId": "external-parameter-method-b",
+      "capabilityId": "cap-parameter-b",
+      "capabilityType": "ParameterSchemeProducer",
+      "outputObjectType": "ParameterScheme",
+      "identity": "Experimental",
+      "engineeringUseLevel": "Experimental",
+      "runtimeKind": "CommandExternal",
+      "officialWriteAllowedDefault": false,
+      "exportAllowedDefault": false
+    },
+    {
+      "methodRefId": "method-ref-classification-c",
+      "methodId": "external-classification-method-c",
+      "capabilityId": "cap-classification-c",
+      "capabilityType": "ClassificationEvidenceProducer",
+      "outputObjectType": "ClassificationEvidence",
+      "identity": "Reference",
+      "engineeringUseLevel": "Reference",
+      "runtimeKind": "PythonExternal",
+      "officialWriteAllowedDefault": false,
+      "exportAllowedDefault": false
+    }
+  ],
+  "runQueue": [
+    {
+      "queueItemId": "queue-current-layer-a",
+      "pointId": "current-cptu-point",
+      "methodRefId": "method-ref-layer-a",
+      "capabilityId": "cap-layer-a",
+      "inputHash": "sha256-current-layer-a",
+      "status": "Completed",
+      "outputObjectType": "LayerScheme",
+      "expectedOutputId": "batch-layer-current-a",
+      "warnings": [],
+      "logs": [
+        "completed layer run"
+      ]
+    },
+    {
+      "queueItemId": "queue-current-parameter-b",
+      "pointId": "current-cptu-point",
+      "methodRefId": "method-ref-parameter-b",
+      "capabilityId": "cap-parameter-b",
+      "inputHash": "sha256-current-parameter-b",
+      "status": "Completed",
+      "outputObjectType": "ParameterScheme",
+      "expectedOutputId": "batch-parameter-current-b",
+      "warnings": [
+        "coverage below reference threshold"
+      ],
+      "logs": [
+        "completed parameter run"
+      ]
+    },
+    {
+      "queueItemId": "queue-point-a-classification-c",
+      "pointId": "comparison-cptu-point-a",
+      "methodRefId": "method-ref-classification-c",
+      "capabilityId": "cap-classification-c",
+      "inputHash": "sha256-point-a-classification-c",
+      "status": "Failed",
+      "outputObjectType": "ClassificationEvidence",
+      "expectedOutputId": "batch-classification-point-a-c",
+      "warnings": [
+        "missing u2 segment"
+      ],
+      "logs": [
+        "failed input validation"
+      ]
+    },
+    {
+      "queueItemId": "queue-point-a-parameter-b",
+      "pointId": "comparison-cptu-point-a",
+      "methodRefId": "method-ref-parameter-b",
+      "capabilityId": "cap-parameter-b",
+      "inputHash": "sha256-point-a-parameter-b",
+      "status": "Skipped",
+      "outputObjectType": "ParameterScheme",
+      "expectedOutputId": "batch-parameter-point-a-b",
+      "warnings": [
+        "upstream classification failed"
+      ],
+      "logs": [
+        "skipped because required classification evidence is unavailable"
+      ]
+    }
+  ],
+  "resultMatrix": [
+    {
+      "rowId": "matrix-current-layer-a",
+      "pointId": "current-cptu-point",
+      "methodRefId": "method-ref-layer-a",
+      "outputObjectType": "LayerScheme",
+      "outputObjectId": "batch-layer-current-a",
+      "runStatus": "Completed",
+      "metricRefs": [
+        "metric-layer-boundary-delta",
+        "metric-soil-group-agreement"
+      ],
+      "qualityState": "Ready",
+      "adoptionEligibility": "Candidate",
+      "evidence": "Layer candidate completed and can be compared to adopted baseline.",
+      "nextAction": "Review in stratification compare before adoption."
+    },
+    {
+      "rowId": "matrix-current-parameter-b",
+      "pointId": "current-cptu-point",
+      "methodRefId": "method-ref-parameter-b",
+      "outputObjectType": "ParameterScheme",
+      "outputObjectId": "batch-parameter-current-b",
+      "runStatus": "Completed",
+      "metricRefs": [
+        "metric-parameter-coverage-delta"
+      ],
+      "qualityState": "Warning",
+      "adoptionEligibility": "ResearchOnly",
+      "evidence": "Parameter coverage warning; keep as research comparison.",
+      "nextAction": "Inspect parameter input blocking."
+    },
+    {
+      "rowId": "matrix-point-a-classification-c",
+      "pointId": "comparison-cptu-point-a",
+      "methodRefId": "method-ref-classification-c",
+      "outputObjectType": "ClassificationEvidence",
+      "outputObjectId": "batch-classification-point-a-c",
+      "runStatus": "Failed",
+      "metricRefs": [],
+      "qualityState": "Failed",
+      "adoptionEligibility": "Blocked",
+      "evidence": "Input validation failed; matrix keeps failure visible.",
+      "nextAction": "Fix missing u2 segment or exclude this method from batch."
+    },
+    {
+      "rowId": "matrix-point-a-parameter-b",
+      "pointId": "comparison-cptu-point-a",
+      "methodRefId": "method-ref-parameter-b",
+      "outputObjectType": "ParameterScheme",
+      "outputObjectId": "batch-parameter-point-a-b",
+      "runStatus": "Skipped",
+      "metricRefs": [],
+      "qualityState": "Skipped",
+      "adoptionEligibility": "Blocked",
+      "evidence": "Skipped because upstream classification failed.",
+      "nextAction": "Resolve upstream failure before parameter run."
+    }
+  ],
+  "summary": {
+    "pointCount": 2,
+    "methodCount": 3,
+    "queueCount": 4,
+    "completedCount": 2,
+    "failedCount": 1,
+    "skippedCount": 1,
+    "outputObjectTypeCounts": {
+      "LayerScheme": 1,
+      "ParameterScheme": 2,
+      "ClassificationEvidence": 1
+    },
+    "warningCount": 3
+  },
+  "preflight": [
+    {
+      "key": "research-only",
+      "state": "Ready",
+      "severity": "Info",
+      "evidence": "Batch plan is ResearchOnly and officialWriteAllowed=false.",
+      "nextAction": "Run only as research comparison."
+    },
+    {
+      "key": "failure-visible",
+      "state": "Ready",
+      "severity": "Info",
+      "evidence": "Failed and skipped queue items remain visible in resultMatrix.",
+      "nextAction": "Keep failure rows until user resolves or excludes them."
+    }
+  ],
+  "routing": {
+    "batchPlanRoute": "research.batch",
+    "resultMatrixRoute": "research.matrix",
+    "layerRowsRoute": "stratification.bottom.compare",
+    "parameterRowsRoute": "parameters.bottom.compare",
+    "methodRunLogsRoute": "method-lab"
+  }
+}
+

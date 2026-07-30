@@ -1,0 +1,44 @@
+{
+  "process": "Process101",
+  "recordedAt": "2026-07-15",
+  "rubric": {
+    "engineeringSemantics": 30,
+    "interactionClarity": 25,
+    "maintainability": 20,
+    "testabilityTraceability": 15,
+    "deliveryRisk": 10
+  },
+  "judges": [
+    {
+      "role": "Geotechnical Domain",
+      "scores": {
+        "A": { "engineeringSemantics": 23, "interactionClarity": 20, "maintainability": 12, "testabilityTraceability": 10, "deliveryRisk": 8, "total": 73, "veto": false },
+        "B": { "engineeringSemantics": 29, "interactionClarity": 24, "maintainability": 18, "testabilityTraceability": 15, "deliveryRisk": 8, "total": 94, "veto": false },
+        "C": { "engineeringSemantics": 28, "interactionClarity": 19, "maintainability": 14, "testabilityTraceability": 12, "deliveryRisk": 2, "total": 75, "veto": true }
+      }
+    },
+    {
+      "role": "Copy/IA/Performance",
+      "scores": {
+        "A": { "engineeringSemantics": 21, "interactionClarity": 19, "maintainability": 11, "testabilityTraceability": 8, "deliveryRisk": 9, "total": 68, "veto": false },
+        "B": { "engineeringSemantics": 29, "interactionClarity": 24, "maintainability": 19, "testabilityTraceability": 15, "deliveryRisk": 8, "total": 95, "veto": false },
+        "C": { "engineeringSemantics": 27, "interactionClarity": 19, "maintainability": 14, "testabilityTraceability": 12, "deliveryRisk": 2, "total": 74, "veto": true }
+      }
+    },
+    {
+      "role": "Engineering Quality/Verification",
+      "scores": {
+        "A": { "engineeringSemantics": 20, "interactionClarity": 20, "maintainability": 11, "testabilityTraceability": 8, "deliveryRisk": 9, "total": 68, "veto": false },
+        "B": { "engineeringSemantics": 29, "interactionClarity": 24, "maintainability": 18, "testabilityTraceability": 15, "deliveryRisk": 8, "total": 94, "veto": false },
+        "C": { "engineeringSemantics": 28, "interactionClarity": 21, "maintainability": 11, "testabilityTraceability": 13, "deliveryRisk": 2, "total": 75, "veto": true }
+      }
+    }
+  ],
+  "totals": {
+    "A": { "score": 209, "vetoed": false },
+    "B": { "score": 283, "vetoed": false },
+    "C": { "score": 224, "vetoed": true }
+  },
+  "winner": "B",
+  "decision": "类型化 reviewReasons[] 成为新写入的唯一复核原因权威；requiresReview 仅派生。旧布尔字段只用于兼容读取，未分型旧记录显示为历史复核原因未分型。原因集合必须稳定排序、去重并纳入确定性签名。"
+}

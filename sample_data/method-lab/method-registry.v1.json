@@ -1,0 +1,1144 @@
+{
+  "schemaVersion": "method-registry.v1",
+  "registryId": "cpt-uiqa-method-registry-fixture",
+  "generatedAt": "2026-06-30T05:00:00+08:00",
+  "scope": "BuiltInAndExternalResearch",
+  "officialWriteDefault": false,
+  "routes": [
+    {
+      "outputObjectType": "LayerScheme",
+      "consumerRoute": "stratification",
+      "defaultVisibleIn": "地层分层"
+    },
+    {
+      "outputObjectType": "ClassificationEvidence",
+      "consumerRoute": "stratification.evidence",
+      "defaultVisibleIn": "地层分层 / SBT 证据"
+    },
+    {
+      "outputObjectType": "ParameterSeries",
+      "consumerRoute": "parameters",
+      "defaultVisibleIn": "参数解译"
+    },
+    {
+      "outputObjectType": "ParameterScheme",
+      "consumerRoute": "parameters",
+      "defaultVisibleIn": "参数解译"
+    },
+    {
+      "outputObjectType": "MethodRun",
+      "consumerRoute": "method-lab",
+      "defaultVisibleIn": "方法实验室"
+    },
+    {
+      "outputObjectType": "DebugArtifact",
+      "consumerRoute": "method-lab",
+      "defaultVisibleIn": "方法实验室 / logs"
+    },
+    {
+      "outputObjectType": "ComparisonMetric",
+      "consumerRoute": "method-lab.compare",
+      "defaultVisibleIn": "方法实验室 / compare"
+    },
+    {
+      "outputObjectType": "PreprocessedProfile",
+      "consumerRoute": "data-check",
+      "defaultVisibleIn": "数据检查 / 预处理"
+    }
+  ],
+  "methods": [
+    {
+      "methodId": "builtin-ic-sbt-first-pass",
+      "displayName": "Built-in Ic/SBT first pass",
+      "provider": "SIGS-OGLab",
+      "version": "v1",
+      "methodType": "BuiltIn",
+      "status": "Installed",
+      "identityDefault": "Official",
+      "engineeringUseLevel": "OfficialCandidate",
+      "license": "ProjectInternal",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": true,
+        "officialUseAllowed": true
+      },
+      "runtime": {
+        "runtimeKind": "BuiltInDotNet",
+        "adapterId": "builtin-dotnet",
+        "runnerPath": "",
+        "installState": "Installed"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "builtin-ic-sbt.LayerScheme",
+          "capabilityType": "LayerSchemeProducer",
+          "outputObjectType": "LayerScheme",
+          "consumerRoute": "stratification",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "qcKpa", "qtKpa", "frPercent", "u2Kpa"],
+          "optionalInputs": ["waterDepthM"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "OfficialCandidate",
+          "defaultVisibleIn": "地层分层"
+        },
+        {
+          "capabilityId": "builtin-ic-sbt.ClassificationEvidence",
+          "capabilityType": "ClassificationEvidenceProducer",
+          "outputObjectType": "ClassificationEvidence",
+          "consumerRoute": "stratification.evidence",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "frPercent", "qtn"],
+          "optionalInputs": ["icOfficial"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": false,
+          "engineeringUseLevel": "OfficialCandidate",
+          "defaultVisibleIn": "地层分层 / SBT 证据"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "depthM",
+          "field": "depthM",
+          "unit": "m",
+          "requiredForCapabilities": ["builtin-ic-sbt.LayerScheme", "builtin-ic-sbt.ClassificationEvidence"],
+          "validationRule": "monotonicDepth",
+          "missingBehavior": "BlockRun"
+        },
+        {
+          "inputId": "frPercent",
+          "field": "frPercent",
+          "unit": "%",
+          "requiredForCapabilities": ["builtin-ic-sbt.ClassificationEvidence"],
+          "validationRule": "positive",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "LayerScheme",
+          "schemaRef": "layer-scheme.v1",
+          "consumerRoute": "stratification",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        },
+        {
+          "outputObjectType": "ClassificationEvidence",
+          "schemaRef": "classification-evidence.v1",
+          "consumerRoute": "stratification.evidence",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": false,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "builtin-ic-sbt.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": true
+      }
+    },
+    {
+      "methodId": "builtin-engineering-layer-grouping",
+      "displayName": "Engineering Ic/SBT layer grouping",
+      "provider": "SIGS-OGLab",
+      "version": "v1",
+      "methodType": "BuiltIn",
+      "status": "Installed",
+      "identityDefault": "Official",
+      "engineeringUseLevel": "OfficialCandidate",
+      "license": "ProjectInternal",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": true,
+        "officialUseAllowed": true
+      },
+      "runtime": {
+        "runtimeKind": "BuiltInDotNet",
+        "adapterId": "builtin-dotnet",
+        "runnerPath": "",
+        "installState": "Installed"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "builtin-engineering-grouping.LayerScheme",
+          "capabilityType": "LayerSchemeProducer",
+          "outputObjectType": "LayerScheme",
+          "consumerRoute": "stratification",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "icOfficial", "sourceLayerSchemeId"],
+          "optionalInputs": ["engineeringSoilGroup"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "OfficialCandidate",
+          "defaultVisibleIn": "地层分层"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "sourceLayerSchemeId",
+          "field": "sourceLayerSchemeId",
+          "unit": "id",
+          "requiredForCapabilities": ["builtin-engineering-grouping.LayerScheme"],
+          "validationRule": "exists",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "LayerScheme",
+          "schemaRef": "layer-scheme.v1",
+          "consumerRoute": "stratification",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "builtin-engineering-layer-grouping.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": true
+      }
+    },
+    {
+      "methodId": "builtin-robertson-sbtn-evidence",
+      "displayName": "Robertson SBTn classification evidence",
+      "provider": "SIGS-OGLab",
+      "version": "v1",
+      "methodType": "BuiltIn",
+      "status": "Installed",
+      "identityDefault": "Official",
+      "engineeringUseLevel": "OfficialCandidate",
+      "license": "ProjectInternal",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": true,
+        "officialUseAllowed": true
+      },
+      "runtime": {
+        "runtimeKind": "BuiltInDotNet",
+        "adapterId": "builtin-dotnet",
+        "runnerPath": "",
+        "installState": "Installed"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "builtin-robertson-sbtn.ClassificationEvidence",
+          "capabilityType": "ClassificationEvidenceProducer",
+          "outputObjectType": "ClassificationEvidence",
+          "consumerRoute": "stratification.evidence",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "frPercent", "qtn"],
+          "optionalInputs": ["icOfficial", "sbt12Chart"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": false,
+          "engineeringUseLevel": "OfficialCandidate",
+          "defaultVisibleIn": "地层分层 / SBT 证据"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "qtn",
+          "field": "qtn",
+          "unit": "1",
+          "requiredForCapabilities": ["builtin-robertson-sbtn.ClassificationEvidence"],
+          "validationRule": "positive",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "ClassificationEvidence",
+          "schemaRef": "classification-evidence.v1",
+          "consumerRoute": "stratification.evidence",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": false,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "builtin-robertson-sbtn-evidence.settings.v1",
+        "userEditable": false
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": true
+      }
+    },
+    {
+      "methodId": "manual-stratification-template",
+      "displayName": "Manual stratification template",
+      "provider": "ProjectUser",
+      "version": "template-v1",
+      "methodType": "UserDefinedTemplate",
+      "status": "AvailableTemplate",
+      "identityDefault": "Draft",
+      "engineeringUseLevel": "DebugOnly",
+      "license": "UserOwned",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": false,
+        "officialUseAllowed": false
+      },
+      "runtime": {
+        "runtimeKind": "ManualTemplate",
+        "adapterId": "manual-stratification-template",
+        "runnerPath": "",
+        "installState": "AvailableTemplate"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "manual.LayerScheme",
+          "capabilityType": "LayerSchemeProducer",
+          "outputObjectType": "LayerScheme",
+          "consumerRoute": "stratification",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "sourceLayerSchemeId"],
+          "optionalInputs": ["manualBoundaries", "manualSoilTypes", "confidence"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "DebugOnly",
+          "defaultVisibleIn": "地层分层 / manual"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "manualBoundaries",
+          "field": "manualBoundaries",
+          "unit": "m",
+          "requiredForCapabilities": ["manual.LayerScheme"],
+          "validationRule": "nonOverlappingDepthIntervals",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "LayerScheme",
+          "schemaRef": "layer-scheme.v1",
+          "consumerRoute": "stratification",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "manual-stratification.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": false,
+        "userAuditRequired": true
+      }
+    },
+    {
+      "methodId": "user-defined-stratification-method-template",
+      "displayName": "User-defined stratification method template",
+      "provider": "ProjectUser",
+      "version": "template-v1",
+      "methodType": "UserDefinedTemplate",
+      "status": "AvailableTemplate",
+      "identityDefault": "Draft",
+      "engineeringUseLevel": "DebugOnly",
+      "license": "UserOwned",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": false,
+        "officialUseAllowed": false
+      },
+      "runtime": {
+        "runtimeKind": "ExpressionTemplate",
+        "adapterId": "user-stratification-template",
+        "runnerPath": "",
+        "installState": "AvailableTemplate"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "user.LayerScheme.Custom",
+          "capabilityType": "LayerSchemeProducer",
+          "outputObjectType": "LayerScheme",
+          "consumerRoute": "stratification",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "qcKpa"],
+          "optionalInputs": ["qtKpa", "frPercent", "u2Kpa", "icOfficial"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "DebugOnly",
+          "defaultVisibleIn": "地层分层 / custom"
+        },
+        {
+          "capabilityId": "user.ClassificationEvidence.Custom",
+          "capabilityType": "ClassificationEvidenceProducer",
+          "outputObjectType": "ClassificationEvidence",
+          "consumerRoute": "stratification.evidence",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "frPercent"],
+          "optionalInputs": ["qtn", "customChart"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "DebugOnly",
+          "defaultVisibleIn": "地层分层 / custom evidence"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "customDepth",
+          "field": "depthM",
+          "unit": "m",
+          "requiredForCapabilities": ["user.LayerScheme.Custom", "user.ClassificationEvidence.Custom"],
+          "validationRule": "monotonicDepth",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "LayerScheme",
+          "schemaRef": "layer-scheme.v1",
+          "consumerRoute": "stratification",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        },
+        {
+          "outputObjectType": "ClassificationEvidence",
+          "schemaRef": "classification-evidence.v1",
+          "consumerRoute": "stratification.evidence",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": false,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "user-stratification-method.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": true,
+        "userAuditRequired": true
+      }
+    },
+    {
+      "methodId": "groundhog-pcpt-correlations-reference",
+      "displayName": "Groundhog PCPT correlations",
+      "provider": "Groundhog",
+      "version": "0.15.0",
+      "methodType": "PythonExternal",
+      "status": "NotInstalled",
+      "identityDefault": "Reference",
+      "engineeringUseLevel": "Reference",
+      "license": "GNU GPLv3",
+      "licensePolicy": {
+        "legalReviewRequired": true,
+        "distributionAllowed": false,
+        "officialUseAllowed": false
+      },
+      "runtime": {
+        "runtimeKind": "PythonExternal",
+        "adapterId": "groundhog-reference-adapter",
+        "runnerPath": "tools/method-lab/runners/groundhog_reference_runner.py",
+        "installState": "NotInstalled"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "groundhog.ParameterSeries.PhiDeg",
+          "capabilityType": "ParameterSeriesProducer",
+          "outputObjectType": "ParameterSeries",
+          "consumerRoute": "parameters",
+          "outputParameter": "PhiDeg",
+          "applicableSoilTypes": ["sand", "mixed"],
+          "requiredInputs": ["depthM", "qtn", "frPercent"],
+          "optionalInputs": ["icOfficial"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "Reference",
+          "defaultVisibleIn": "参数解译"
+        },
+        {
+          "capabilityId": "groundhog.ParameterSeries.SuKpa",
+          "capabilityType": "ParameterSeriesProducer",
+          "outputObjectType": "ParameterSeries",
+          "consumerRoute": "parameters",
+          "outputParameter": "SuKpa",
+          "applicableSoilTypes": ["clay", "mixed"],
+          "requiredInputs": ["depthM", "qnetKpa"],
+          "optionalInputs": ["nkt"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "Reference",
+          "defaultVisibleIn": "参数解译"
+        },
+        {
+          "capabilityId": "groundhog.ClassificationEvidence.Robertson",
+          "capabilityType": "ClassificationEvidenceProducer",
+          "outputObjectType": "ClassificationEvidence",
+          "consumerRoute": "stratification.evidence",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "frPercent", "qtn"],
+          "optionalInputs": ["icOfficial"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": false,
+          "engineeringUseLevel": "Reference",
+          "defaultVisibleIn": "地层分层 / SBT 证据"
+        },
+        {
+          "capabilityId": "groundhog.ComparisonMetric.FormulaOracle",
+          "capabilityType": "ComparisonMetricProducer",
+          "outputObjectType": "ComparisonMetric",
+          "consumerRoute": "method-lab.compare",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "qtn", "frPercent"],
+          "optionalInputs": ["sourceOfficialRunId"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": true,
+          "supportsUserSettings": false,
+          "engineeringUseLevel": "Reference",
+          "defaultVisibleIn": "方法实验室 / compare"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "qtn",
+          "field": "qtn",
+          "unit": "1",
+          "requiredForCapabilities": ["groundhog.ParameterSeries.PhiDeg", "groundhog.ClassificationEvidence.Robertson"],
+          "validationRule": "positive",
+          "missingBehavior": "SkipValue"
+        },
+        {
+          "inputId": "qnetKpa",
+          "field": "qnetKpa",
+          "unit": "kPa",
+          "requiredForCapabilities": ["groundhog.ParameterSeries.SuKpa"],
+          "validationRule": "positive",
+          "missingBehavior": "SkipValue"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "ParameterSeries",
+          "schemaRef": "parameter-series.v1",
+          "consumerRoute": "parameters",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        },
+        {
+          "outputObjectType": "ClassificationEvidence",
+          "schemaRef": "classification-evidence.v1",
+          "consumerRoute": "stratification.evidence",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": false,
+          "provenanceRequired": true
+        },
+        {
+          "outputObjectType": "ComparisonMetric",
+          "schemaRef": "comparison-metric.v1",
+          "consumerRoute": "method-lab.compare",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": false,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "groundhog-reference.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "licenseRequired": true,
+        "legalReviewRequired": true
+      }
+    },
+    {
+      "methodId": "catalog-phi-sand-correlations-template",
+      "displayName": "Common φ' sand CPT correlations",
+      "provider": "SIGS-OGLab",
+      "version": "catalog-v1",
+      "methodType": "UserDefinedTemplate",
+      "status": "AvailableTemplate",
+      "identityDefault": "Draft",
+      "engineeringUseLevel": "Reference",
+      "license": "ProjectInternal",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": true,
+        "officialUseAllowed": false
+      },
+      "runtime": {
+        "runtimeKind": "FormulaTemplate",
+        "adapterId": "parameter-catalog-template",
+        "runnerPath": "",
+        "installState": "AvailableTemplate"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "catalog.ParameterSeries.PhiDeg.Sand",
+          "capabilityType": "ParameterSeriesProducer",
+          "outputObjectType": "ParameterSeries",
+          "consumerRoute": "parameters",
+          "outputParameter": "PhiDeg",
+          "applicableSoilTypes": ["sand", "mixed"],
+          "requiredInputs": ["depthM", "qtn", "frPercent", "sourceLayerSchemeId"],
+          "optionalInputs": ["icOfficial", "sigmaV0EffectiveKpa", "qcKpa"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "Reference",
+          "defaultVisibleIn": "参数解译 / φ'"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "phiSandTemplateInputs",
+          "field": "qtn/frPercent/sourceLayerSchemeId",
+          "unit": "mixed",
+          "requiredForCapabilities": ["catalog.ParameterSeries.PhiDeg.Sand"],
+          "validationRule": "positiveCptAndReviewedLayerScheme",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "ParameterSeries",
+          "schemaRef": "parameter-series.v1",
+          "consumerRoute": "parameters",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "catalog-phi-sand-correlations.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": true,
+        "userAuditRequired": true
+      }
+    },
+    {
+      "methodId": "catalog-su-clay-correlations-template",
+      "displayName": "Common Su clay CPTU correlations",
+      "provider": "SIGS-OGLab",
+      "version": "catalog-v1",
+      "methodType": "UserDefinedTemplate",
+      "status": "AvailableTemplate",
+      "identityDefault": "Draft",
+      "engineeringUseLevel": "Reference",
+      "license": "ProjectInternal",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": true,
+        "officialUseAllowed": false
+      },
+      "runtime": {
+        "runtimeKind": "FormulaTemplate",
+        "adapterId": "parameter-catalog-template",
+        "runnerPath": "",
+        "installState": "AvailableTemplate"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "catalog.ParameterSeries.SuKpa.Clay",
+          "capabilityType": "ParameterSeriesProducer",
+          "outputObjectType": "ParameterSeries",
+          "consumerRoute": "parameters",
+          "outputParameter": "SuKpa",
+          "applicableSoilTypes": ["clay", "mixed"],
+          "requiredInputs": ["depthM", "qnetKpa", "sourceLayerSchemeId"],
+          "optionalInputs": ["nkt", "bq", "u2Kpa", "sigmaV0EffectiveKpa"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "Reference",
+          "defaultVisibleIn": "参数解译 / Su"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "suClayTemplateInputs",
+          "field": "qnetKpa/sourceLayerSchemeId",
+          "unit": "mixed",
+          "requiredForCapabilities": ["catalog.ParameterSeries.SuKpa.Clay"],
+          "validationRule": "positiveCptAndReviewedLayerScheme",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "ParameterSeries",
+          "schemaRef": "parameter-series.v1",
+          "consumerRoute": "parameters",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "catalog-su-clay-correlations.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": true,
+        "userAuditRequired": true
+      }
+    },
+    {
+      "methodId": "catalog-gamma-unit-weight-template",
+      "displayName": "Common γ unit-weight correlations",
+      "provider": "SIGS-OGLab",
+      "version": "catalog-v1",
+      "methodType": "UserDefinedTemplate",
+      "status": "AvailableTemplate",
+      "identityDefault": "Draft",
+      "engineeringUseLevel": "Reference",
+      "license": "ProjectInternal",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": true,
+        "officialUseAllowed": false
+      },
+      "runtime": {
+        "runtimeKind": "FormulaTemplate",
+        "adapterId": "parameter-catalog-template",
+        "runnerPath": "",
+        "installState": "AvailableTemplate"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "catalog.ParameterSeries.Gamma.All",
+          "capabilityType": "ParameterSeriesProducer",
+          "outputObjectType": "ParameterSeries",
+          "consumerRoute": "parameters",
+          "outputParameter": "Gamma",
+          "applicableSoilTypes": ["sand", "clay", "mixed", "unknown"],
+          "requiredInputs": ["depthM", "sourceLayerSchemeId", "projectUnitWeightRule"],
+          "optionalInputs": ["qtKpa", "frPercent", "icOfficial"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "Reference",
+          "defaultVisibleIn": "参数解译 / γ"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "gammaTemplateInputs",
+          "field": "projectUnitWeightRule/sourceLayerSchemeId",
+          "unit": "mixed",
+          "requiredForCapabilities": ["catalog.ParameterSeries.Gamma.All"],
+          "validationRule": "projectRuleConfirmed",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "ParameterSeries",
+          "schemaRef": "parameter-series.v1",
+          "consumerRoute": "parameters",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "catalog-gamma-unit-weight.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": true,
+        "userAuditRequired": true
+      }
+    },
+    {
+      "methodId": "catalog-ocr-stress-history-template",
+      "displayName": "Common OCR stress-history correlations",
+      "provider": "SIGS-OGLab",
+      "version": "catalog-v1",
+      "methodType": "UserDefinedTemplate",
+      "status": "AvailableTemplate",
+      "identityDefault": "Draft",
+      "engineeringUseLevel": "Experimental",
+      "license": "ProjectInternal",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": true,
+        "officialUseAllowed": false
+      },
+      "runtime": {
+        "runtimeKind": "FormulaTemplate",
+        "adapterId": "parameter-catalog-template",
+        "runnerPath": "",
+        "installState": "AvailableTemplate"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "catalog.ParameterSeries.OCR.Clay",
+          "capabilityType": "ParameterSeriesProducer",
+          "outputObjectType": "ParameterSeries",
+          "consumerRoute": "parameters",
+          "outputParameter": "OCR",
+          "applicableSoilTypes": ["clay", "mixed"],
+          "requiredInputs": ["depthM", "bq", "sourceLayerSchemeId"],
+          "optionalInputs": ["ocrCalibration", "suKpa", "sigmaV0EffectiveKpa"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "Experimental",
+          "defaultVisibleIn": "参数解译 / OCR"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "ocrTemplateInputs",
+          "field": "bq/sourceLayerSchemeId",
+          "unit": "mixed",
+          "requiredForCapabilities": ["catalog.ParameterSeries.OCR.Clay"],
+          "validationRule": "reviewedCalibrationRequired",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "ParameterSeries",
+          "schemaRef": "parameter-series.v1",
+          "consumerRoute": "parameters",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "catalog-ocr-stress-history.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": true,
+        "userAuditRequired": true
+      }
+    },
+    {
+      "methodId": "pycpt-auto-stratification-experimental",
+      "displayName": "pyCPT auto stratification",
+      "provider": "pyCPT",
+      "version": "repo-b8f4c04",
+      "methodType": "PythonExternal",
+      "status": "NotInstalled",
+      "identityDefault": "Experimental",
+      "engineeringUseLevel": "Experimental",
+      "license": "LGPL-3.0",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": false,
+        "officialUseAllowed": false
+      },
+      "runtime": {
+        "runtimeKind": "PythonExternal",
+        "adapterId": "pycpt-experimental-adapter",
+        "runnerPath": "tools/method-lab/runners/pycpt_experimental_runner.py",
+        "installState": "NotInstalled"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "pycpt.LayerScheme.AutoStratification",
+          "capabilityType": "LayerSchemeProducer",
+          "outputObjectType": "LayerScheme",
+          "consumerRoute": "stratification",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "frPercent", "qnetKpa", "sigmaV0EffectiveKpa"],
+          "optionalInputs": ["qcKpa", "qtKpa"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "Experimental",
+          "defaultVisibleIn": "地层分层"
+        },
+        {
+          "capabilityId": "pycpt.ClassificationEvidence.Probability",
+          "capabilityType": "ClassificationEvidenceProducer",
+          "outputObjectType": "ClassificationEvidence",
+          "consumerRoute": "stratification.evidence",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "frPercent", "qnetKpa", "sigmaV0EffectiveKpa"],
+          "optionalInputs": ["qtKpa"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "Experimental",
+          "defaultVisibleIn": "地层分层 / SBT 证据"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "pycptQtInputs",
+          "field": "qnetKpa/sigmaV0EffectiveKpa",
+          "unit": "1",
+          "requiredForCapabilities": ["pycpt.LayerScheme.AutoStratification", "pycpt.ClassificationEvidence.Probability"],
+          "validationRule": "positiveRatio",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "LayerScheme",
+          "schemaRef": "layer-scheme.v1",
+          "consumerRoute": "stratification",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        },
+        {
+          "outputObjectType": "ClassificationEvidence",
+          "schemaRef": "classification-evidence.v1",
+          "consumerRoute": "stratification.evidence",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": false,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "pycpt-experimental.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "licenseRequired": true,
+        "notForOfficialResult": true
+      }
+    },
+    {
+      "methodId": "user-defined-parameter-formula-template",
+      "displayName": "User-defined parameter formula template",
+      "provider": "ProjectUser",
+      "version": "template-v1",
+      "methodType": "UserDefinedTemplate",
+      "status": "AvailableTemplate",
+      "identityDefault": "Draft",
+      "engineeringUseLevel": "DebugOnly",
+      "license": "UserOwned",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": false,
+        "officialUseAllowed": false
+      },
+      "runtime": {
+        "runtimeKind": "ExpressionTemplate",
+        "adapterId": "user-formula-template",
+        "runnerPath": "",
+        "installState": "AvailableTemplate"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "user.ParameterSeries.Custom",
+          "capabilityType": "ParameterSeriesProducer",
+          "outputObjectType": "ParameterSeries",
+          "consumerRoute": "parameters",
+          "outputParameter": "Custom",
+          "applicableSoilTypes": ["sand", "clay", "mixed", "unknown"],
+          "requiredInputs": ["depthM"],
+          "optionalInputs": ["qcKpa", "qtKpa", "frPercent", "u2Kpa"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "DebugOnly",
+          "defaultVisibleIn": "参数解译 / advanced"
+        },
+        {
+          "capabilityId": "user.ParameterScheme.Custom",
+          "capabilityType": "ParameterSchemeProducer",
+          "outputObjectType": "ParameterScheme",
+          "consumerRoute": "parameters",
+          "outputParameter": "Custom",
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "sourceLayerSchemeId"],
+          "optionalInputs": ["parameterSlots"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": false,
+          "supportsUserSettings": true,
+          "engineeringUseLevel": "DebugOnly",
+          "defaultVisibleIn": "参数解译 / advanced"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "sourceLayerSchemeId",
+          "field": "sourceLayerSchemeId",
+          "unit": "id",
+          "requiredForCapabilities": ["user.ParameterScheme.Custom"],
+          "validationRule": "exists",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "ParameterSeries",
+          "schemaRef": "parameter-series.v1",
+          "consumerRoute": "parameters",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        },
+        {
+          "outputObjectType": "ParameterScheme",
+          "schemaRef": "parameter-scheme.v1",
+          "consumerRoute": "parameters",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": true,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "user-parameter-formula.settings.v1",
+        "userEditable": true
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": true,
+        "userAuditRequired": true
+      }
+    },
+    {
+      "methodId": "profile-unit-normalizer-preprocessor",
+      "displayName": "Profile unit normalizer",
+      "provider": "SIGS-OGLab",
+      "version": "v1",
+      "methodType": "BuiltIn",
+      "status": "Installed",
+      "identityDefault": "Official",
+      "engineeringUseLevel": "OfficialCandidate",
+      "license": "ProjectInternal",
+      "licensePolicy": {
+        "legalReviewRequired": false,
+        "distributionAllowed": true,
+        "officialUseAllowed": true
+      },
+      "runtime": {
+        "runtimeKind": "BuiltInDotNet",
+        "adapterId": "builtin-dotnet",
+        "runnerPath": "",
+        "installState": "Installed"
+      },
+      "capabilities": [
+        {
+          "capabilityId": "profile.Preprocessor.UnitNormalizer",
+          "capabilityType": "Preprocessor",
+          "outputObjectType": "PreprocessedProfile",
+          "consumerRoute": "data-check",
+          "outputParameter": null,
+          "applicableSoilTypes": ["all"],
+          "requiredInputs": ["depthM", "qcKpa"],
+          "optionalInputs": ["qtKpa", "u2Kpa", "frPercent"],
+          "supportsCurrentPoint": true,
+          "supportsBatch": true,
+          "supportsUserSettings": false,
+          "engineeringUseLevel": "OfficialCandidate",
+          "defaultVisibleIn": "数据检查 / 预处理"
+        }
+      ],
+      "inputRequirements": [
+        {
+          "inputId": "qcKpa",
+          "field": "qcKpa",
+          "unit": "kPa",
+          "requiredForCapabilities": ["profile.Preprocessor.UnitNormalizer"],
+          "validationRule": "positive",
+          "missingBehavior": "BlockRun"
+        }
+      ],
+      "outputContracts": [
+        {
+          "outputObjectType": "PreprocessedProfile",
+          "schemaRef": "preprocessed-profile.v1",
+          "consumerRoute": "data-check",
+          "officialWriteAllowedDefault": false,
+          "exportAllowedDefault": false,
+          "requiresAdoption": false,
+          "provenanceRequired": true
+        }
+      ],
+      "settingsSchema": {
+        "schemaRef": "profile-unit-normalizer.settings.v1",
+        "userEditable": false
+      },
+      "provenancePolicy": {
+        "inputHashRequired": true,
+        "versionRequired": true,
+        "sourceFormulaRefRequired": false
+      }
+    }
+  ],
+  "safetyRules": [
+    {
+      "ruleId": "ReferenceNoOfficialWrite",
+      "appliesToEngineeringUseLevel": ["Reference", "Experimental", "DebugOnly"],
+      "officialWriteAllowedDefault": false,
+      "exportAllowedDefault": false
+    },
+    {
+      "ruleId": "RouteByOutputObjectType",
+      "message": "UI must route methods by outputObjectType and consumerRoute, not methodId or displayName."
+    }
+  ]
+}

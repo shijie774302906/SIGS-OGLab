@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "method-run-result.v1",
+  "runId": "methodlab-fixture-groundhog-reference",
+  "engineId": "groundhog",
+  "methodName": "Groundhog PCPT correlations",
+  "methodVersion": "0.15.0",
+  "status": "Partial",
+  "identity": "Reference",
+  "officialWriteAllowed": false,
+  "outputChannels": [
+    {
+      "channelId": "groundhog-qtn",
+      "name": "Normalised cone resistance",
+      "symbol": "Qtn",
+      "unit": "1",
+      "valueType": "Number",
+      "depthMode": "Interval",
+      "identity": "Reference",
+      "sourceEngine": "groundhog",
+      "sourceMethod": "pcpt_normalisations",
+      "formulaRef": "groundhog.siteinvestigation.insitutests.pcpt_correlations.pcpt_normalisations",
+      "confidence": null,
+      "values": [
+        {
+          "sourceRowIndex": 1,
+          "sourceRecordId": "fixture-row-1",
+          "depthFromM": 0.0,
+          "depthToM": 0.2,
+          "value": 38.1,
+          "status": "Valid",
+          "reasonCode": "",
+          "sourceChannelIds": ["qcKpa", "u2Kpa", "sigmaV0EffectiveKpa"]
+        },
+        {
+          "sourceRowIndex": 2,
+          "sourceRecordId": "fixture-row-2",
+          "depthFromM": 0.2,
+          "depthToM": 0.4,
+          "value": 41.2,
+          "status": "Valid",
+          "reasonCode": "",
+          "sourceChannelIds": ["qcKpa", "u2Kpa", "sigmaV0EffectiveKpa"]
+        }
+      ]
+    },
+    {
+      "channelId": "groundhog-su",
+      "name": "Undrained shear strength",
+      "symbol": "Su",
+      "unit": "kPa",
+      "valueType": "Number",
+      "depthMode": "Interval",
+      "identity": "Reference",
+      "sourceEngine": "groundhog",
+      "sourceMethod": "undrainedshearstrength_clay_radlunne",
+      "formulaRef": "groundhog.siteinvestigation.insitutests.pcpt_correlations.undrainedshearstrength_clay_radlunne",
+      "confidence": null,
+      "values": [
+        {
+          "sourceRowIndex": 1,
+          "sourceRecordId": "fixture-row-1",
+          "depthFromM": 0.0,
+          "depthToM": 0.2,
+          "value": null,
+          "status": "Skipped",
+          "reasonCode": "NkMissingOrNotApplicable",
+          "sourceChannelIds": ["qnetKpa"]
+        }
+      ]
+    }
+  ],
+  "layerCandidates": [],
+  "classificationPoints": [],
+  "parameterSeries": [],
+  "summaryMetrics": [
+    {
+      "metricId": "validChannelCount",
+      "name": "Valid channel count",
+      "value": 1,
+      "unit": "count"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "GroundhogGplReferenceOnly",
+      "message": "Groundhog output is Reference only and requires legal review before product distribution."
+    },
+    {
+      "code": "PartialChannelFailed",
+      "message": "Su channel contains skipped values."
+    }
+  ],
+  "logs": [
+    {
+      "level": "Info",
+      "message": "Fixture result for R0 contract validation."
+    }
+  ],
+  "artifacts": [],
+  "error": null,
+  "provenance": {
+    "engineId": "groundhog",
+    "engineVersion": "0.15.0",
+    "engineLicense": "GNU GPLv3",
+    "engineSource": "https://github.com/snakesonabrain/groundhog",
+    "enginePackageSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "pythonVersion": "3.x",
+    "runnerVersion": "method-lab-runner.v1",
+    "runnerScriptSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "commandLine": "python tools/method-lab/runners/groundhog_reference_runner.py --input input.json --output output.json",
+    "inputJsonPath": "sample_data/method-lab/yingkou-cpt09-method-input.v1.json",
+    "outputJsonPath": "sample_data/method-lab/groundhog-reference-output.v1.json",
+    "canonicalInputSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "createdAt": "2026-06-29T00:01:00+08:00",
+    "completedAt": "2026-06-29T00:01:02+08:00",
+    "durationMs": 2000,
+    "notForOfficialResult": true,
+    "legalReviewRequired": true
+  }
+}

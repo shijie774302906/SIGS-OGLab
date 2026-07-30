@@ -1,0 +1,532 @@
+{
+  "schemaVersion": "parameter-method-golden.v1",
+  "generatedBy": "PowerShell System.Math and independent arithmetic; no production implementation",
+  "tolerances": {
+    "numericAbsolute": 1e-12,
+    "statusReasonAndEligibility": "exact"
+  },
+  "inputEncoding": {
+    "schemaVersion": "non-finite-number.v1",
+    "markerProperty": "encodedNonFinite",
+    "allowedKinds": ["NaN", "PositiveInfinity", "NegativeInfinity"],
+    "decodeRule": "The marker names one absent numeric field and its non-finite kind. The named field must not also be present; marker decoding occurs before domain evaluation."
+  },
+  "sources": [
+    {
+      "sourceId": "mayne-cargill-greig-2023-rev1.1",
+      "title": "The Cone Penetration Test: Better Information, Better Decisions - A CPT Design Parameter Manual",
+      "edition": "First Edition, Revision 1.1",
+      "date": "2023-02",
+      "phiReference": "page 82, equation 5.6; applicability page 84",
+      "sucReference": "page 113, equation 6.7",
+      "url": "https://www.conetec.com/download_file/view/1108"
+    },
+    {
+      "sourceId": "uzielli-mayne-2019",
+      "title": "Probabilistic assignment of effective friction angles of sands and silty sands from CPT using quantile regression",
+      "doi": "10.1080/17499518.2019.1663388",
+      "scopeEvidence": "standard 20 mm/s CPT; unaged uncemented quartz-silica sands and silty sands; 20 < Qtn < 400"
+    },
+    {
+      "sourceId": "mayne-peuchen-2018",
+      "title": "Evaluation of CPTU Nkt cone factor for undrained strength of clays",
+      "citation": "Cone Penetration Testing 2018, pages 423-429",
+      "scopeEvidence": "suc=qnet/Nkt; site calibration preferred; clay Ic approximately 2.3-3.7; category-specific Nkt values"
+    },
+    {
+      "sourceId": "mayne-peuchen-2022",
+      "title": "Undrained shear strength of clays from piezocone tests: a database approach",
+      "citation": "CPT'22, Paper 1107, pages 546-551",
+      "scopeEvidence": "su=qnet/Nkt; strength mode matters; organic and cemented clays excluded"
+    }
+  ],
+  "evidenceFixtures": {
+    "penetrationRate": {
+      "rate-standard-20-meta": {
+        "status": "standard_confirmed",
+        "nominalRateMmPerSec": 20,
+        "unit": "mm/s",
+        "sourceType": "point_metadata",
+        "sourceRevisionId": "point-meta-rev-7",
+        "confirmedAt": "2026-07-10T08:00:00Z"
+      },
+      "rate-standard-20-user": {
+        "status": "standard_confirmed",
+        "nominalRateMmPerSec": 20,
+        "unit": "mm/s",
+        "sourceType": "user_confirmation",
+        "sourceRevisionId": "rate-confirm-rev-2",
+        "confirmedAt": "2026-07-10T08:01:00Z"
+      },
+      "rate-missing": {
+        "status": "missing",
+        "nominalRateMmPerSec": null,
+        "unit": "mm/s",
+        "sourceType": null,
+        "sourceRevisionId": null,
+        "confirmedAt": null
+      },
+      "rate-known-nonstandard-10": {
+        "status": "known_nonstandard",
+        "nominalRateMmPerSec": 10,
+        "unit": "mm/s",
+        "sourceType": "test_report",
+        "sourceRevisionId": "test-report-rev-4",
+        "confirmedAt": "2026-07-10T08:02:00Z"
+      }
+    },
+    "drainageApplicability": {
+      "drainage-drained-cptu": {
+        "status": "confirmed_drained",
+        "evidenceType": "cptu_pore_pressure_response",
+        "sourceRevisionId": "drainage-rev-11",
+        "confirmedAt": "2026-07-10T08:10:00Z",
+        "note": "CPTU and site evidence support drained sand behavior."
+      },
+      "drainage-undrained-cptu": {
+        "status": "confirmed_undrained",
+        "evidenceType": "cptu_pore_pressure_response",
+        "sourceRevisionId": "drainage-rev-12",
+        "confirmedAt": "2026-07-10T08:11:00Z",
+        "note": "CPTU and site evidence support undrained clay response."
+      },
+      "drainage-undrained-site": {
+        "status": "confirmed_undrained",
+        "evidenceType": "site_characterization",
+        "sourceRevisionId": "drainage-rev-13",
+        "confirmedAt": "2026-07-10T08:12:00Z",
+        "note": "Site characterization supports undrained response."
+      },
+      "drainage-unknown": {
+        "status": "unknown",
+        "evidenceType": null,
+        "sourceRevisionId": null,
+        "confirmedAt": null,
+        "note": "No independent drainage evidence."
+      },
+      "drainage-conflict-unresolved": {
+        "status": "conflict",
+        "evidenceType": "cptu_pore_pressure_response",
+        "sourceRevisionId": "drainage-rev-14",
+        "conflictRevisionId": "drainage-conflict-rev-14",
+        "confirmedAt": "2026-07-10T08:13:00Z",
+        "note": "Engineering soil class conflicts with behavior screening."
+      },
+      "drainage-conflict-resolved-undrained": {
+        "status": "resolved_conflict",
+        "resolvedAs": "confirmed_undrained",
+        "evidenceType": "laboratory_or_field_assessment",
+        "sourceRevisionId": "drainage-rev-15",
+        "confirmedAt": "2026-07-10T08:14:00Z",
+        "supersedesConflictRevisionId": "drainage-conflict-rev-14",
+        "resolutionRevisionId": "drainage-resolution-rev-3",
+        "note": "Independent evidence resolves the Ic screen conflict as undrained."
+      },
+      "drainage-conflict-resolved-drained": {
+        "status": "resolved_conflict",
+        "resolvedAs": "confirmed_drained",
+        "evidenceType": "laboratory_or_field_assessment",
+        "sourceRevisionId": "drainage-rev-16",
+        "confirmedAt": "2026-07-10T08:15:00Z",
+        "supersedesConflictRevisionId": "drainage-conflict-rev-14",
+        "resolutionRevisionId": "drainage-resolution-rev-4",
+        "note": "Independent evidence resolves the current conflict as drained."
+      },
+      "drainage-resolution-missing-supersedes": {
+        "status": "resolved_conflict",
+        "resolvedAs": "confirmed_undrained",
+        "evidenceType": "laboratory_or_field_assessment",
+        "sourceRevisionId": "drainage-rev-17",
+        "confirmedAt": "2026-07-10T08:16:00Z",
+        "resolutionRevisionId": "drainage-resolution-rev-5",
+        "note": "Invalid vector: superseded conflict ID is missing."
+      },
+      "drainage-resolution-old-conflict": {
+        "status": "resolved_conflict",
+        "resolvedAs": "confirmed_undrained",
+        "evidenceType": "laboratory_or_field_assessment",
+        "sourceRevisionId": "drainage-rev-18",
+        "confirmedAt": "2026-07-10T08:17:00Z",
+        "supersedesConflictRevisionId": "drainage-conflict-rev-9",
+        "resolutionRevisionId": "drainage-resolution-rev-6",
+        "note": "Invalid vector: resolution supersedes an old conflict."
+      },
+      "drainage-resolution-other-conflict": {
+        "status": "resolved_conflict",
+        "resolvedAs": "confirmed_undrained",
+        "evidenceType": "laboratory_or_field_assessment",
+        "sourceRevisionId": "drainage-rev-19",
+        "confirmedAt": "2026-07-10T08:18:00Z",
+        "supersedesConflictRevisionId": "drainage-conflict-other-point",
+        "resolutionRevisionId": "drainage-resolution-rev-7",
+        "note": "Invalid vector: resolution supersedes another conflict."
+      },
+      "drainage-undrained-superseded": {
+        "status": "confirmed_undrained",
+        "evidenceType": "site_characterization",
+        "sourceRevisionId": "drainage-rev-old",
+        "confirmedAt": "2026-07-09T08:00:00Z",
+        "supersededByConflictRevisionId": "drainage-conflict-rev-14",
+        "note": "This confirmation predates and is superseded by the current conflict."
+      },
+      "drainage-drained-superseded": {
+        "status": "confirmed_drained",
+        "evidenceType": "site_characterization",
+        "sourceRevisionId": "drainage-rev-old-drained",
+        "confirmedAt": "2026-07-09T08:01:00Z",
+        "supersededByConflictRevisionId": "drainage-conflict-rev-14",
+        "note": "This drained confirmation predates and is superseded by the current conflict."
+      }
+    },
+    "materialApplicability": {
+      "material-quartz-silica": {
+        "status": "within_source_scope",
+        "materialClass": "quartz_silica_uncemented_sand",
+        "sourceRevisionId": "material-rev-21",
+        "confirmedAt": "2026-07-10T08:20:00Z",
+        "note": "Material evidence is within the source database scope."
+      },
+      "material-quartz-silica-silty": {
+        "status": "within_source_scope",
+        "materialClass": "quartz_silica_silty_sand_uncemented",
+        "sourceRevisionId": "material-rev-22",
+        "confirmedAt": "2026-07-10T08:21:00Z",
+        "note": "Silty sand evidence is within the source database scope."
+      },
+      "material-scope-unknown": {
+        "status": "scope_unknown",
+        "materialClass": "unknown",
+        "sourceRevisionId": "material-rev-23",
+        "confirmedAt": "2026-07-10T08:22:00Z",
+        "note": "Mineralogy and cementation are not established."
+      },
+      "material-known-extrapolation": {
+        "status": "known_extrapolation",
+        "materialClass": "feldspathic_angular_sand",
+        "sourceRevisionId": "material-rev-24",
+        "confirmedAt": "2026-07-10T08:23:00Z",
+        "note": "Known mineralogy differs from the source database."
+      },
+      "material-engineer-confirmed-extrapolation": {
+        "status": "engineer_confirmed_extrapolation",
+        "materialClass": "feldspathic_angular_sand",
+        "sourceRevisionId": "material-rev-25",
+        "confirmedAt": "2026-07-10T08:24:00Z",
+        "confirmationRevisionId": "material-resolution-rev-2",
+        "note": "Engineering review explicitly accepts use outside the source database with a retained warning."
+      },
+      "material-high-calcareous": {
+        "status": "outside_scope",
+        "materialClass": "high_calcareous_sand",
+        "sourceRevisionId": "material-rev-26",
+        "confirmedAt": "2026-07-10T08:25:00Z",
+        "note": "High calcareous content is outside this method version."
+      },
+      "material-cemented-sand": {
+        "status": "outside_scope",
+        "materialClass": "cemented_sand",
+        "sourceRevisionId": "material-rev-27",
+        "confirmedAt": "2026-07-10T08:26:00Z",
+        "note": "Cemented sand is outside this method version."
+      },
+      "material-clay-supported": {
+        "status": "within_source_scope",
+        "materialClass": "soft_firm_nc_loc_intact_clay",
+        "sourceRevisionId": "material-rev-28",
+        "confirmedAt": "2026-07-10T08:27:00Z",
+        "note": "Clay evidence is within the fixed-Nkt source category."
+      },
+      "material-sensitive-clay": {
+        "status": "within_source_scope",
+        "materialClass": "sensitive_clay",
+        "sourceRevisionId": "material-rev-28s",
+        "confirmedAt": "2026-07-10T08:27:10Z",
+        "note": "Sensitive clay uses its own calibrated Nkt scope."
+      },
+      "material-fissured-oc-clay": {
+        "status": "within_source_scope",
+        "materialClass": "fissured_overconsolidated_clay",
+        "sourceRevisionId": "material-rev-28f",
+        "confirmedAt": "2026-07-10T08:27:20Z",
+        "note": "Fissured OC clay uses its own calibrated Nkt scope with retained uncertainty."
+      },
+      "material-organic-clay": {
+        "status": "outside_scope",
+        "materialClass": "organic_clay",
+        "sourceRevisionId": "material-rev-29",
+        "confirmedAt": "2026-07-10T08:28:00Z",
+        "note": "Organic clay is excluded from this method version."
+      },
+      "material-cemented-clay": {
+        "status": "outside_scope",
+        "materialClass": "cemented_clay",
+        "sourceRevisionId": "material-rev-30",
+        "confirmedAt": "2026-07-10T08:29:00Z",
+        "note": "Cemented clay is excluded from this method version."
+      }
+    },
+    "nkt": {
+      "nkt-literature-12": {
+        "value": 12,
+        "origin": "literature_starting_assumption",
+        "targetStrengthMode": "triaxial_compression",
+        "eligibleMaterialClass": "soft_firm_nc_loc_intact_clay",
+        "eligibleEnvironments": ["onshore", "offshore"],
+        "sourceRefs": [
+          { "environment": "offshore", "sourceRef": "mayne-cargill-greig-2023-rev1.1-p113" },
+          { "environment": "offshore", "sourceRef": "mayne-peuchen-2018-table1-figure4-offshore-12.3" },
+          { "environment": "onshore", "sourceRef": "mayne-peuchen-2018-table1-figure4-onshore-12.0" }
+        ],
+        "assumptionRationale": "User explicitly selected the uncalibrated literature starting assumption.",
+        "referenceTestIds": [],
+        "confirmedAt": "2026-07-10T08:30:00Z"
+      },
+      "nkt-user-14": {
+        "value": 14,
+        "origin": "user_defined_assumption",
+        "targetStrengthMode": "triaxial_compression",
+        "assumptionRationale": "User-defined sensitivity run; not represented as site calibration.",
+        "referenceTestIds": [],
+        "confirmedAt": "2026-07-10T08:31:00Z"
+      },
+      "nkt-site-12": {
+        "value": 12,
+        "origin": "site_calibrated",
+        "targetStrengthMode": "triaxial_compression",
+        "projectId": "project-golden",
+        "siteId": "site-golden",
+        "pointId": "point-golden",
+        "materialClass": "soft_firm_nc_loc_intact_clay",
+        "calibrationRevisionId": "nkt-cal-rev-12",
+        "referenceStrengthMode": "CAUC",
+        "failureCriterion": "half_maximum_deviator_stress",
+        "applicableLayerRevisionRefs": ["layer-clay-1@rev-3"],
+        "inputDerivationRunId": "deriv-run-current",
+        "matchedPairs": [{ "pairId": "pair-12-1", "depthM": 8.4, "qnetKpa": 867.6, "sucKpa": 72.3, "sourceRowId": "row-840", "inputDerivationRunId": "deriv-run-current", "referenceTestId": "CAUC-07", "referenceTestRevisionId": "CAUC-07@rev-2", "matchBasis": "same_site_matched_elevation" }],
+        "referenceTestIds": ["CAUC-07"],
+        "derivation": { "method": "matched_pair_ratio", "aggregation": "single_pair", "pairCount": 1, "derivedNkt": 12 },
+        "confirmedAt": "2026-07-10T08:32:00Z"
+      },
+      "nkt-site-10": {
+        "value": 10,
+        "origin": "site_calibrated",
+        "targetStrengthMode": "triaxial_compression",
+        "projectId": "project-golden",
+        "siteId": "site-golden",
+        "pointId": "point-golden",
+        "materialClass": "sensitive_clay",
+        "calibrationRevisionId": "nkt-cal-rev-10",
+        "referenceStrengthMode": "CAUC",
+        "failureCriterion": "half_maximum_deviator_stress",
+        "applicableLayerRevisionRefs": ["layer-sensitive-1@rev-2"],
+        "inputDerivationRunId": "deriv-run-current",
+        "matchedPairs": [{ "pairId": "pair-10-1", "depthM": 6.2, "qnetKpa": 800, "sucKpa": 80, "sourceRowId": "row-620", "inputDerivationRunId": "deriv-run-current", "referenceTestId": "CAUC-S01", "referenceTestRevisionId": "CAUC-S01@rev-3", "matchBasis": "same_site_matched_elevation" }],
+        "referenceTestIds": ["CAUC-S01"],
+        "derivation": { "method": "matched_pair_ratio", "aggregation": "single_pair", "pairCount": 1, "derivedNkt": 10 },
+        "confirmedAt": "2026-07-10T08:33:00Z"
+      },
+      "nkt-site-24": {
+        "value": 24,
+        "origin": "site_calibrated",
+        "targetStrengthMode": "triaxial_compression",
+        "projectId": "project-golden",
+        "siteId": "site-golden",
+        "pointId": "point-golden",
+        "materialClass": "fissured_overconsolidated_clay",
+        "calibrationRevisionId": "nkt-cal-rev-24",
+        "referenceStrengthMode": "CIUC",
+        "failureCriterion": "half_maximum_deviator_stress",
+        "applicableLayerRevisionRefs": ["layer-fissured-1@rev-5"],
+        "inputDerivationRunId": "deriv-run-current",
+        "matchedPairs": [{ "pairId": "pair-24-1", "depthM": 14.1, "qnetKpa": 960, "sucKpa": 40, "sourceRowId": "row-1410", "inputDerivationRunId": "deriv-run-current", "referenceTestId": "CIUC-F04", "referenceTestRevisionId": "CIUC-F04@rev-4", "matchBasis": "same_site_matched_elevation" }],
+        "referenceTestIds": ["CIUC-F04"],
+        "derivation": { "method": "matched_pair_ratio", "aggregation": "single_pair", "pairCount": 1, "derivedNkt": 24 },
+        "confirmedAt": "2026-07-10T08:34:00Z"
+      },
+      "nkt-site-12-conflict": {
+        "value": 12,
+        "origin": "site_calibrated",
+        "targetStrengthMode": "triaxial_compression",
+        "projectId": "project-golden",
+        "siteId": "site-golden",
+        "pointId": "point-golden",
+        "materialClass": "soft_firm_nc_loc_intact_clay",
+        "calibrationRevisionId": "nkt-cal-rev-12-conflict",
+        "referenceStrengthMode": "CAUC",
+        "failureCriterion": "half_maximum_deviator_stress",
+        "applicableLayerRevisionRefs": ["layer-clay-conflict@rev-4"],
+        "inputDerivationRunId": "deriv-run-current",
+        "matchedPairs": [{ "pairId": "pair-12-c", "depthM": 5.8, "qnetKpa": 1200, "sucKpa": 100, "sourceRowId": "row-580", "inputDerivationRunId": "deriv-run-current", "referenceTestId": "CAUC-02", "referenceTestRevisionId": "CAUC-02@rev-2", "matchBasis": "same_site_matched_elevation" }],
+        "referenceTestIds": ["CAUC-02"],
+        "derivation": { "method": "matched_pair_ratio", "aggregation": "single_pair", "pairCount": 1, "derivedNkt": 12 },
+        "confirmedAt": "2026-07-10T08:35:00Z"
+      },
+      "nkt-zero": {
+        "value": 0,
+        "origin": "user_defined_assumption",
+        "targetStrengthMode": "triaxial_compression",
+        "assumptionRationale": "Invalid zero test vector.",
+        "referenceTestIds": [],
+        "confirmedAt": "2026-07-10T08:36:00Z"
+      },
+      "nkt-nan": {
+        "origin": "user_defined_assumption",
+        "targetStrengthMode": "triaxial_compression",
+        "encodedNonFinite": { "field": "value", "kind": "NaN" },
+        "assumptionRationale": "Invalid non-finite test vector.",
+        "referenceTestIds": [],
+        "confirmedAt": "2026-07-10T08:37:00Z"
+      },
+      "nkt-positive-infinity": {
+        "origin": "user_defined_assumption",
+        "targetStrengthMode": "triaxial_compression",
+        "encodedNonFinite": { "field": "value", "kind": "PositiveInfinity" },
+        "assumptionRationale": "Invalid non-finite test vector.",
+        "referenceTestIds": [],
+        "confirmedAt": "2026-07-10T08:38:00Z"
+      },
+      "nkt-confirmation-missing": {
+        "value": 12,
+        "origin": "literature_starting_assumption",
+        "targetStrengthMode": "triaxial_compression",
+        "eligibleMaterialClass": "soft_firm_nc_loc_intact_clay",
+        "sourceRefs": [
+          { "environment": "offshore", "sourceRef": "mayne-cargill-greig-2023-rev1.1-p113" },
+          { "environment": "onshore", "sourceRef": "mayne-peuchen-2018-table1-figure4-onshore-12.0" }
+        ],
+        "assumptionRationale": "Confirmation timestamp intentionally absent.",
+        "referenceTestIds": []
+      },
+      "nkt-calibration-incomplete": {
+        "value": 12,
+        "origin": "site_calibrated",
+        "targetStrengthMode": "triaxial_compression",
+        "calibrationRevisionId": "nkt-cal-incomplete",
+        "referenceTestIds": ["CAUC-NAME-ONLY"],
+        "matchedPairs": [],
+        "confirmedAt": "2026-07-10T08:39:00Z"
+      },
+      "nkt-basis-missing": {
+        "value": 12,
+        "targetStrengthMode": "triaxial_compression",
+        "referenceTestIds": [],
+        "confirmedAt": "2026-07-10T08:40:00Z"
+      }
+    },
+    "calibrationContext": {
+      "ctx-regular": { "projectId": "project-golden", "siteId": "site-golden", "pointId": "point-golden", "environment": "offshore", "targetLayerRevisionRef": "layer-clay-1@rev-3", "targetMaterialClass": "soft_firm_nc_loc_intact_clay", "inputDerivationRunId": "deriv-run-current" },
+      "ctx-sensitive": { "projectId": "project-golden", "siteId": "site-golden", "pointId": "point-golden", "environment": "offshore", "targetLayerRevisionRef": "layer-sensitive-1@rev-2", "targetMaterialClass": "sensitive_clay", "inputDerivationRunId": "deriv-run-current" },
+      "ctx-fissured": { "projectId": "project-golden", "siteId": "site-golden", "pointId": "point-golden", "environment": "offshore", "targetLayerRevisionRef": "layer-fissured-1@rev-5", "targetMaterialClass": "fissured_overconsolidated_clay", "inputDerivationRunId": "deriv-run-current" },
+      "ctx-conflict": { "projectId": "project-golden", "siteId": "site-golden", "pointId": "point-golden", "environment": "offshore", "targetLayerRevisionRef": "layer-clay-conflict@rev-4", "targetMaterialClass": "soft_firm_nc_loc_intact_clay", "inputDerivationRunId": "deriv-run-current" },
+      "ctx-cross-layer": { "projectId": "project-golden", "siteId": "site-golden", "pointId": "point-golden", "environment": "offshore", "targetLayerRevisionRef": "layer-other@rev-1", "targetMaterialClass": "soft_firm_nc_loc_intact_clay", "inputDerivationRunId": "deriv-run-current" },
+      "ctx-cross-material": { "projectId": "project-golden", "siteId": "site-golden", "pointId": "point-golden", "environment": "offshore", "targetLayerRevisionRef": "layer-clay-1@rev-3", "targetMaterialClass": "sensitive_clay", "inputDerivationRunId": "deriv-run-current" },
+      "ctx-cross-point": { "projectId": "project-golden", "siteId": "site-golden", "pointId": "point-other", "environment": "offshore", "targetLayerRevisionRef": "layer-clay-1@rev-3", "targetMaterialClass": "soft_firm_nc_loc_intact_clay", "inputDerivationRunId": "deriv-run-current" },
+      "ctx-cross-site": { "projectId": "project-golden", "siteId": "site-other", "pointId": "point-golden", "environment": "offshore", "targetLayerRevisionRef": "layer-clay-1@rev-3", "targetMaterialClass": "soft_firm_nc_loc_intact_clay", "inputDerivationRunId": "deriv-run-current" },
+      "ctx-cross-project": { "projectId": "project-other", "siteId": "site-golden", "pointId": "point-golden", "environment": "offshore", "targetLayerRevisionRef": "layer-clay-1@rev-3", "targetMaterialClass": "soft_firm_nc_loc_intact_clay", "inputDerivationRunId": "deriv-run-current" },
+      "ctx-stale-source": { "projectId": "project-golden", "siteId": "site-golden", "pointId": "point-golden", "environment": "offshore", "targetLayerRevisionRef": "layer-clay-1@rev-3", "targetMaterialClass": "soft_firm_nc_loc_intact_clay", "inputDerivationRunId": "deriv-run-new" }
+    },
+    "conflictContext": {
+      "conflict-current-14": { "currentConflictRevisionId": "drainage-conflict-rev-14", "pointId": "point-golden", "sourceRevisionId": "drainage-rev-14" }
+    },
+    "calibrationAuthority": {
+      "authority-regular-current": { "inputDerivationRunId": "deriv-run-current", "currentSourceRowIds": ["row-840"], "currentReferenceTestRevisions": { "CAUC-07": "CAUC-07@rev-2" } },
+      "authority-sensitive-current": { "inputDerivationRunId": "deriv-run-current", "currentSourceRowIds": ["row-620"], "currentReferenceTestRevisions": { "CAUC-S01": "CAUC-S01@rev-3" } },
+      "authority-fissured-current": { "inputDerivationRunId": "deriv-run-current", "currentSourceRowIds": ["row-1410"], "currentReferenceTestRevisions": { "CIUC-F04": "CIUC-F04@rev-4" } },
+      "authority-conflict-current": { "inputDerivationRunId": "deriv-run-current", "currentSourceRowIds": ["row-580"], "currentReferenceTestRevisions": { "CAUC-02": "CAUC-02@rev-2" } },
+      "authority-regular-row-missing": { "inputDerivationRunId": "deriv-run-current", "currentSourceRowIds": ["row-other"], "currentReferenceTestRevisions": { "CAUC-07": "CAUC-07@rev-2" } },
+      "authority-regular-test-replaced": { "inputDerivationRunId": "deriv-run-current", "currentSourceRowIds": ["row-840"], "currentReferenceTestRevisions": { "CAUC-07": "CAUC-07@rev-3" } }
+    }
+  },
+  "phiPeak": {
+    "methodId": "CPTU-Param-PhiSand-Qtn-Mayne",
+    "methodVersion": "v1",
+    "formula": "phiPeakDeg = 17.6 + 11.0 * log10(Qtn)",
+    "vectors": [
+      { "caseId": "phi-scope-unknown-candidate", "input": { "qtn": 20.000001, "icRw": 2.1, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-scope-unknown" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["PhiMaterialScopeUnknown"], "value": 31.911330191165753, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-valid-qtn-50", "input": { "qtn": 50, "icRw": 2.3, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "Valid", "reasonCodes": ["PhiValid"], "value": 36.28867004769621, "eligibleForCurrentResult": true } },
+      { "caseId": "phi-valid-qtn-100", "input": { "qtn": 100, "icRw": 2.59, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-user", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "Valid", "reasonCodes": ["PhiValid"], "value": 39.6, "eligibleForCurrentResult": true } },
+      { "caseId": "phi-valid-qtn-200", "input": { "qtn": 200, "icRw": 1.9, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica-silty" } }, "expected": { "status": "Valid", "reasonCodes": ["PhiValid"], "value": 42.911329952303795, "eligibleForCurrentResult": true } },
+      { "caseId": "phi-valid-upper-neighbor", "input": { "qtn": 399.999999, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "Valid", "reasonCodes": ["PhiValid"], "value": 46.22265989266449, "eligibleForCurrentResult": true } },
+      { "caseId": "phi-material-source-deviation-unresolved", "input": { "qtn": 75, "icRw": 2.1, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-known-extrapolation" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["PhiKnownExtrapolation"], "value": 38.2256738973087, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-material-source-deviation-confirmed", "input": { "qtn": 75, "icRw": 2.1, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-engineer-confirmed-extrapolation" } }, "expected": { "status": "ValidWithNotice", "reasonCodes": ["PhiMaterialSourceDeviation"], "value": 38.2256738973087, "eligibleForCurrentResult": true } },
+      { "caseId": "phi-qtn-exact-lower-bound", "input": { "qtn": 20, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "NotApplicable", "reasonCodes": ["PhiOutsideSourceQtnRange"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-qtn-exact-upper-bound", "input": { "qtn": 400, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "NotApplicable", "reasonCodes": ["PhiOutsideSourceQtnRange"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-qtn-zero", "input": { "qtn": 0, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["PhiNonPositiveQtn"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-qtn-missing", "input": { "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["PhiMissingQtn"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-qtn-nan", "input": { "encodedNonFinite": { "field": "qtn", "kind": "NaN" }, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["PhiNonFiniteQtn"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-qtn-positive-infinity", "input": { "encodedNonFinite": { "field": "qtn", "kind": "PositiveInfinity" }, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["PhiNonFiniteQtn"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-qtn-negative-infinity", "input": { "encodedNonFinite": { "field": "qtn", "kind": "NegativeInfinity" }, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["PhiNonFiniteQtn"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-ic-missing", "input": { "qtn": 100, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["PhiMissingIc"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-ic-non-finite", "input": { "qtn": 100, "encodedNonFinite": { "field": "icRw", "kind": "NegativeInfinity" }, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["PhiNonFiniteIc"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-ic-transition", "input": { "qtn": 100, "icRw": 2.6, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-conflict-unresolved", "material": "material-quartz-silica" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["PhiTransitionIc"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-layer-group-mismatch", "input": { "qtn": 100, "icRw": 2.2, "layerGroup": "clay", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["PhiLayerGroupMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-rate-basis-missing", "input": { "qtn": 100, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-missing", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["PhiRateBasisMissing"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-known-nonstandard-rate", "input": { "qtn": 100, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-known-nonstandard-10", "drainage": "drainage-drained-cptu", "material": "material-quartz-silica" } }, "expected": { "status": "NotApplicable", "reasonCodes": ["PhiKnownNonstandardRate"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-drainage-basis-missing", "input": { "qtn": 100, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-unknown", "material": "material-quartz-silica" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["PhiDrainageBasisMissing"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-drainage-resolution-wrong-direction", "input": { "qtn": 100, "icRw": 2.2, "layerGroup": "sand", "conflictContextRef": "conflict-current-14", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-conflict-resolved-undrained", "material": "material-quartz-silica" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["PhiDrainageResolutionMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-drainage-confirmation-superseded", "input": { "qtn": 100, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-superseded", "material": "material-quartz-silica" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["DrainageEvidenceSuperseded"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-high-calcareous", "input": { "qtn": 100, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-high-calcareous" } }, "expected": { "status": "NotApplicable", "reasonCodes": ["PhiMaterialOutsideSource"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "phi-cemented-outside-source", "input": { "qtn": 100, "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu", "material": "material-cemented-sand" } }, "expected": { "status": "NotApplicable", "reasonCodes": ["PhiMaterialOutsideSource"], "value": null, "eligibleForCurrentResult": false } }
+    ]
+  },
+  "suc": {
+    "methodId": "CPTU-Param-Su-Nkt-MayneLunne",
+    "methodVersion": "v1",
+    "formula": "sucKpa = qnetKpa / Nkt",
+    "vectors": [
+      { "caseId": "suc-literature-starting-assumption", "input": { "qnetKpa": 1200, "icRw": 2.8, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-cptu", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ValidWithNotice", "reasonCodes": ["SucLiteratureAssumptionUncalibrated"], "value": 100, "eligibleForCurrentResult": true } },
+      { "caseId": "suc-literature-starting-assumption-onshore", "input": { "qnetKpa": 600, "icRw": 2.9, "layerGroup": "clay", "environment": "onshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-cptu", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ValidWithNotice", "reasonCodes": ["SucLiteratureAssumptionUncalibrated"], "value": 50, "eligibleForCurrentResult": true } },
+      { "caseId": "suc-user-defined-assumption", "input": { "qnetKpa": 700, "icRw": 3.0, "layerGroup": "clay", "evidenceRefs": { "rate": "rate-standard-20-user", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-user-14" } }, "expected": { "status": "ValidWithNotice", "reasonCodes": ["SucUserDefinedAssumptionUncalibrated"], "value": 50, "eligibleForCurrentResult": true } },
+      { "caseId": "suc-calibrated-decimal", "input": { "qnetKpa": 867.6, "icRw": 3.1, "layerGroup": "clay", "calibrationContextRef": "ctx-regular", "calibrationAuthorityRef": "authority-regular-current", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-site-12" } }, "expected": { "status": "Valid", "reasonCodes": ["SucValid"], "value": 72.3, "eligibleForCurrentResult": true } },
+      { "caseId": "suc-calibrated-nkt-10", "input": { "qnetKpa": 800, "icRw": 2.9, "layerGroup": "clay", "calibrationContextRef": "ctx-sensitive", "calibrationAuthorityRef": "authority-sensitive-current", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-cptu", "material": "material-sensitive-clay", "nkt": "nkt-site-10" } }, "expected": { "status": "Valid", "reasonCodes": ["SucValid"], "value": 80, "eligibleForCurrentResult": true } },
+      { "caseId": "suc-calibrated-nkt-24", "input": { "qnetKpa": 960, "icRw": 3.4, "layerGroup": "clay", "calibrationContextRef": "ctx-fissured", "calibrationAuthorityRef": "authority-fissured-current", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-fissured-oc-clay", "nkt": "nkt-site-24" } }, "expected": { "status": "Valid", "reasonCodes": ["SucValid"], "value": 40, "eligibleForCurrentResult": true } },
+      { "caseId": "suc-ic-exact-2-60-resolved", "input": { "qnetKpa": 1200, "icRw": 2.6, "layerGroup": "clay", "calibrationContextRef": "ctx-conflict", "calibrationAuthorityRef": "authority-conflict-current", "conflictContextRef": "conflict-current-14", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-conflict-resolved-undrained", "material": "material-clay-supported", "nkt": "nkt-site-12-conflict" } }, "expected": { "status": "ValidWithNotice", "reasonCodes": ["SucIcScreenConflict"], "value": 100, "eligibleForCurrentResult": true } },
+      { "caseId": "suc-ic-below-2-60-resolved", "input": { "qnetKpa": 900, "icRw": 2.4, "layerGroup": "clay", "calibrationContextRef": "ctx-conflict", "calibrationAuthorityRef": "authority-conflict-current", "conflictContextRef": "conflict-current-14", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-conflict-resolved-undrained", "material": "material-clay-supported", "nkt": "nkt-site-12-conflict" } }, "expected": { "status": "ValidWithNotice", "reasonCodes": ["SucIcScreenConflict"], "value": 75, "eligibleForCurrentResult": true } },
+      { "caseId": "suc-ic-missing-with-independent-evidence", "input": { "qnetKpa": 600, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ValidWithNotice", "reasonCodes": ["SucIcScreenUnavailable", "SucLiteratureAssumptionUncalibrated"], "value": 50, "eligibleForCurrentResult": true } },
+      { "caseId": "suc-ic-non-finite-with-independent-evidence", "input": { "qnetKpa": 600, "encodedNonFinite": { "field": "icRw", "kind": "PositiveInfinity" }, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ValidWithNotice", "reasonCodes": ["SucIcScreenUnavailable", "SucLiteratureAssumptionUncalibrated"], "value": 50, "eligibleForCurrentResult": true } },
+      { "caseId": "suc-qnet-zero", "input": { "qnetKpa": 0, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["SucNonPositiveQnet"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-qnet-missing", "input": { "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["SucMissingQnet"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-qnet-positive-infinity", "input": { "encodedNonFinite": { "field": "qnetKpa", "kind": "PositiveInfinity" }, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["SucNonFiniteQnet"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-qnet-negative-infinity", "input": { "encodedNonFinite": { "field": "qnetKpa", "kind": "NegativeInfinity" }, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "InvalidInput", "reasonCodes": ["SucNonFiniteQnet"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-nkt-zero", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-zero" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucInvalidNkt"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-nkt-nan", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-nan" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucInvalidNkt"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-nkt-positive-infinity", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-positive-infinity" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucInvalidNkt"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-rate-basis-missing", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-missing", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["SucRateBasisMissing"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-known-nonstandard-rate", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-known-nonstandard-10", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "NotApplicable", "reasonCodes": ["SucKnownNonstandardRate"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-undrained-basis-missing", "input": { "qnetKpa": 1200, "icRw": 3.2, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-unknown", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["SucUndrainedBasisMissing"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-drainage-resolution-wrong-direction", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "conflictContextRef": "conflict-current-14", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-conflict-resolved-drained", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["SucDrainageResolutionMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-drainage-confirmation-superseded", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-superseded", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["DrainageEvidenceSuperseded"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-drainage-supersedes-missing", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "conflictContextRef": "conflict-current-14", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-resolution-missing-supersedes", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["DrainageEvidenceSupersessionMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-drainage-supersedes-old-conflict", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "conflictContextRef": "conflict-current-14", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-resolution-old-conflict", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["DrainageEvidenceSupersessionMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-drainage-supersedes-other-conflict", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "conflictContextRef": "conflict-current-14", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-resolution-other-conflict", "material": "material-clay-supported", "nkt": "nkt-literature-12" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["DrainageEvidenceSupersessionMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-layer-mismatch", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-cptu", "material": "material-clay-supported", "nkt": "nkt-user-14" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["SucLayerGroupMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-nkt-confirmation-missing", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-confirmation-missing" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucNktConfirmationMissing"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-nkt-basis-missing", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-basis-missing" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucNktBasisMissing"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-calibration-evidence-incomplete", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "calibrationContextRef": "ctx-regular", "calibrationAuthorityRef": "authority-regular-current", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-calibration-incomplete" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucCalibrationEvidenceIncomplete"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-calibration-cross-layer", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "calibrationContextRef": "ctx-cross-layer", "calibrationAuthorityRef": "authority-regular-current", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-site-12" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucCalibrationScopeMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-calibration-cross-material", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "calibrationContextRef": "ctx-cross-material", "calibrationAuthorityRef": "authority-regular-current", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-sensitive-clay", "nkt": "nkt-site-12" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucCalibrationScopeMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-calibration-cross-point", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "calibrationContextRef": "ctx-cross-point", "calibrationAuthorityRef": "authority-regular-current", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-site-12" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucCalibrationScopeMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-calibration-cross-site", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "calibrationContextRef": "ctx-cross-site", "calibrationAuthorityRef": "authority-regular-current", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-site-12" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucCalibrationScopeMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-calibration-cross-project", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "calibrationContextRef": "ctx-cross-project", "calibrationAuthorityRef": "authority-regular-current", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-site-12" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucCalibrationScopeMismatch"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-calibration-source-stale", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "calibrationContextRef": "ctx-stale-source", "calibrationAuthorityRef": "authority-regular-current", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-site-12" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucCalibrationSourceStale"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-calibration-source-row-stale", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "calibrationContextRef": "ctx-regular", "calibrationAuthorityRef": "authority-regular-row-missing", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-site-12" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucCalibrationSourceStale"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-calibration-test-revision-stale", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "calibrationContextRef": "ctx-regular", "calibrationAuthorityRef": "authority-regular-test-replaced", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-site-12" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucCalibrationSourceStale"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-default-12-not-eligible", "input": { "qnetKpa": 1200, "icRw": 3.2, "layerGroup": "clay", "environment": "offshore", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-fissured-oc-clay", "nkt": "nkt-literature-12" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucDefault12NotEligible"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-unsupported-strength-mode", "input": { "qnetKpa": 1200, "icRw": 3.0, "layerGroup": "clay", "requestedStrengthMode": "direct_simple_shear", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-clay-supported", "nkt": "nkt-user-14" } }, "expected": { "status": "InvalidMethodParameter", "reasonCodes": ["SucUnsupportedStrengthMode"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-organic-clay-outside-source", "input": { "qnetKpa": 1200, "icRw": 3.5, "layerGroup": "clay", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-organic-clay", "nkt": "nkt-user-14" } }, "expected": { "status": "NotApplicable", "reasonCodes": ["SucMaterialOutsideSource"], "value": null, "eligibleForCurrentResult": false } },
+      { "caseId": "suc-cemented-clay-outside-source", "input": { "qnetKpa": 1200, "icRw": 3.5, "layerGroup": "clay", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-site", "material": "material-cemented-clay", "nkt": "nkt-user-14" } }, "expected": { "status": "NotApplicable", "reasonCodes": ["SucMaterialOutsideSource"], "value": null, "eligibleForCurrentResult": false } }
+    ]
+  },
+  "jointApplicability": {
+    "vectors": [
+      { "caseId": "joint-sand-vs-ic-only", "input": { "icRw": 2.8, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["SoilClassBehaviorScreenConflict"], "reasonPriority": "joint_before_method", "phiEligible": false, "sucEligible": false } },
+      { "caseId": "joint-sand-vs-drainage-only", "input": { "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-cptu" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["SoilClassBehaviorScreenConflict"], "reasonPriority": "joint_before_method", "phiEligible": false, "sucEligible": false } },
+      { "caseId": "joint-sand-explicit-conflict-only", "input": { "icRw": 2.2, "layerGroup": "sand", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-conflict-unresolved" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["SoilClassBehaviorScreenConflict"], "reasonPriority": "joint_before_method", "phiEligible": false, "sucEligible": false } },
+      { "caseId": "joint-clay-vs-ic-only", "input": { "icRw": 2.4, "layerGroup": "clay", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-undrained-cptu" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["SoilClassBehaviorScreenConflict"], "reasonPriority": "joint_before_method", "phiEligible": false, "sucEligible": false } },
+      { "caseId": "joint-clay-vs-drainage-only", "input": { "icRw": 3.0, "layerGroup": "clay", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-drained-cptu" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["SoilClassBehaviorScreenConflict"], "reasonPriority": "joint_before_method", "phiEligible": false, "sucEligible": false } },
+      { "caseId": "joint-clay-explicit-conflict-only", "input": { "icRw": 3.0, "layerGroup": "clay", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-conflict-unresolved" } }, "expected": { "status": "ApplicabilityUnconfirmed", "reasonCodes": ["SoilClassBehaviorScreenConflict"], "reasonPriority": "joint_before_method", "phiEligible": false, "sucEligible": false } },
+      { "caseId": "joint-sand-conflict-resolved-drained", "input": { "icRw": 2.2, "layerGroup": "sand", "conflictContextRef": "conflict-current-14", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-conflict-resolved-drained" } }, "expected": { "status": "NoProblem", "reasonCodes": [], "reasonPriority": "joint_before_method", "phiEligible": true, "sucEligible": false } },
+      { "caseId": "joint-clay-conflict-resolved-undrained", "input": { "icRw": 2.4, "layerGroup": "clay", "conflictContextRef": "conflict-current-14", "evidenceRefs": { "rate": "rate-standard-20-meta", "drainage": "drainage-conflict-resolved-undrained" } }, "expected": { "status": "ResolvedWithNotice", "reasonCodes": ["SucIcScreenConflict"], "reasonPriority": "joint_before_method", "phiEligible": false, "sucEligible": true } }
+    ]
+  }
+}

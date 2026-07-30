@@ -1,0 +1,39 @@
+node_modules/
+dist/
+build/
+coverage/
+playwright-report/
+playwright-results/
+test-results/
+process_logs/playwright-mcp/
+process_logs/playwright-results/
+process_logs/playwright-results*/
+.vite/
+.turbo/
+.next/
+__pycache__/
+*.py[cod]
+*.log
+*.local
+.env
+.env.*
+!.env.example
+mishi.md
+.vercel/
+sample_data/source/yingkou/
+
+# Local design references are not required by the running website.
+CPeT-IT data report.pdf
+Braintrust Web 150.png
+image/
+public/reference-screenshots/
+process*-feedback-*.png
+
+# Generated governance receipts stay local; durable Process notes remain versioned.
+process_logs/closure-drafts/
+process_logs/verification/
+process_logs/knowledge-reviews/
+process_logs/reviews/
+process_logs/evidence-audit*.json
+process_logs/*release-audit*.json
+process_logs/*.log

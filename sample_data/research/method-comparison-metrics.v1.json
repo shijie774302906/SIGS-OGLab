@@ -1,0 +1,200 @@
+{
+  "schemaVersion": "method-comparison-metrics.v1",
+  "comparisonSetId": "research-comparison-current-point-example",
+  "projectId": "current-project",
+  "pointId": "current-cptu-point",
+  "createdAtUtc": "2026-06-30T00:00:00Z",
+  "mode": "ResearchOnly",
+  "officialWriteAllowed": false,
+  "exportAllowed": false,
+  "baselineRef": {
+    "refId": "baseline-adopted-layer",
+    "objectType": "LayerScheme",
+    "objectId": "layer-scheme-current-adopted",
+    "sourceMethodId": "builtin-ic-sbt-first-pass",
+    "sourceRunId": "method-run-layer-current",
+    "status": "Adopted",
+    "identity": "OfficialCandidate",
+    "projectionOnly": false,
+    "adopted": true
+  },
+  "candidateRefs": [
+    {
+      "refId": "candidate-layer-a",
+      "objectType": "LayerScheme",
+      "objectId": "layer-scheme-candidate-a",
+      "sourceMethodId": "external-layer-method-a",
+      "sourceRunId": "method-run-layer-a",
+      "status": "Candidate",
+      "identity": "Reference",
+      "projectionOnly": true,
+      "adopted": false
+    },
+    {
+      "refId": "candidate-parameter-b",
+      "objectType": "ParameterScheme",
+      "objectId": "parameter-scheme-candidate-b",
+      "sourceMethodId": "external-parameter-method-b",
+      "sourceRunId": "method-run-parameter-b",
+      "status": "Candidate",
+      "identity": "Experimental",
+      "projectionOnly": true,
+      "adopted": false
+    },
+    {
+      "refId": "candidate-classification-c",
+      "objectType": "ClassificationEvidence",
+      "objectId": "classification-evidence-c",
+      "sourceMethodId": "external-classification-method-c",
+      "sourceRunId": "method-run-classification-c",
+      "status": "Reference",
+      "identity": "Reference",
+      "projectionOnly": true,
+      "adopted": false
+    }
+  ],
+  "metrics": [
+    {
+      "metricId": "metric-layer-boundary-delta",
+      "metricType": "LayerBoundaryDelta",
+      "targetObjectType": "LayerScheme",
+      "unit": "m",
+      "direction": "LowerIsBetter",
+      "engineeringThreshold": 0.5,
+      "researchOnly": false,
+      "requiresSamePoint": true,
+      "requiresComparableDepthRange": true
+    },
+    {
+      "metricId": "metric-layer-count-delta",
+      "metricType": "LayerCountDelta",
+      "targetObjectType": "LayerScheme",
+      "unit": "count",
+      "direction": "LowerIsBetter",
+      "engineeringThreshold": 3,
+      "researchOnly": false,
+      "requiresSamePoint": true,
+      "requiresComparableDepthRange": true
+    },
+    {
+      "metricId": "metric-soil-group-agreement",
+      "metricType": "SoilGroupAgreement",
+      "targetObjectType": "LayerScheme",
+      "unit": "%",
+      "direction": "HigherIsBetter",
+      "engineeringThreshold": 85,
+      "researchOnly": false,
+      "requiresSamePoint": true,
+      "requiresComparableDepthRange": true
+    },
+    {
+      "metricId": "metric-parameter-mean-delta",
+      "metricType": "ParameterMeanDelta",
+      "targetObjectType": "ParameterSeries",
+      "unit": "mixed",
+      "direction": "LowerIsBetter",
+      "engineeringThreshold": null,
+      "researchOnly": true,
+      "requiresSamePoint": true,
+      "requiresComparableDepthRange": true
+    },
+    {
+      "metricId": "metric-parameter-coverage-delta",
+      "metricType": "ParameterCoverageDelta",
+      "targetObjectType": "ParameterScheme",
+      "unit": "%",
+      "direction": "LowerIsBetter",
+      "engineeringThreshold": 10,
+      "researchOnly": false,
+      "requiresSamePoint": true,
+      "requiresComparableDepthRange": true
+    },
+    {
+      "metricId": "metric-invalid-interval-overlap",
+      "metricType": "InvalidIntervalOverlap",
+      "targetObjectType": "ParameterScheme",
+      "unit": "%",
+      "direction": "Informational",
+      "engineeringThreshold": null,
+      "researchOnly": true,
+      "requiresSamePoint": true,
+      "requiresComparableDepthRange": true
+    },
+    {
+      "metricId": "metric-classification-point-agreement",
+      "metricType": "ClassificationPointAgreement",
+      "targetObjectType": "ClassificationEvidence",
+      "unit": "%",
+      "direction": "HigherIsBetter",
+      "engineeringThreshold": 80,
+      "researchOnly": true,
+      "requiresSamePoint": true,
+      "requiresComparableDepthRange": true
+    }
+  ],
+  "matrix": [
+    {
+      "rowId": "row-layer-boundary-a",
+      "baselineRefId": "baseline-adopted-layer",
+      "candidateRefId": "candidate-layer-a",
+      "metricId": "metric-layer-boundary-delta",
+      "value": 0.34,
+      "unit": "m",
+      "severity": "Info",
+      "evidence": "Median boundary delta is within engineering review threshold.",
+      "nextAction": "Keep as research comparison evidence unless explicitly adopted."
+    },
+    {
+      "rowId": "row-layer-agreement-a",
+      "baselineRefId": "baseline-adopted-layer",
+      "candidateRefId": "candidate-layer-a",
+      "metricId": "metric-soil-group-agreement",
+      "value": 78,
+      "unit": "%",
+      "severity": "Review",
+      "evidence": "Soil group agreement is below engineering threshold.",
+      "nextAction": "Review layer intervals before considering adoption."
+    },
+    {
+      "rowId": "row-parameter-coverage-b",
+      "baselineRefId": "baseline-adopted-layer",
+      "candidateRefId": "candidate-parameter-b",
+      "metricId": "metric-parameter-coverage-delta",
+      "value": 16,
+      "unit": "%",
+      "severity": "Warning",
+      "evidence": "Parameter coverage differs more than the review threshold.",
+      "nextAction": "Inspect input blocking and slot applicability."
+    }
+  ],
+  "preflight": [
+    {
+      "key": "same-point",
+      "state": "Ready",
+      "severity": "Info",
+      "evidence": "All comparison refs declare current-cptu-point.",
+      "nextAction": "Comparison can run for current point."
+    },
+    {
+      "key": "research-only-output",
+      "state": "Ready",
+      "severity": "Info",
+      "evidence": "Comparison set is ResearchOnly and officialWriteAllowed=false.",
+      "nextAction": "Do not write official results from comparison metrics."
+    },
+    {
+      "key": "candidate-export-block",
+      "state": "Ready",
+      "severity": "Info",
+      "evidence": "Candidate refs are projectionOnly or unadopted.",
+      "nextAction": "Keep candidates out of AdoptedOutputPackage until explicit adoption."
+    }
+  ],
+  "routing": {
+    "comparisonSetRoute": "research",
+    "comparisonMetricRoute": "method-lab.compare",
+    "layerMetricRoute": "stratification.bottom.compare",
+    "parameterMetricRoute": "parameters.bottom.compare"
+  }
+}
+

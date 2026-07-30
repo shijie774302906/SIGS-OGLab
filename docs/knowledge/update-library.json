@@ -1,0 +1,558 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-07-30",
+  "updates": [
+    {
+      "id": "Process070",
+      "date": "2026-07-11",
+      "title": "G5 Yingkou Real-Case Workflow",
+      "status": "closed",
+      "record": "process_logs/Process070.md",
+      "problems": ["KPB-003", "KPB-007", "KPB-012"]
+    },
+    {
+      "id": "Process071",
+      "date": "2026-07-11",
+      "title": "JTS Minimal-Input CPT/CPTU Interpretation Workflow",
+      "status": "closed",
+      "record": "process_logs/Process071.md",
+      "problems": ["KPB-003", "KPB-007", "KPB-009", "KPB-011"]
+    },
+    {
+      "id": "Process072",
+      "date": "2026-07-12",
+      "title": "Stratification Inline Diagnosis And Safe Auto-Recovery",
+      "status": "closed",
+      "record": "process_logs/Process072.md",
+      "problems": ["KPB-004", "KPB-011"]
+    },
+    {
+      "id": "Process073",
+      "date": "2026-07-12",
+      "title": "JTS Recovery UX Simplification",
+      "status": "closed",
+      "record": "process_logs/Process073.md",
+      "problems": ["KPB-004", "KPB-013"]
+    },
+    {
+      "id": "Process074",
+      "date": "2026-07-12",
+      "title": "Guided JTS Pore-Path Recovery",
+      "status": "closed",
+      "record": "process_logs/Process074.md",
+      "problems": ["KPB-004", "KPB-011"]
+    },
+    {
+      "id": "Process075",
+      "date": "2026-07-12",
+      "title": "JTS 数据异常处理 Flow 调研",
+      "status": "closed",
+      "record": "process_logs/Process075.md",
+      "problems": ["KPB-004", "KPB-011", "KPB-013"]
+    },
+    {
+      "id": "Process076",
+      "date": "2026-07-12",
+      "title": "简洁异常决策与 qc/fs/u2 共享深度证据",
+      "status": "closed",
+      "record": "process_logs/Process076.md",
+      "problems": ["KPB-009", "KPB-013"]
+    },
+    {
+      "id": "Process077",
+      "date": "2026-07-12",
+      "title": "引导式工程判断与地层工作流重构",
+      "status": "closed",
+      "record": "process_logs/Process077.md",
+      "problems": ["KPB-007", "KPB-008", "KPB-013"]
+    },
+    {
+      "id": "Process078",
+      "date": "2026-07-12",
+      "title": "Attio 式参数解译逐项向导",
+      "status": "closed",
+      "record": "process_logs/Process078.md",
+      "problems": ["KPB-008", "KPB-013"]
+    },
+    {
+      "id": "Process079",
+      "date": "2026-07-13",
+      "title": "参数向导与结果页单一路径",
+      "status": "closed",
+      "record": "process_logs/Process079.md",
+      "problems": ["KPB-001", "KPB-003", "KPB-008"]
+    },
+    {
+      "id": "Process080",
+      "date": "2026-07-13",
+      "title": "JTS 参数深度曲线补全",
+      "status": "closed",
+      "record": "process_logs/Process080.md",
+      "problems": ["KPB-001", "KPB-007", "KPB-009", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process081",
+      "date": "2026-07-13",
+      "title": "地层分层逐步指南",
+      "status": "closed",
+      "record": "process_logs/Process081.md",
+      "problems": ["KPB-008", "KPB-012"]
+    },
+    {
+      "id": "Process082",
+      "date": "2026-07-13",
+      "title": "通用 CPT/CPTU 地层分层候选确认指南",
+      "status": "closed",
+      "record": "process_logs/Process082.md",
+      "problems": ["KPB-003", "KPB-008", "KPB-011"]
+    },
+    {
+      "id": "Process083",
+      "date": "2026-07-13",
+      "title": "浏览器本机保存失败诊断与恢复",
+      "status": "closed",
+      "record": "process_logs/Process083.md",
+      "problems": ["KPB-004", "KPB-006"]
+    },
+    {
+      "id": "Process084",
+      "date": "2026-07-13",
+      "title": "新项目点位身份与数据检查原子交接",
+      "status": "closed",
+      "record": "process_logs/Process084.md",
+      "problems": ["KPB-005", "KPB-008", "KPB-012"]
+    },
+    {
+      "id": "Process085",
+      "date": "2026-07-13",
+      "title": "本机工作区完全重置",
+      "status": "closed",
+      "record": "process_logs/Process085.md",
+      "problems": ["KPB-006"]
+    },
+    {
+      "id": "Process086",
+      "date": "2026-07-13",
+      "title": "地层生成方式可见反馈与单点恢复",
+      "status": "closed",
+      "record": "process_logs/Process086.md",
+      "problems": ["KPB-002", "KPB-004", "KPB-007", "KPB-011", "KPB-012"]
+    },
+    {
+      "id": "Process087",
+      "date": "2026-07-14",
+      "title": "数据准备与检查连续指南",
+      "status": "closed",
+      "record": "process_logs/Process087.md",
+      "problems": ["KPB-004", "KPB-008", "KPB-009", "KPB-011", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process088",
+      "date": "2026-07-14",
+      "title": "数据检查整孔曲线证据",
+      "status": "closed",
+      "record": "process_logs/Process088.md",
+      "problems": ["KPB-001", "KPB-007", "KPB-009", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process089",
+      "date": "2026-07-14",
+      "title": "可复用问题库与关闭门禁",
+      "status": "closed",
+      "record": "process_logs/Process089.md",
+      "problems": ["KPB-010"]
+    },
+    {
+      "id": "Process090",
+      "date": "2026-07-14",
+      "title": "图纸中心的地层分层复核工作面",
+      "status": "closed",
+      "record": "process_logs/Process090.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-007", "KPB-011", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process091",
+      "date": "2026-07-14",
+      "title": "引导式数据调整与测点永久移除",
+      "status": "closed",
+      "record": "process_logs/Process091.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-004", "KPB-005", "KPB-006", "KPB-007", "KPB-009", "KPB-011", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process092",
+      "date": "2026-07-14",
+      "title": "地层共轴图表与薄层整理指南",
+      "status": "closed",
+      "record": "process_logs/Process092.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-007", "KPB-008", "KPB-009", "KPB-011", "KPB-012", "KPB-013", "KPB-014"]
+    },
+    {
+      "id": "Process093",
+      "date": "2026-07-15",
+      "title": "密集分层共轴查看与稳定持久化",
+      "status": "closed",
+      "record": "process_logs/Process093.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-007", "KPB-012", "KPB-013", "KPB-014", "KPB-015"]
+    },
+    {
+      "id": "Process094",
+      "date": "2026-07-15",
+      "title": "流程一致性与证据新鲜度门禁",
+      "status": "closed",
+      "record": "process_logs/Process094.md",
+      "problems": ["KPB-004", "KPB-010", "KPB-012", "KPB-016"]
+    },
+    {
+      "id": "Process095",
+      "date": "2026-07-15",
+      "title": "Playwright Test Isolation And Tiers",
+      "status": "closed",
+      "record": "process_logs/Process095.md",
+      "problems": ["KPB-002", "KPB-004", "KPB-006", "KPB-011", "KPB-012", "KPB-013", "KPB-016"]
+    },
+    {
+      "id": "Process096",
+      "date": "2026-07-15",
+      "title": "Slice-Aware Verification",
+      "status": "closed",
+      "record": "process_logs/Process096.md",
+      "problems": ["KPB-010", "KPB-016"]
+    },
+    {
+      "id": "Process097",
+      "date": "2026-07-15",
+      "title": "Evidence Lifecycle",
+      "status": "closed",
+      "record": "process_logs/Process097.md",
+      "problems": ["KPB-016"]
+    },
+    {
+      "id": "Process098",
+      "date": "2026-07-15",
+      "title": "Closure Dry-Run",
+      "status": "closed",
+      "record": "process_logs/Process098.md",
+      "problems": ["KPB-016"]
+    },
+    {
+      "id": "Process099",
+      "date": "2026-07-15",
+      "title": "受约束的分层简化向导",
+      "status": "closed",
+      "record": "process_logs/Process099.md",
+      "problems": ["KPB-001", "KPB-004", "KPB-006", "KPB-007", "KPB-008", "KPB-009", "KPB-011", "KPB-012", "KPB-013", "KPB-015"]
+    },
+    {
+      "id": "Process100",
+      "date": "2026-07-15",
+      "title": "按工程土类大类归并相邻层",
+      "status": "closed",
+      "record": "process_logs/Process100.md",
+      "problems": ["KPB-001", "KPB-003", "KPB-004", "KPB-006", "KPB-007", "KPB-011", "KPB-012", "KPB-013", "KPB-015"]
+    },
+    {
+      "id": "Process101",
+      "date": "2026-07-15",
+      "title": "分层归并复核语义与极端规模硬化",
+      "status": "closed",
+      "record": "process_logs/Process101.md",
+      "problems": ["KPB-001", "KPB-004", "KPB-006", "KPB-007", "KPB-008", "KPB-011", "KPB-012", "KPB-013", "KPB-014", "KPB-016"]
+    },
+    {
+      "id": "Process102",
+      "date": "2026-07-16",
+      "title": "共轴分层边界与 JTS 九分区 SBT 证据图",
+      "status": "closed",
+      "record": "process_logs/Process102.md",
+      "problems": ["KPB-001", "KPB-003", "KPB-006", "KPB-007", "KPB-008", "KPB-009", "KPB-011", "KPB-012"]
+    },
+    {
+      "id": "Process103",
+      "date": "2026-07-16",
+      "title": "分层确认与修订门禁一致性",
+      "status": "closed",
+      "record": "process_logs/Process103.md",
+      "problems": ["KPB-004", "KPB-006", "KPB-007", "KPB-008", "KPB-011", "KPB-012", "KPB-015"]
+    },
+    {
+      "id": "Process104",
+      "date": "2026-07-16",
+      "title": "分层边界拖动与原位拆分",
+      "status": "closed",
+      "record": "process_logs/Process104.md",
+      "problems": ["KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-007", "KPB-008", "KPB-011", "KPB-012", "KPB-013", "KPB-015"]
+    },
+    {
+      "id": "Process105",
+      "date": "2026-07-16",
+      "title": "真实层间边界唯一显示与拖动共线",
+      "status": "closed",
+      "record": "process_logs/Process105.md",
+      "problems": ["KPB-003", "KPB-008", "KPB-012", "KPB-014", "KPB-015", "KPB-016"]
+    },
+    {
+      "id": "Process106",
+      "date": "2026-07-16",
+      "title": "JTS SBT 区间标注与九色辨识",
+      "status": "closed",
+      "record": "process_logs/Process106.md",
+      "problems": ["KPB-002", "KPB-003", "KPB-007", "KPB-011", "KPB-012"]
+    },
+    {
+      "id": "Process107",
+      "date": "2026-07-16",
+      "title": "参数问题诊断、局部忽略与分层一致工作台",
+      "status": "closed",
+      "record": "process_logs/Process107.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-004", "KPB-009", "KPB-011", "KPB-012", "KPB-013", "KPB-015", "KPB-016", "KPB-017"]
+    },
+    {
+      "id": "Process108",
+      "date": "2026-07-17",
+      "title": "参数异常点强制忽略与硬完整性门禁",
+      "status": "closed",
+      "record": "process_logs/Process108.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-008", "KPB-011", "KPB-012", "KPB-017"]
+    },
+    {
+      "id": "Process109",
+      "date": "2026-07-17",
+      "title": "按需 Excel 参数与地层工作簿",
+      "status": "closed",
+      "record": "process_logs/Process109.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-007", "KPB-008", "KPB-009", "KPB-011", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process110",
+      "date": "2026-07-20",
+      "title": "参数完成到成果输出的明确交接",
+      "status": "closed",
+      "record": "process_logs/Process110.md",
+      "problems": ["KPB-001", "KPB-006", "KPB-008", "KPB-011", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process111",
+      "date": "2026-07-20",
+      "title": "工程师确认当前参数范围并进入成果输出",
+      "status": "closed",
+      "record": "process_logs/Process111.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-004", "KPB-005", "KPB-006", "KPB-007", "KPB-008", "KPB-009", "KPB-011", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process112",
+      "date": "2026-07-20",
+      "title": "A3 图册 JTS 九色深度分类带",
+      "status": "closed",
+      "record": "process_logs/Process112.md",
+      "problems": ["KPB-001", "KPB-004", "KPB-006", "KPB-009", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process113",
+      "date": "2026-07-20",
+      "title": "中文横版快捷出图与十四页工程图册",
+      "status": "closed",
+      "record": "process_logs/Process113.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-007", "KPB-009", "KPB-011", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process114",
+      "date": "2026-07-21",
+      "title": "快捷图册视觉整理与 Excel 数据导出",
+      "status": "closed",
+      "record": "process_logs/Process114.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-004", "KPB-007", "KPB-009", "KPB-011", "KPB-012"]
+    },
+    {
+      "id": "Process115",
+      "date": "2026-07-21",
+      "title": "快捷 PDF 工程制图式视觉统一",
+      "status": "closed",
+      "record": "process_logs/Process115.md",
+      "problems": ["KPB-001", "KPB-003", "KPB-006", "KPB-009", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process116",
+      "date": "2026-07-21",
+      "title": "多方法分类对比与九区深度配色",
+      "status": "closed",
+      "record": "process_logs/Process116.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-009", "KPB-011", "KPB-012", "KPB-013", "KPB-014"]
+    },
+    {
+      "id": "Process117",
+      "date": "2026-07-21",
+      "title": "CPeT-IT 对照图册与双分类方法",
+      "status": "closed",
+      "record": "process_logs/Process117.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-008", "KPB-009", "KPB-012", "KPB-013"]
+    },
+    {
+      "id": "Process118",
+      "date": "2026-07-22",
+      "title": "第六页五联图视觉样张",
+      "status": "closed",
+      "record": "process_logs/Process118.md",
+      "problems": ["KPB-009", "KPB-012"]
+    },
+    {
+      "id": "Process119",
+      "date": "2026-07-22",
+      "title": "全图册 PNG 视觉迁移样张",
+      "status": "closed",
+      "record": "process_logs/Process119.md",
+      "problems": ["KPB-001", "KPB-004", "KPB-009", "KPB-012"]
+    },
+    {
+      "id": "Process120",
+      "date": "2026-07-23",
+      "title": "真实网页与 PDF 图册视觉迁移",
+      "status": "closed",
+      "record": "process_logs/Process120.md",
+      "problems": ["KPB-001", "KPB-003", "KPB-004", "KPB-007", "KPB-009", "KPB-011", "KPB-012", "KPB-013", "KPB-016"]
+    },
+    {
+      "id": "Process121",
+      "date": "2026-07-23",
+      "title": "快捷图册一键清空",
+      "status": "closed",
+      "record": "process_logs/Process121.md",
+      "problems": ["KPB-004", "KPB-006", "KPB-011", "KPB-012"]
+    },
+    {
+      "id": "Process122",
+      "date": "2026-07-23",
+      "title": "快捷图册参数分类依据说明",
+      "status": "closed",
+      "record": "process_logs/Process122.md",
+      "problems": ["KPB-001", "KPB-004", "KPB-007", "KPB-009", "KPB-011", "KPB-012", "KPB-017", "KPB-018"]
+    },
+    {
+      "id": "Process123",
+      "date": "2026-07-23",
+      "title": "全局反馈入口与 FormSubmit 中文表单",
+      "status": "closed",
+      "record": "process_logs/Process123.md",
+      "problems": ["KPB-002", "KPB-004", "KPB-008", "KPB-011", "KPB-012"]
+    },
+    {
+      "id": "Process124",
+      "date": "2026-07-23",
+      "title": "全站共享反馈入口",
+      "status": "closed",
+      "record": "process_logs/Process124.md",
+      "problems": ["KPB-004", "KPB-007", "KPB-011", "KPB-012", "KPB-019"]
+    },
+    {
+      "id": "Process125",
+      "date": "2026-07-24",
+      "title": "专业分类方案与动态成果输出",
+      "status": "closed",
+      "record": "process_logs/Process125.md",
+      "problems": ["KPB-012", "KPB-016", "KPB-017", "KPB-018", "KPB-020", "KPB-021", "KPB-022"]
+    },
+    {
+      "id": "Process126",
+      "date": "2026-07-24",
+      "title": "受控 DeepSeek 专业解译助手",
+      "status": "closed",
+      "record": "process_logs/Process126.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-007", "KPB-008", "KPB-009", "KPB-011", "KPB-012", "KPB-013", "KPB-015", "KPB-016"]
+    },
+    {
+      "id": "Process127",
+      "date": "2026-07-25",
+      "title": "DeepSeek 会话连接入口",
+      "status": "closed",
+      "record": "process_logs/Process127.md",
+      "problems": ["KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-007", "KPB-011", "KPB-012", "KPB-015"]
+    },
+    {
+      "id": "Process128",
+      "date": "2026-07-25",
+      "title": "DeepSeek 辅助数据整理与受控导入",
+      "status": "closed",
+      "record": "process_logs/Process128.md",
+      "problems": ["KPB-002", "KPB-003", "KPB-004", "KPB-005", "KPB-006", "KPB-007", "KPB-008", "KPB-011", "KPB-012", "KPB-023"]
+    },
+    {
+      "id": "Process129",
+      "date": "2026-07-25",
+      "title": "AI 导入 CSV 鲁棒性与 V4-Pro",
+      "status": "closed",
+      "record": "process_logs/Process129.md",
+      "problems": ["KPB-004", "KPB-006", "KPB-008", "KPB-011", "KPB-012", "KPB-016", "KPB-024"]
+    },
+    {
+      "id": "Process130",
+      "date": "2026-07-25",
+      "title": "DeepSeek 导入多轮工具稳定性",
+      "status": "closed",
+      "record": "process_logs/Process130.md",
+      "problems": ["KPB-003", "KPB-004", "KPB-008", "KPB-011", "KPB-012", "KPB-023", "KPB-025"]
+    },
+    {
+      "id": "Process131",
+      "date": "2026-07-26",
+      "title": "AI 导入保存检查与同名重导恢复",
+      "status": "closed",
+      "record": "process_logs/Process131.md",
+      "problems": ["KPB-004", "KPB-006", "KPB-011", "KPB-012"]
+    },
+    {
+      "id": "Process132",
+      "date": "2026-07-27",
+      "title": "快捷出图 AI 文件整理与图册解读",
+      "status": "closed",
+      "record": "process_logs/Process132.md",
+      "problems": ["KPB-003", "KPB-004", "KPB-006", "KPB-012", "KPB-013", "KPB-015", "KPB-022", "KPB-023"]
+    },
+    {
+      "id": "Process133",
+      "date": "2026-07-27",
+      "title": "专业解译性能与回退重置",
+      "status": "closed",
+      "record": "process_logs/Process133.md",
+      "problems": ["KPB-003", "KPB-004", "KPB-006", "KPB-007", "KPB-008", "KPB-011", "KPB-012", "KPB-013", "KPB-015", "KPB-026", "KPB-027", "KPB-028", "KPB-029"]
+    },
+    {
+      "id": "Process134",
+      "date": "2026-07-27",
+      "title": "快捷出图 AI 结构化判断与原子导入",
+      "status": "closed",
+      "record": "process_logs/Process134.md",
+      "problems": ["KPB-004", "KPB-006", "KPB-008", "KPB-011", "KPB-012", "KPB-013", "KPB-015", "KPB-025"]
+    },
+    {
+      "id": "Process135",
+      "date": "2026-07-29",
+      "title": "快捷图册只读 Agent 与助手权限隔离",
+      "status": "closed",
+      "record": "process_logs/Process135.md",
+      "problems": ["KPB-003", "KPB-004", "KPB-011", "KPB-012", "KPB-013", "KPB-020", "KPB-025"]
+    },
+    {
+      "id": "Process136",
+      "date": "2026-07-30",
+      "title": "图册解读自由只读问答",
+      "status": "closed",
+      "record": "process_logs/Process136.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-004", "KPB-011", "KPB-012", "KPB-013", "KPB-025"]
+    },
+    {
+      "id": "Process137",
+      "date": "2026-07-30",
+      "title": "A3 600 DPI 高清 PDF 导出",
+      "status": "closed",
+      "record": "process_logs/Process137.md",
+      "problems": ["KPB-001", "KPB-003", "KPB-004", "KPB-012"]
+    },
+    {
+      "id": "Process138",
+      "date": "2026-07-30",
+      "title": "本地公开前全面质量审查与整改",
+      "status": "closed",
+      "record": "process_logs/Process138.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-004", "KPB-006", "KPB-007", "KPB-008", "KPB-009", "KPB-011", "KPB-012", "KPB-015", "KPB-016", "KPB-020", "KPB-021", "KPB-023"]
+    }
+  ]
+}

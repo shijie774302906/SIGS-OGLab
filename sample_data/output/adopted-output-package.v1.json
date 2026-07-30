@@ -1,0 +1,186 @@
+{
+  "schemaVersion": "output-package-preview.v1",
+  "packageId": "preview-output-current-point-example",
+  "projectId": "current-project",
+  "pointId": "current-cptu-point",
+  "createdAtUtc": "2026-06-30T00:00:00Z",
+  "status": "Preview",
+  "officialUseAllowed": false,
+  "exportAllowed": false,
+  "adoptedLayerScheme": {
+    "objectType": "LayerScheme",
+    "schemeId": "layer-scheme-current-adopted",
+    "status": "Preview",
+    "sourceMethodId": "builtin-ic-sbt-first-pass",
+    "sourceRunId": "method-run-layer-current",
+    "layerCount": 20,
+    "boundaryCount": 21,
+    "depthRangeM": {
+      "from": 0.0,
+      "to": 60.76
+    },
+    "projectionOnly": true,
+    "adoption": {
+      "adoptedBy": "engineering-review",
+      "adoptedAtUtc": "2026-06-30T00:00:00Z",
+      "reason": "样例引用：用于成果预检展示，正式采用需回到桌面审定流程确认。",
+      "reviewState": "NeedsConfirmation"
+    }
+  },
+  "adoptedParameterScheme": {
+    "objectType": "ParameterScheme",
+    "parameterSchemeId": "parameter-scheme-current-adopted",
+    "status": "Preview",
+    "sourceLayerSchemeId": "layer-scheme-current-adopted",
+    "sourceRunId": "method-run-parameter-current",
+    "seriesCount": 2,
+    "valueCount": 142,
+    "projectionOnly": true,
+    "parameterSlots": [
+      {
+        "slotId": "slot-sand-phi",
+        "parameterSymbol": "PhiDeg",
+        "selectedMethodId": "mayne-phi-sand-qtn",
+        "applicableLayerFilter": "engineeringSoilGroup=sand",
+        "outputMode": "Both",
+        "validationState": "Ready"
+      },
+      {
+        "slotId": "slot-clay-su",
+        "parameterSymbol": "SuKpa",
+        "selectedMethodId": "mayne-su-clay-nkt",
+        "applicableLayerFilter": "engineeringSoilGroup=clay",
+        "outputMode": "Both",
+        "validationState": "Ready"
+      }
+    ],
+    "adoption": {
+      "adoptedBy": "engineering-review",
+      "adoptedAtUtc": "2026-06-30T00:00:00Z",
+      "reason": "样例引用：参数预检与样例分层对应，正式成果链路未接入。",
+      "reviewState": "NeedsConfirmation"
+    }
+  },
+  "evidenceRefs": [
+    {
+      "refId": "method-run-layer-current",
+      "objectType": "MethodRun",
+      "sourceMethodId": "builtin-ic-sbt-first-pass",
+      "sourceRunId": "method-run-layer-current",
+      "role": "Source",
+      "provenanceRequired": true
+    },
+    {
+      "refId": "method-run-parameter-current",
+      "objectType": "MethodRun",
+      "sourceMethodId": "parameter-scheme-current",
+      "sourceRunId": "method-run-parameter-current",
+      "role": "Source",
+      "provenanceRequired": true
+    },
+    {
+      "refId": "classification-evidence-current-sbt",
+      "objectType": "ClassificationEvidence",
+      "sourceMethodId": "builtin-ic-sbt-first-pass",
+      "sourceRunId": "method-run-layer-current",
+      "role": "Supporting",
+      "provenanceRequired": true
+    },
+    {
+      "refId": "data-check-current",
+      "objectType": "DataCheckRun",
+      "sourceMethodId": "builtin-data-quality",
+      "sourceRunId": "data-check-current",
+      "role": "Audit",
+      "provenanceRequired": true
+    }
+  ],
+  "rejectedOrUnadoptedRefs": [
+    {
+      "refId": "pycpt-layer-candidate",
+      "objectType": "LayerScheme",
+      "status": "Candidate",
+      "sourceMethodId": "pycpt-auto-stratification",
+      "sourceRunId": "method-run-pycpt-current",
+      "reason": "仅作为候选对比，未被采纳。",
+      "exportInputAllowed": false
+    },
+    {
+      "refId": "groundhog-reference-output",
+      "objectType": "MethodRun",
+      "status": "Reference",
+      "sourceMethodId": "groundhog-pcpt-correlations",
+      "sourceRunId": "method-run-groundhog-current",
+      "reason": "Reference 方法结果只能作为证据或对比，不直接作为正式成果输入。",
+      "exportInputAllowed": false
+    },
+    {
+      "refId": "parameter-scheme-debug-projection",
+      "objectType": "ParameterScheme",
+      "status": "Draft",
+      "sourceMethodId": "user-debug-parameter-template",
+      "sourceRunId": "method-run-debug-parameter",
+      "reason": "projectionOnly=true，未采纳。",
+      "projectionOnly": true,
+      "exportInputAllowed": false
+    }
+  ],
+  "preflight": [
+    {
+      "key": "adopted-layer-scheme",
+      "state": "NeedsConfirmation",
+      "severity": "Warning",
+      "evidence": "LayerScheme layer-scheme-current-adopted 为样例引用，正式成果链路未接入。",
+      "nextAction": "回到地层分层和桌面审定流程确认后才能生成正式成果。"
+    },
+    {
+      "key": "adopted-parameter-scheme",
+      "state": "NeedsConfirmation",
+      "severity": "Warning",
+      "evidence": "ParameterScheme parameter-scheme-current-adopted 为样例引用，正式成果链路未接入。",
+      "nextAction": "回到参数解译核对；正式成果生成暂未接入当前页面。"
+    },
+    {
+      "key": "unadopted-method-runs",
+      "state": "NeedsConfirmation",
+      "severity": "Warning",
+      "evidence": "存在未采纳候选和 Reference/Experimental 方法输出，已排除出 export inputs。",
+      "nextAction": "如需使用，先在对应主流程页采纳。"
+    }
+  ],
+  "reportManifestProjection": {
+    "schemaVersion": "interpretation-report-document.v1",
+    "outputPackagePreviewId": "preview-output-current-point-example",
+    "exportInputs": [
+      {
+        "objectType": "OutputPackagePreview",
+        "objectId": "preview-output-current-point-example",
+        "status": "Preview"
+      },
+      {
+        "objectType": "LayerScheme",
+        "objectId": "layer-scheme-current-adopted",
+        "status": "Preview"
+      },
+      {
+        "objectType": "ParameterScheme",
+        "objectId": "parameter-scheme-current-adopted",
+        "status": "Preview"
+      },
+      {
+        "objectType": "DataCheckRun",
+        "objectId": "data-check-current",
+        "status": "Completed"
+      }
+    ],
+    "blockedDirectInputs": [
+      "MethodRun",
+      "DebugArtifact",
+      "ClassificationEvidence",
+      "ParameterSeries",
+      "CandidateLayerScheme",
+      "DraftParameterScheme",
+      "ProjectionOnlyOutput"
+    ]
+  }
+}

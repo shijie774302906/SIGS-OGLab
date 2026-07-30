@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "method-run-result.v1",
+  "runId": "methodlab-fixture-failed-dependency",
+  "engineId": "groundhog",
+  "methodName": "Groundhog PCPT correlations",
+  "methodVersion": "unknown",
+  "status": "Failed",
+  "identity": "Reference",
+  "officialWriteAllowed": false,
+  "outputChannels": [],
+  "layerCandidates": [],
+  "classificationPoints": [],
+  "parameterSeries": [],
+  "summaryMetrics": [],
+  "warnings": [
+    {
+      "code": "DependencyMissing",
+      "message": "Python package groundhog is not available."
+    }
+  ],
+  "logs": [],
+  "artifacts": [],
+  "error": {
+    "code": "DependencyMissing",
+    "message": "Python package groundhog is not available.",
+    "exitCode": 1,
+    "stdoutPath": "app_data/method_lab/runs/methodlab-fixture-failed-dependency/stdout.log",
+    "stderrPath": "app_data/method_lab/runs/methodlab-fixture-failed-dependency/stderr.log"
+  },
+  "provenance": {
+    "engineId": "groundhog",
+    "engineVersion": "unknown",
+    "engineLicense": "GNU GPLv3",
+    "engineSource": "https://github.com/snakesonabrain/groundhog",
+    "enginePackageSha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "pythonVersion": "not-found",
+    "runnerVersion": "method-lab-runner.v1",
+    "runnerScriptSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "commandLine": "python tools/method-lab/runners/groundhog_reference_runner.py --input input.json --output output.json",
+    "inputJsonPath": "sample_data/method-lab/yingkou-cpt09-method-input.v1.json",
+    "outputJsonPath": "sample_data/method-lab/runner-failed-dependency-missing.v1.json",
+    "canonicalInputSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "createdAt": "2026-06-29T00:03:00+08:00",
+    "completedAt": "2026-06-29T00:03:01+08:00",
+    "durationMs": 1000,
+    "notForOfficialResult": true,
+    "legalReviewRequired": true
+  }
+}
