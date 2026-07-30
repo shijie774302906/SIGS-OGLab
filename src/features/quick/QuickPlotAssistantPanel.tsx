@@ -203,9 +203,12 @@ export function QuickPlotAssistantPanel({
     [activePage, mode, pages, project, selectedPage, source, workspace],
   );
   const outboundConsent = connection.hasOutboundConsent(consentScope, context.scope.authorityHash);
-  const contextKey = `${context.scope.route}:${context.scope.authorityHash}:${source?.operationId ?? 'none'}:${connection.generation}`;
+  const reportPageKey = mode === 'report'
+    ? `${selectedPage + 1}:${activePage?.title ?? 'none'}`
+    : 'not-report';
+  const contextKey = `${context.scope.route}:${context.scope.authorityHash}:${reportPageKey}:${source?.operationId ?? 'none'}:${connection.generation}`;
   const assistantSessionKey = mode === 'report'
-    ? `${context.scope.route}:${context.scope.authorityHash}:${connection.generation}`
+    ? `${context.scope.route}:${context.scope.authorityHash}:${reportPageKey}:${connection.generation}`
     : `${context.scope.route}:${source?.operationId ?? 'none'}:${connection.generation}`;
   contextKeyRef.current = contextKey;
   sourceIdentityRef.current = source

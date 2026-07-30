@@ -140,12 +140,12 @@ test('DeepSeek mode requires one-session outbound-data consent before sending', 
     localStorage.getItem('assistant-api-key') === secret
     || sessionStorage.getItem('assistant-api-key') === secret
     || document.body.textContent?.includes(secret) === true, apiKey)).toBe(false);
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 密钥已验证');
+  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
   await expect(page.getByTestId('assistant-outbound-consent')).toContainText('不会发送上传文件或整孔数据');
   await expect(page.getByTestId('assistant-input')).toBeDisabled();
   await page.getByRole('button', { name: '同意上述发送范围并启用' }).click();
   await expect(page.getByTestId('assistant-outbound-consent')).toHaveCount(0);
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 已启用');
+  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key');
   await expect(page.getByTestId('assistant-input')).toBeEnabled();
   if (process127EvidenceEnabled) {
     await page.setViewportSize({ width: 1920, height: 1080 });
@@ -179,7 +179,7 @@ test('DeepSeek mode requires one-session outbound-data consent before sending', 
   await page.getByTestId('project-mode-professional').click();
   await page.getByTestId('create-project-submit').click();
   await page.getByTestId('right-panel-assistant-tab').click();
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 密钥已验证');
+  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
   await expect(page.getByTestId('assistant-outbound-consent')).toBeVisible();
   await expect(page.getByTestId('assistant-input')).toBeDisabled();
   if (process127EvidenceEnabled) {
@@ -227,11 +227,11 @@ test('DeepSeek key stays in tab memory, survives dock switches, and clears on di
   await page.getByTestId('assistant-open-key-dialog').click();
   await page.getByTestId('assistant-api-key-input').fill(validKey);
   await page.getByTestId('assistant-connect-submit').click();
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 密钥已验证');
+  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
 
   await page.getByTestId('right-panel-tools-tab').click();
   await page.getByTestId('right-panel-assistant-tab').click();
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 密钥已验证');
+  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
 
   await page.getByTestId('assistant-provider-status').getByRole('button', { name: '更换密钥' }).click();
   await expect(page.getByTestId('assistant-key-dialog')).toContainText('失败或取消仍使用原连接');
@@ -247,7 +247,7 @@ test('DeepSeek key stays in tab memory, survives dock switches, and clears on di
     });
   }
   await page.getByRole('button', { name: '关闭连接窗口' }).click();
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 密钥已验证');
+  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
 
   await page.getByTestId('assistant-provider-status').getByRole('button', { name: '断开' }).click();
   await expect(page.getByTestId('assistant-connect-card')).toBeVisible();
