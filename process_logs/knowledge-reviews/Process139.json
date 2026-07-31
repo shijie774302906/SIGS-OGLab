@@ -1,13 +1,59 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-31T02:48:22.044Z",
+  "generated_at": "2026-07-31T02:51:56.953Z",
   "context_files": [
     "process_logs/Process139.md"
   ],
-  "context_hash": "62a868b91e7af928c3dfd0ab1418c922554b257145f5d3556622211dd2273c39",
+  "context_hash": "b850be374716193847f7e9c5588c38582ad71dc0ca7bc8b2e34cae1b651885ab",
   "library_hash": "6e47ccde961ad926a7bad8962a9b5003d6ad86dc92529041ce3170145ca59af0",
   "status": "reviewed",
   "matches": [
+    {
+      "problem_id": "KPB-002",
+      "title": "点击动作没有及时反馈",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "首次",
+          "运行"
+        ]
+      ],
+      "related_updates": [
+        "Process086",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process095",
+        "Process104",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process111",
+        "Process113",
+        "Process114",
+        "Process116",
+        "Process117",
+        "Process123",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process136",
+        "Process138",
+        "Process139"
+      ],
+      "required_checks": [
+        "覆盖真实数据首次运行，不得预先生成结果。",
+        "断言 running、disabled、完成或失败恢复状态按顺序出现。"
+      ],
+      "disposition": "covered",
+      "note": "首次运行、运行中、失败和恢复顺序均有真实部署证据。",
+      "evidence": [
+        "自动部署出现 Building -> Error；旧生产站保持 Ready；修正后再次触发"
+      ]
+    },
     {
       "problem_id": "KPB-007",
       "title": "小样例通过但真实大数据违反约束或卡顿",

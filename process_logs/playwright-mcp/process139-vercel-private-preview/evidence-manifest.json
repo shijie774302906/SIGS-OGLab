@@ -1,16 +1,21 @@
 {
   "schemaVersion": 1,
   "processId": "Process139",
-  "generatedAt": "2026-07-31T02:48:23.456Z",
+  "generatedAt": "2026-07-31T02:52:13.642Z",
   "finalClosure": true,
   "evidenceDirectory": "process_logs/playwright-mcp/process139-vercel-private-preview",
   "context": {
     "path": "process_logs/Process139.md",
-    "size": 2804,
-    "sha256": "6165190370d19268f8f4035a804eca4df01da20cc8ccc72f85590c337711636c"
+    "size": 3033,
+    "sha256": "1239b13015470cadf203799d16b30f15af485c1f944c4abe59c36b32a443f7d8"
   },
   "inputs": {
     "files": [
+      {
+        "path": ".vercelignore",
+        "size": 418,
+        "sha256": "1b2a0916276769348ef2ca7a4d8c74302a07f45589ecea0fb6e92a66e764bdce"
+      },
       {
         "path": "api/assistant/[...path].mjs",
         "size": 2317,
@@ -18,8 +23,8 @@
       },
       {
         "path": "process_logs/knowledge-reviews/Process139.json",
-        "size": 1695,
-        "sha256": "8a9603a824543e983cb01c4f4daff31af34dcbc9545b724289429a62ed74f316"
+        "size": 2925,
+        "sha256": "0b6a6faec68b7692fe57e951de15fd15e8769d6fdad6b8787c400efcf234db25"
       },
       {
         "path": "server/assistant/assistant.test.mjs",
@@ -82,7 +87,7 @@
         "sha256": "d7456472f5c832ffaf7b34e60d1f5b97f3d1aa60ae1972dce027ec01a3fa0f56"
       }
     ],
-    "aggregateSha256": "39a04a4b9346fea043f2ba38d2380e13d425e8de5e66366520b78dca0bdad7ac"
+    "aggregateSha256": "8d3d9f54359f91825bee674c5a4271d0868ffe5c93b8fddd195f48b486d26b56"
   },
   "artifacts": {
     "files": [

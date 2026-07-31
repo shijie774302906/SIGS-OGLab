@@ -16,6 +16,7 @@ Status: `closed / implemented / verified / privately deployed`
 - 公共 DeepSeek Key 只由 Vercel 环境变量持有；浏览器可选择公共额度或自己的 Key。
 - 自有 Key 只保存在当前标签页内存，不进入项目、普通本地存储或 Git。
 - 修复图册切页后 AI 对话沿用旧页面身份的问题。
+- 修复 Git 构建错误：保留运行所需的小型 projection fixtures，同时继续排除营口原始工作簿。
 - Vercel 项目已连接私有 GitHub 仓库；后续 `main` 推送将自动构建和部署。
 - 当前生产地址：`https://sigs-oglab-web.vercel.app`。
 
@@ -32,6 +33,7 @@ Status: `closed / implemented / verified / privately deployed`
 - 干净发布提交：500 个文件；禁用路径 0；密钥模式命中 0。
 - 私有 GitHub 仓库默认分支：`main`。
 - Vercel 生产部署：Ready。
+- GitHub 自动部署首次暴露 `.vercelignore` 误排除运行依赖，修正后重新触发并通过。
 - 实施计划 Knowledge Gate：KPB-002、KPB-004、KPB-007、KPB-011、KPB-012 全部 covered。
 - 最终归档 Knowledge Gate：归档文本命中的 KPB-007 covered。
 

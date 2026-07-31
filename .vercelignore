@@ -8,7 +8,9 @@ coverage/
 .env.*
 mishi.md
 
-sample_data/
+# Runtime imports use small projection fixtures under sample_data.
+# Exclude only the non-distributable raw Yingkou workbooks.
+sample_data/source/yingkou/
 process_logs/
 playwright-report/
 playwright-results/
