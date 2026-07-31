@@ -4,6 +4,14 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
+## Current - Process139 Vercel 私有预览与安全首发
+
+- Date: 2026-07-31
+- Status: `closed / implemented / verified / privately deployed`
+- Result: 私有 GitHub、Vercel 生产预览、服务端公共 DeepSeek、自有 Key 会话模式与 GitHub 自动部署连接均已建立；营口真实数据和密钥未进入发布历史。
+- Verification: build、assistant 25/25、domain-fast 260/260、ui-isolated 120/120、real-serial 32/32、双分辨率在线证据和 Known Problem Gate 通过。
+- Detail: `process_logs/Process139.md`
+
 ## Current - Process138 本地公开前全面质量审查与整改
 
 - Date: 2026-07-30

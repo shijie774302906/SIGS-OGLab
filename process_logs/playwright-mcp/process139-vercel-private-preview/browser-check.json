@@ -1,0 +1,33 @@
+{
+  "processId": "Process139",
+  "checkedAt": "2026-07-31T05:30:52+08:00",
+  "url": "https://sigs-oglab-web.vercel.app",
+  "viewportEvidence": [
+    "1440x900",
+    "1920x1080"
+  ],
+  "capabilities": {
+    "status": 200,
+    "model": "deepseek-v4-pro",
+    "publicAccess": true,
+    "requiresApiKey": false
+  },
+  "browserBundle": {
+    "scriptCount": 1,
+    "secretPatternHits": 0
+  },
+  "console": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "exports": {
+    "excelDownloaded": true,
+    "pdfDownloaded": true,
+    "pdfDpi": 600,
+    "canvasReadbackWarnings": 0
+  },
+  "deployment": {
+    "id": "dpl_ZP7Df6gNx92qfRKKJMRRhCEYiRSC",
+    "status": "READY"
+  }
+}

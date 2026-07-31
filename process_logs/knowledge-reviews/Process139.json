@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-31T02:48:22.044Z",
+  "context_files": [
+    "process_logs/Process139.md"
+  ],
+  "context_hash": "62a868b91e7af928c3dfd0ab1418c922554b257145f5d3556622211dd2273c39",
+  "library_hash": "6e47ccde961ad926a7bad8962a9b5003d6ad86dc92529041ce3170145ca59af0",
+  "status": "reviewed",
+  "matches": [
+    {
+      "problem_id": "KPB-007",
+      "title": "小样例通过但真实大数据违反约束或卡顿",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "真实营口"
+        ]
+      ],
+      "related_updates": [
+        "Process070",
+        "Process071",
+        "Process077",
+        "Process080",
+        "Process086",
+        "Process088",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process106",
+        "Process109",
+        "Process111",
+        "Process113",
+        "Process114",
+        "Process120",
+        "Process122",
+        "Process124",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process133",
+        "Process138",
+        "Process139"
+      ],
+      "required_checks": [
+        "至少运行一个真实全规模高频数据集。",
+        "记录首次运行、切换、最长任务和持久化耗时。"
+      ],
+      "disposition": "covered",
+      "note": "真实营口数据仅在本机串行验证，未进入 GitHub 或 Vercel。",
+      "evidence": [
+        "test:real-serial 32/32；7832 行导入与 15 页图册通过"
+      ]
+    }
+  ]
+}

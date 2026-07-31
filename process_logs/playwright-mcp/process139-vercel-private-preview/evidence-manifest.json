@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "processId": "Process139",
+  "generatedAt": "2026-07-31T02:48:23.456Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process139-vercel-private-preview",
+  "context": {
+    "path": "process_logs/Process139.md",
+    "size": 2804,
+    "sha256": "6165190370d19268f8f4035a804eca4df01da20cc8ccc72f85590c337711636c"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "api/assistant/[...path].mjs",
+        "size": 2317,
+        "sha256": "fd36700c7e5f1e7ebc66e239819e16e6b3548327273cf1980d1a3a315f62b962"
+      },
+      {
+        "path": "process_logs/knowledge-reviews/Process139.json",
+        "size": 1695,
+        "sha256": "8a9603a824543e983cb01c4f4daff31af34dcbc9545b724289429a62ed74f316"
+      },
+      {
+        "path": "server/assistant/assistant.test.mjs",
+        "size": 32098,
+        "sha256": "40d2655612b98cf0b8899593a502ef57f5ad3860466ea8b90685b22de5ffc484"
+      },
+      {
+        "path": "server/assistant/core.mjs",
+        "size": 5140,
+        "sha256": "9d4f486a9c98efc4562d18be22e5458bcba36f4a76db22b7809850e219dbb59c"
+      },
+      {
+        "path": "src/features/assistant/assistantClient.ts",
+        "size": 6422,
+        "sha256": "be123c2accd8d7cb8de62e07ba429af6bb63a43d766a5c6ae7cbe982239666b5"
+      },
+      {
+        "path": "src/features/assistant/AssistantConnectionProvider.tsx",
+        "size": 10682,
+        "sha256": "df4d8864d41ce3e700b903f828c655de2bf9ba586104aa80e6e53e866985ff7a"
+      },
+      {
+        "path": "src/features/assistant/assistantContext.ts",
+        "size": 6191,
+        "sha256": "de20ba94d8b93b10e08a4046b53784fd5876f84e2bc572ba2f0ce080cdfe93c7"
+      },
+      {
+        "path": "src/features/assistant/assistantState.ts",
+        "size": 3558,
+        "sha256": "01c30bae6cbfaf9e71a2601ff78551f400fe764de358149bf2332a1053083e6c"
+      },
+      {
+        "path": "src/features/assistant/assistantToolRegistry.ts",
+        "size": 7123,
+        "sha256": "a9534ace191c66eaa660ee2741ce8cb0f4e4bd097bfef094fd2fc53003923c76"
+      },
+      {
+        "path": "src/features/assistant/assistantTypes.ts",
+        "size": 7299,
+        "sha256": "f7f21e9ad2513a2eb0c7dde1ecd52dbfa2474e79a034869f989b4725b63dc33b"
+      },
+      {
+        "path": "src/features/assistant/ProfessionalAssistantPanel.tsx",
+        "size": 26370,
+        "sha256": "46ce7f308dc84c613c28b6ffe3b472e09b012b0a12b6c8f1678b812d76c37b94"
+      },
+      {
+        "path": "src/features/quick/QuickPlotAssistantPanel.tsx",
+        "size": 53901,
+        "sha256": "ba01ce678b70b897257aadb651930d726ce8927e75074cb13f79cdf068216568"
+      },
+      {
+        "path": "tests/e2e/assistant-ui.spec.ts",
+        "size": 35590,
+        "sha256": "11ffc060d7af5ce449ccf9c579542d4aced5c35088d54986d47a6e5078c81eb2"
+      },
+      {
+        "path": "tests/e2e/quick-plot-ui.spec.ts",
+        "size": 56256,
+        "sha256": "d7456472f5c832ffaf7b34e60d1f5b97f3d1aa60ae1972dce027ec01a3fa0f56"
+      }
+    ],
+    "aggregateSha256": "39a04a4b9346fea043f2ba38d2380e13d425e8de5e66366520b78dca0bdad7ac"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process139-vercel-private-preview/browser-check.json",
+        "size": 661,
+        "sha256": "05bfdd3d1bc05bf52640f366a7773c8b4724399037c20b6c86a9c70ebd0c187f"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process139-vercel-private-preview/public-ai-1440x900.png",
+        "size": 83560,
+        "sha256": "6d7d8e59dc32fff673805753fc10cdad64f1c37136694b389c1cbdb57c0ea326"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process139-vercel-private-preview/public-ai-1920x1080.png",
+        "size": 88402,
+        "sha256": "28ec682c528151957bc00faf24acbb2e4d00d6e4d2090dd2c4f77108df2662fd"
+      }
+    ],
+    "aggregateSha256": "e920738f84b48bd02bcaa1f6af1dfdb4b5f432a5137410b0226c80e6bea3a87e"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test server/assistant/assistant.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:domain-fast",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:ui-isolated",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:real-serial",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run knowledge:gate -- --context process_logs/Process139.md --report process_logs/knowledge-reviews/Process139.json",
+      "exitCode": 0
+    }
+  ],
+  "seedOrSource": [
+    "deterministic generated 120-row CPTU plus local Yingkou full-scale verification"
+  ],
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
+}

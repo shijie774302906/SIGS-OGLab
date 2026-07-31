@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-30",
+  "updated_at": "2026-07-31",
   "problems": [
     {
       "id": "KPB-001",
@@ -29,7 +29,7 @@
       "root_causes": ["耗时同步工作发生在同一次点击任务中，浏览器来不及绘制运行态。", "测试预先准备了结果，跳过真实首次运行。"],
       "prevention": ["选择与执行分离，执行只保留一个主要动作。", "运行前先提交可见 busy 状态，并防止双触发。"],
       "required_checks": ["覆盖真实数据首次运行，不得预先生成结果。", "断言 running、disabled、完成或失败恢复状态按顺序出现。"],
-      "related_updates": ["Process086", "Process090", "Process091", "Process092", "Process093", "Process095", "Process104", "Process106", "Process107", "Process108", "Process109", "Process111", "Process113", "Process114", "Process116", "Process117", "Process123", "Process126", "Process127", "Process128", "Process136", "Process138"],
+      "related_updates": ["Process086", "Process090", "Process091", "Process092", "Process093", "Process095", "Process104", "Process106", "Process107", "Process108", "Process109", "Process111", "Process113", "Process114", "Process116", "Process117", "Process123", "Process126", "Process127", "Process128", "Process136", "Process138", "Process139"],
       "related_tests": ["tests/e2e/stratification-workflow-ui.spec.ts"]
     },
     {
@@ -59,7 +59,7 @@
       "root_causes": ["技术异常直接投影为用户提示。", "错误没有明确责任页面和可执行恢复动作。"],
       "prevention": ["错误状态必须包含原因、影响、证据、责任页面和一个推荐动作。", "能在当前流程恢复时保留用户原任务并自动续接。"],
       "required_checks": ["覆盖失败、取消、返回、重试、连续失败和恢复成功。", "验证恢复入口能到达准确位置而非页面顶部。"],
-      "related_updates": ["Process072", "Process073", "Process074", "Process075", "Process083", "Process086", "Process087", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process103", "Process104", "Process107", "Process108", "Process109", "Process111", "Process112", "Process113", "Process114", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138"],
+      "related_updates": ["Process072", "Process073", "Process074", "Process075", "Process083", "Process086", "Process087", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process103", "Process104", "Process107", "Process108", "Process109", "Process111", "Process112", "Process113", "Process114", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139"],
       "related_tests": ["tests/e2e/jts-classification-recovery-ui.spec.ts", "tests/e2e/workspace-storage-recovery.spec.ts"]
     },
     {
@@ -104,7 +104,7 @@
       "root_causes": ["生成器没有预先遵守编辑器端点与最小间距约束。", "验收没有包含完整规模数据和交互时延。"],
       "prevention": ["候选生成前应用消费端约束。", "图表抽样保留极值、缺失和当前问题，同时限制挂载点数。"],
       "required_checks": ["至少运行一个真实全规模高频数据集。", "记录首次运行、切换、最长任务和持久化耗时。"],
-      "related_updates": ["Process070", "Process071", "Process077", "Process080", "Process086", "Process088", "Process090", "Process091", "Process092", "Process093", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process106", "Process109", "Process111", "Process113", "Process114", "Process120", "Process122", "Process124", "Process126", "Process127", "Process128", "Process133", "Process138"],
+      "related_updates": ["Process070", "Process071", "Process077", "Process080", "Process086", "Process088", "Process090", "Process091", "Process092", "Process093", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process106", "Process109", "Process111", "Process113", "Process114", "Process120", "Process122", "Process124", "Process126", "Process127", "Process128", "Process133", "Process138", "Process139"],
       "related_tests": ["tests/e2e/stratification-performance.spec.ts", "tests/e2e/check-profile-curves-ui.spec.ts"]
     },
     {
@@ -164,7 +164,7 @@
       "root_causes": ["问题责任没有绑定到产生该数据的页面。", "跨页恢复没有保存用户原始意图。"],
       "prevention": ["数据问题由数据检查页治理，工程判断留在当前解释页面。", "跳转前保存意图，复检成功后自动回到准确步骤。"],
       "required_checks": ["覆盖返回责任页、取消修复、修复失败、复检和自动续接。", "断言原始测量不被静默改写。"],
-      "related_updates": ["Process071", "Process072", "Process074", "Process075", "Process082", "Process086", "Process087", "Process090", "Process091", "Process092", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process113", "Process114", "Process116", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process133", "Process134", "Process135", "Process136", "Process138"],
+      "related_updates": ["Process071", "Process072", "Process074", "Process075", "Process082", "Process086", "Process087", "Process090", "Process091", "Process092", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process113", "Process114", "Process116", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process133", "Process134", "Process135", "Process136", "Process138", "Process139"],
       "related_tests": ["tests/e2e/jts-classification-recovery-ui.spec.ts", "tests/e2e/preparation-guided-flow.spec.ts"]
     },
     {
@@ -179,7 +179,7 @@
       "root_causes": ["测试使用预生成夹具绕过首次运行。", "断言没有覆盖用户真正看到和判断的证据。"],
       "prevention": ["验收从真实用户动作开始，并断言可见工程对象。", "UI、领域语义、数据权威和性能分别给出证据。"],
       "required_checks": ["至少包含一个失败恢复和一个真实规模流程。", "截图检查标签、单位、选中态、禁用态、溢出和错误日志。"],
-      "related_updates": ["Process070", "Process080", "Process081", "Process084", "Process086", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process105", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process125", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138"],
+      "related_updates": ["Process070", "Process080", "Process081", "Process084", "Process086", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process105", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process125", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139"],
       "related_tests": ["tests/e2e/preparation-guided-flow.spec.ts", "tests/e2e/check-profile-curves-ui.spec.ts", "tests/e2e/process131-scpt1-ai-import.spec.ts"]
     },
     {

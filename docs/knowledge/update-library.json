@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-30",
+  "updated_at": "2026-07-31",
   "updates": [
     {
       "id": "Process070",
@@ -553,6 +553,14 @@
       "status": "closed",
       "record": "process_logs/Process138.md",
       "problems": ["KPB-001", "KPB-002", "KPB-004", "KPB-006", "KPB-007", "KPB-008", "KPB-009", "KPB-011", "KPB-012", "KPB-015", "KPB-016", "KPB-020", "KPB-021", "KPB-023"]
+    },
+    {
+      "id": "Process139",
+      "date": "2026-07-31",
+      "title": "Vercel 私有预览与安全首发",
+      "status": "closed",
+      "record": "process_logs/Process139.md",
+      "problems": ["KPB-002", "KPB-004", "KPB-007", "KPB-011", "KPB-012"]
     }
   ]
 }
