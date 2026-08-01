@@ -187,6 +187,7 @@ export type AssistantProviderTurn =
       model: string;
       serviceInstanceId?: string;
       protocolVersions?: string[];
+      publicQuota?: AssistantPublicQuota;
       usage?: { inputTokens?: number; outputTokens?: number };
     }
   | {
@@ -197,7 +198,16 @@ export type AssistantProviderTurn =
       model: string;
       serviceInstanceId?: string;
       protocolVersions?: string[];
+      publicQuota?: AssistantPublicQuota;
     };
+
+export type AssistantPublicQuota = {
+  status: 'available' | 'exhausted' | 'unavailable';
+  limit: number;
+  used: number | null;
+  remaining: number | null;
+  resetAt: string;
+};
 
 export type AssistantCapability =
   | {
@@ -206,6 +216,7 @@ export type AssistantCapability =
       model: string;
       requiresApiKey: boolean;
       publicAccess?: boolean;
+      publicQuota?: AssistantPublicQuota;
       serviceId: string;
       buildId: string;
       instanceId: string;
@@ -217,6 +228,7 @@ export type AssistantCapability =
       model: string | null;
       requiresApiKey: boolean;
       publicAccess?: boolean;
+      publicQuota?: AssistantPublicQuota;
       reason: string;
       serviceId?: string;
       buildId?: string;

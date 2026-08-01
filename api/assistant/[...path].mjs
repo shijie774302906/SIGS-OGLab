@@ -1,8 +1,10 @@
 import { createAssistantServerConfig } from '../../server/assistant/config.mjs';
 import { createAssistantCore } from '../../server/assistant/core.mjs';
+import { createAssistantQuotaService, createAssistantVisitor } from '../../server/assistant/quota.mjs';
 
 const runtimeConfig = createAssistantServerConfig(process.env);
-const handleAssistantRequest = createAssistantCore({ config: runtimeConfig, fetchImpl: fetch });
+const quotaService = createAssistantQuotaService({ config: runtimeConfig, fetchImpl: fetch });
+const handleAssistantRequest = createAssistantCore({ config: runtimeConfig, fetchImpl: fetch, quotaService });
 
 export const config = {
   maxDuration: 60,
@@ -22,6 +24,12 @@ function requestBody(request) {
 }
 
 export default async function assistantFunction(request, response) {
+  const visitor = createAssistantVisitor({
+    cookieHeader: request.headers.cookie,
+    secret: runtimeConfig.assistantVisitorSecret,
+    secure: true,
+  });
+  if (visitor.setCookie) response.setHeader('Set-Cookie', visitor.setCookie);
   const contentLength = Number(request.headers['content-length'] ?? 0);
   if (Number.isFinite(contentLength) && contentLength > runtimeConfig.maxBodyBytes) {
     send(response, 413, { problem: '请求内容过大。' });
@@ -41,6 +49,7 @@ export default async function assistantFunction(request, response) {
       headers: request.headers,
       body: request.method === 'POST' ? requestBody(request) : null,
       signal: controller.signal,
+      quotaSubject: visitor.subject,
     });
     send(response, result.status, result.body);
   } catch (error) {

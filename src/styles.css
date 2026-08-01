@@ -1443,6 +1443,18 @@ button:focus-visible {
   gap: 5px;
 }
 
+.assistant-quota-note {
+  margin: -2px 0 8px;
+  padding: 0 2px;
+  color: #53616a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.assistant-quota-note.problem {
+  color: #b53f50;
+}
+
 .assistant-provider-actions button {
   display: inline-flex;
   min-height: 27px;

@@ -2,6 +2,7 @@ import http from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { assistantServerConfig } from './config.mjs';
 import { createAssistantCore } from './core.mjs';
+import { createAssistantQuotaService, createAssistantVisitor } from './quota.mjs';
 
 function writeJson(response, status, payload, origin) {
   response.writeHead(status, {
@@ -58,10 +59,16 @@ export function createNodeAssistantServer({
   config = assistantServerConfig,
   fetchImpl = fetch,
 } = {}) {
-  const core = createAssistantCore({ config, fetchImpl });
+  const quotaService = createAssistantQuotaService({ config, fetchImpl });
+  const core = createAssistantCore({ config, fetchImpl, quotaService });
   let concurrentRequests = 0;
 
   return http.createServer(async (request, response) => {
+    const visitor = createAssistantVisitor({
+      cookieHeader: request.headers.cookie,
+      secret: config.assistantVisitorSecret,
+    });
+    if (visitor.setCookie) response.setHeader('Set-Cookie', visitor.setCookie);
     const origin = allowedOrigin(request.headers.origin);
     if (request.headers.origin && !origin) {
       writeJson(response, 403, { problem: '不允许的请求来源。' });
@@ -98,6 +105,7 @@ export function createNodeAssistantServer({
         headers: request.headers,
         body,
         signal: controller.signal,
+        quotaSubject: visitor.subject,
       });
       writeJson(response, result.status, result.body, origin);
     } catch (error) {

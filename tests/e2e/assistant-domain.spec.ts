@@ -104,6 +104,39 @@ test('DeepSeek turn access is denied until outbound engineering-data consent is 
   })).toBeNull();
 });
 
+test('PROCESS140 exhausted public quota stops public turns while a personal key remains usable', () => {
+  const capability = {
+    serviceAvailable: true as const,
+    provider: 'deepseek' as const,
+    model: 'deepseek-v4-pro',
+    requiresApiKey: false,
+    publicAccess: true,
+    publicQuota: { status: 'exhausted' as const, limit: 100, used: 100, remaining: 0, resetAt: '2026-08-01T16:00:00.000Z' },
+    serviceId: 'sigs-oglab-assistant',
+    buildId: 'test',
+    instanceId: 'test-instance',
+    protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+  };
+  expect(getAssistantTurnAccessProblem({
+    capability,
+    status: 'connected',
+    outboundConsent: true,
+    hasApiKey: false,
+    requiresApiKey: false,
+    usingPersonalKey: false,
+    publicQuota: capability.publicQuota,
+  })).toContain('今日公共 AI 额度已用完');
+  expect(getAssistantTurnAccessProblem({
+    capability,
+    status: 'connected',
+    outboundConsent: true,
+    hasApiKey: true,
+    requiresApiKey: false,
+    usingPersonalKey: true,
+    publicQuota: capability.publicQuota,
+  })).toBeNull();
+});
+
 test('bounded depth read limits range, rows and returned fields', () => {
   const rows = Array.from({ length: 300 }, (_, index) => ({
     sourceRowId: `row-${index}`,

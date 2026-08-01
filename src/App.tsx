@@ -92,6 +92,7 @@ import {
 import { createEditableImportPipeline } from './features/import/editableImportPipeline';
 import { parseCptuExcelWorkbook, type ExcelSheetProfileV1 } from './features/import/excelImport';
 import { createMinimalTemplateCsv, createMinimalTemplateXlsx } from './features/import/minimalImportTemplate';
+import { createSyntheticCptuDemoFile } from './features/demo/syntheticCptuDemo';
 import {
   generatePointDrafts,
   type PointGenerationResult,
@@ -9245,6 +9246,7 @@ function ImportDocument({
   const [waterGuideDatum, setWaterGuideDatum] = useState<PointWaterContextV3['u2HydrostaticDatum']>('total');
   const [waterGuideProblem, setWaterGuideProblem] = useState('');
   const [runCheckAfterWater, setRunCheckAfterWater] = useState(false);
+  const [demoReplacePending, setDemoReplacePending] = useState(false);
   const mappingRowsV2 = pipeline ? getImportMappingRowsV2(pipeline) : [];
   const selectedSourceColumn = pipeline ? getSelectedImportSourceColumn(pipeline, selectedMappingField) : null;
   const selectedMappingDecision = selectedSourceColumn
@@ -9631,6 +9633,21 @@ function ImportDocument({
             />
           </label>
           <div className="template-action-row" data-testid="import-template-actions">
+            <button
+              type="button"
+              className="toolbar-button"
+              data-testid="import-use-demo-data"
+              disabled={excelParsing}
+              onClick={() => {
+                if (draft.rows.length > 0 && draft.sourceMode !== 'project-empty') {
+                  setDemoReplacePending(true);
+                  return;
+                }
+                onImportFile(createSyntheticCptuDemoFile());
+              }}
+            >
+              试用演示数据
+            </button>
             <button type="button" className="toolbar-button" data-testid="detail-download-blank-xlsx" onClick={() => onDownloadTemplate('blank', 'xlsx')}>
               下载空模板（Excel）
             </button>
@@ -9652,6 +9669,16 @@ function ImportDocument({
               复制标准表头
             </button>
           </div>
+          {demoReplacePending ? (
+            <div className="inline-confirmation" data-testid="import-demo-replace-confirmation">
+              <span>将用系统生成演示数据替换当前导入草稿；已保存的项目数据不会立即修改。</span>
+              <button type="button" className="toolbar-button" onClick={() => setDemoReplacePending(false)}>取消</button>
+              <button type="button" className="toolbar-button primary" onClick={() => {
+                setDemoReplacePending(false);
+                onImportFile(createSyntheticCptuDemoFile());
+              }} data-testid="import-confirm-demo-data">确认载入</button>
+            </div>
+          ) : null}
           <div className="readiness-list" data-testid="parsed-import-result">
             <div className="readiness-row">
               <span>草稿状态</span>

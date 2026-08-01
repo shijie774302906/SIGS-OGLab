@@ -10,6 +10,12 @@ import { requestDeepSeekTurn, requestMockTurn } from './providers.mjs';
 import { createNodeAssistantServer } from './server.mjs';
 import { buildDevCommands, developmentServiceCompatibilityProblem } from '../../scripts/dev-full.mjs';
 import { assistantToolsForContext } from './tools.mjs';
+import {
+  createAssistantQuotaService,
+  createAssistantVisitor,
+  createMemoryQuotaStore,
+  publicQuotaWindow,
+} from './quota.mjs';
 
 function context() {
   return {
@@ -823,6 +829,13 @@ test('public access uses the server key while a personal key can override it per
   });
   assert.equal(capability.body.publicAccess, true);
   assert.equal(capability.body.requiresApiKey, false);
+  assert.deepEqual(capability.body.publicQuota, {
+    status: 'available',
+    limit: 100,
+    used: 0,
+    remaining: 100,
+    resetAt: capability.body.publicQuota.resetAt,
+  });
   assert.doesNotMatch(JSON.stringify(capability), /sk-server-test/);
 
   const publicTurn = await core({
@@ -839,9 +852,152 @@ test('public access uses the server key while a personal key can override it per
   });
 
   assert.equal(publicTurn.status, 200);
+  assert.equal(publicTurn.body.publicQuota.remaining, 99);
   assert.equal(personalTurn.status, 200);
+  assert.equal(personalTurn.body.publicQuota, undefined);
   assert.deepEqual(seenAuthorizations, [`Bearer ${serverKey}`, `Bearer ${personalKey}`]);
   assert.doesNotMatch(JSON.stringify([publicTurn, personalTurn]), /sk-(server|personal)-test/);
+});
+
+test('public quota uses Beijing date buckets and allows exactly 100 successful reservations', async () => {
+  let now = new Date('2026-08-01T15:59:59.000Z');
+  const quota = createAssistantQuotaService({
+    config: { publicQuotaLimit: 100, publicQuotaStorage: 'memory' },
+    now: () => now,
+  });
+  const beforeMidnight = publicQuotaWindow(now);
+  assert.equal(beforeMidnight.date, '2026-08-01');
+  assert.equal(beforeMidnight.resetAt, '2026-08-01T16:00:00.000Z');
+  for (let index = 1; index <= 100; index += 1) {
+    const result = await quota.reserve('visitor-a');
+    assert.equal(result.accepted, true);
+    assert.equal(result.quota.remaining, 100 - index);
+  }
+  const exhausted = await quota.reserve('visitor-a');
+  assert.equal(exhausted.accepted, false);
+  assert.equal(exhausted.reason, 'exhausted');
+  assert.equal(exhausted.quota.remaining, 0);
+
+  const otherVisitor = await quota.status('visitor-b');
+  assert.equal(otherVisitor.remaining, 100);
+  now = new Date('2026-08-01T16:00:01.000Z');
+  const nextDay = await quota.status('visitor-a');
+  assert.equal(nextDay.remaining, 100);
+  assert.equal(publicQuotaWindow(now).date, '2026-08-02');
+});
+
+test('public quota accepts at most 100 concurrent reservations for one visitor', async () => {
+  const quota = createAssistantQuotaService({
+    config: { publicQuotaLimit: 100, publicQuotaStorage: 'memory' },
+    now: () => new Date('2026-08-01T08:00:00.000Z'),
+  });
+  const results = await Promise.all(
+    Array.from({ length: 140 }, () => quota.reserve('visitor-concurrent')),
+  );
+
+  assert.equal(results.filter((result) => result.accepted).length, 100);
+  assert.equal(results.filter((result) => !result.accepted && result.reason === 'exhausted').length, 40);
+  assert.equal((await quota.status('visitor-concurrent')).remaining, 0);
+});
+
+test('public quota releases a failed model call and personal keys bypass the counter', async () => {
+  const serverKey = 'sk-server-quota-test-123456789012345';
+  const personalKey = 'sk-personal-quota-test-1234567890123';
+  let failNext = true;
+  const core = createAssistantCore({
+    config: {
+      provider: 'deepseek',
+      deepseekApiKey: serverKey,
+      deepseekModel: 'deepseek-chat',
+      deepseekBaseUrl: 'https://api.deepseek.com',
+      publicQuotaLimit: 2,
+      publicQuotaStorage: 'memory',
+    },
+    fetchImpl: async () => {
+      if (failNext) {
+        failNext = false;
+        return new Response('{"error":{"message":"temporary"}}', { status: 503, headers: { 'Content-Type': 'application/json' } });
+      }
+      return new Response(JSON.stringify({
+        model: 'deepseek-chat',
+        choices: [{ message: { content: '完成。' } }],
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    },
+  });
+  const request = (headers = {}) => core({
+    method: 'POST',
+    pathname: '/api/assistant/turn',
+    headers,
+    quotaSubject: 'visitor-quota',
+    body: { turns: [{ role: 'user', content: '状态？' }], context: context() },
+  });
+
+  const failed = await request();
+  assert.equal(failed.status, 503);
+  assert.equal(failed.body.publicQuota.remaining, 2);
+  assert.equal((await request()).body.publicQuota.remaining, 1);
+  assert.equal((await request()).body.publicQuota.remaining, 0);
+  const exhausted = await request();
+  assert.equal(exhausted.status, 429);
+  assert.equal(exhausted.body.code, 'PUBLIC_QUOTA_EXHAUSTED');
+  assert.match(exhausted.body.problem, /明日|自己的 DeepSeek Key/);
+
+  const personal = await request({ 'x-deepseek-api-key': personalKey });
+  assert.equal(personal.status, 200);
+  assert.equal(personal.body.publicQuota, undefined);
+});
+
+test('assistant visitor cookie is signed, stable and stores only a derived subject', () => {
+  const first = createAssistantVisitor({
+    cookieHeader: '',
+    secret: 'visitor-secret-test',
+    randomUUID: () => '11111111-2222-4333-8444-555555555555',
+  });
+  assert.match(first.setCookie, /^sigs_ai_visitor=/);
+  assert.match(first.setCookie, /HttpOnly/);
+  assert.doesNotMatch(first.subject, /11111111/);
+  const cookie = first.setCookie.split(';')[0];
+  const second = createAssistantVisitor({ cookieHeader: cookie, secret: 'visitor-secret-test' });
+  assert.equal(second.subject, first.subject);
+  assert.equal(second.setCookie, null);
+  const tampered = createAssistantVisitor({
+    cookieHeader: `${cookie}x`,
+    secret: 'visitor-secret-test',
+    randomUUID: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+  });
+  assert.notEqual(tampered.subject, first.subject);
+  assert.match(tampered.setCookie, /^sigs_ai_visitor=/);
+});
+
+test('production config fails closed when public quota storage is not connected', async () => {
+  const config = createAssistantServerConfig({
+    VERCEL: '1',
+    DEEPSEEK_API_KEY: 'sk-production-test-1234567890123456',
+  });
+  assert.equal(config.publicQuotaStorage, 'unavailable');
+  const core = createAssistantCore({ config, fetchImpl: async () => { throw new Error('must not call provider'); } });
+  const capability = await core({
+    method: 'GET',
+    pathname: '/api/assistant/capabilities',
+    headers: {},
+    quotaSubject: 'visitor-production',
+  });
+  assert.equal(capability.body.publicAccess, false);
+  assert.equal(capability.body.requiresApiKey, true);
+  assert.equal(capability.body.publicQuota.status, 'unavailable');
+});
+
+test('Vercel Marketplace KV aliases activate the shared Upstash quota store', () => {
+  const config = createAssistantServerConfig({
+    VERCEL: '1',
+    DEEPSEEK_API_KEY: 'sk-server-marketplace-alias-test-123456',
+    KV_REST_API_URL: 'https://example.upstash.io',
+    KV_REST_API_TOKEN: 'marketplace-token',
+  });
+
+  assert.equal(config.publicQuotaStorage, 'upstash');
+  assert.equal(config.upstashRedisRestUrl, 'https://example.upstash.io');
+  assert.equal(config.upstashRedisRestToken, 'marketplace-token');
 });
 
 test('provider failures map to fixed copy without forwarding upstream content or the key', async () => {

@@ -10,6 +10,7 @@ import {
 } from 'react';
 import {
   connectDeepSeek,
+  AssistantRequestError,
   fetchAssistantCapability,
   requestAssistantTurn as requestAssistantTurnFromApi,
 } from './assistantClient';
@@ -19,6 +20,7 @@ import type {
   AssistantConnectionStatus,
   AssistantContextSnapshot,
   AssistantProviderTurn,
+  AssistantPublicQuota,
   AssistantWireTurn,
 } from './assistantTypes';
 
@@ -34,6 +36,7 @@ type AssistantConnectionValue = {
   status: AssistantConnectionStatus;
   connected: boolean;
   usingPersonalKey: boolean;
+  publicQuota: AssistantPublicQuota | null;
   hasOutboundConsent: (scope: 'engineering' | 'import', authorityHash: string) => boolean;
   generation: number;
   serviceProblem: string | null;
@@ -55,12 +58,18 @@ export function getAssistantTurnAccessProblem(input: {
   outboundConsent: boolean;
   hasApiKey: boolean;
   requiresApiKey: boolean;
+  usingPersonalKey?: boolean;
+  publicQuota?: AssistantPublicQuota | null;
 }) {
   if (!input.capability?.serviceAvailable || input.status !== 'connected') {
     return '请先连接 DeepSeek。';
   }
   if (input.capability.provider === 'deepseek' && input.requiresApiKey && !input.hasApiKey) {
     return '请先连接 DeepSeek。';
+  }
+  if (input.capability.provider === 'deepseek' && !input.usingPersonalKey) {
+    if (input.publicQuota?.status === 'exhausted') return '今日公共 AI 额度已用完，可明日再试或使用自己的 DeepSeek Key。';
+    if (input.publicQuota?.status === 'unavailable') return '公共 AI 次数服务暂不可用，请稍后重试或使用自己的 DeepSeek Key。';
   }
   if (input.capability.provider === 'deepseek' && !input.outboundConsent) {
     return '请先确认本次工程数据发送范围。';
@@ -215,6 +224,8 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
       outboundConsent: capability?.provider === 'mock' || outboundConsentReceipts.includes(consentReceipt),
       hasApiKey: capability?.provider === 'mock' || Boolean(apiKey),
       requiresApiKey: Boolean(capability?.requiresApiKey),
+      usingPersonalKey,
+      publicQuota: capability?.serviceAvailable ? capability.publicQuota ?? null : null,
     });
     if (accessProblem) throw new Error(accessProblem);
     const controller = new AbortController();
@@ -223,12 +234,27 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
     input.signal?.addEventListener('abort', abortFromCaller, { once: true });
     turnAbortControllersRef.current.add(controller);
     try {
-      const result = await requestAssistantTurnFromApi({
-        apiKey,
-        turns: input.turns,
-        context: input.context,
-        signal: controller.signal,
-      });
+      let result: AssistantProviderTurn;
+      try {
+        result = await requestAssistantTurnFromApi({
+          apiKey,
+          turns: input.turns,
+          context: input.context,
+          signal: controller.signal,
+        });
+      } catch (error) {
+        if (!usingPersonalKey && error instanceof AssistantRequestError && error.publicQuota) {
+          setCapability((current) => current?.serviceAvailable
+            ? { ...current, publicQuota: error.publicQuota }
+            : current);
+        }
+        throw error;
+      }
+      if (!usingPersonalKey && result.publicQuota) {
+        setCapability((current) => current?.serviceAvailable
+          ? { ...current, publicQuota: result.publicQuota }
+          : current);
+      }
       if (requestGeneration !== generationRef.current) {
         throw new DOMException('连接已变化。', 'AbortError');
       }
@@ -258,6 +284,7 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
     status,
     connected: status === 'connected',
     usingPersonalKey,
+    publicQuota: capability?.serviceAvailable ? capability.publicQuota ?? null : null,
     hasOutboundConsent: (scope, authorityHash) => (
       capability?.provider === 'mock'
       || outboundConsentReceipts.includes(`${scope}:${authorityHash}`)

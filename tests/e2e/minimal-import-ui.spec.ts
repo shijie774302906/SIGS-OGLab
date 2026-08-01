@@ -61,6 +61,39 @@ test('current point accepts a four-column CPTU CSV without exposing routine mapp
   expect(errors).toEqual([]);
 });
 
+test('PROCESS140 professional import loads synthetic demo through the existing draft pipeline', async ({ page }) => {
+  const browserErrors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
+  page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await prepareCurrentPoint(page, '演示数据专业导入', 'DEMO-PRO-01');
+  await page.getByTestId('explorer-import').click();
+  await page.getByTestId('import-use-demo-data').click();
+  await expect(page.getByTestId('parsed-import-result')).toContainText('121 行');
+  await expect(page.getByTestId('import-first-look')).toContainText('可进入数据检查');
+  await expect(page.getByTestId('import-upload-summary')).toContainText('SIGS-OGLab-系统生成演示数据.csv');
+  await expect.poll(() => readImportState(page)).toMatchObject({
+    pointCount: 1,
+    activePointName: 'DEMO-PRO-01',
+    draftCount: 1,
+    normalizedRowCount: 121,
+    rawRowCount: 121,
+    channelState: 'present',
+  });
+  expect(browserErrors).toEqual([]);
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    const evidenceDir = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process140-public-quota-demo');
+    mkdirSync(evidenceDir, { recursive: true });
+    await page.screenshot({ path: path.join(evidenceDir, 'professional-demo-import-1440x900.png'), fullPage: true });
+    writeFileSync(path.join(evidenceDir, 'professional-import-check.json'), JSON.stringify({
+      viewport: await page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight })),
+      documentOverflowX: await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)),
+      browserErrors,
+      rows: 121,
+    }, null, 2));
+  }
+});
+
 test('no-u2 CSV follows the CPT approximate route without asking for water depth', async ({ page }, testInfo) => {
   const inputPath = testInfo.outputPath('cpt-no-u2.csv');
   writeFileSync(inputPath, ['Depth(m),qc(MPa),fs(kPa)', '0.5,0.92,12.5', '1.0,0.98,13.8'].join('\n'), 'utf8');

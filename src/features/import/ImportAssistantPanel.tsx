@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAssistantConnection } from '../assistant/AssistantConnectionProvider';
+import { AssistantPublicQuotaNote, publicAssistantQuotaReady } from '../assistant/AssistantPublicQuotaNote';
 import type {
   AssistantContextSnapshot,
   AssistantToolCall,
@@ -352,7 +353,12 @@ export function ImportAssistantPanel({
     setConnectionDialogOpen(false);
   }
 
-  const canAsk = Boolean(source && sourceAttachment && pipelineContext && baseWorkspaceRevision !== null);
+  const quotaReady = publicAssistantQuotaReady({
+    provider: connection.capability?.provider,
+    usingPersonalKey: connection.usingPersonalKey,
+    quota: connection.publicQuota,
+  });
+  const canAsk = Boolean(source && sourceAttachment && pipelineContext && baseWorkspaceRevision !== null && quotaReady);
   const connectedLabel = connection.capability?.provider === 'mock'
     ? '测试模型 · 已连接'
     : `DeepSeek · ${connection.usingPersonalKey ? '自己的 Key' : '公共额度'}`;
@@ -395,6 +401,7 @@ export function ImportAssistantPanel({
           </div>
         </div>
       ) : null}
+      <AssistantPublicQuotaNote quota={connection.publicQuota} usingPersonalKey={connection.usingPersonalKey} />
       {connection.connected && !importConsent ? (
         <div className="assistant-consent" data-testid="import-assistant-consent">
           <strong>发送哪些内容？</strong>

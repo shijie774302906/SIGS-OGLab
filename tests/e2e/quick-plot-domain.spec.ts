@@ -7,6 +7,22 @@ import { buildQuickPlotRowsFromProposal, QUICK_PLOT_IMPORT_PROTOCOL, quickPlotDe
 import { buildQuickReportExplanation, executeQuickReportReadTool, hasQuickReportEvidenceForQuestion, trimQuickReportTurns } from '../../src/features/quick/QuickPlotAssistantPanel';
 import type { AssistantContextSnapshot, AssistantWireTurn } from '../../src/features/assistant/assistantTypes';
 import type { ImportAssistantSource } from '../../src/features/import/importAssistantDomain';
+import {
+  createSyntheticCptuDemoCsv,
+  createSyntheticCptuDemoRows,
+  SYNTHETIC_CPTU_DEMO_NAME,
+} from '../../src/features/demo/syntheticCptuDemo';
+
+test('PROCESS140 synthetic CPTU demo is deterministic, complete and explicitly non-project data', () => {
+  const rows = createSyntheticCptuDemoRows();
+  expect(rows).toHaveLength(121);
+  expect(createSyntheticCptuDemoRows()).toEqual(rows);
+  expect(rows[0]).toMatchObject({ depthM: 0, rowId: 'synthetic-cptu-001' });
+  expect(rows.at(-1)?.depthM).toBe(30);
+  expect(rows.every((row) => Number.isFinite(row.qcMpa) && Number.isFinite(row.fsKpa) && Number.isFinite(row.u2Kpa))).toBe(true);
+  expect(createSyntheticCptuDemoCsv()).toContain('Depth(m),qc(MPa),fs(kPa),u2(kPa)');
+  expect(`${SYNTHETIC_CPTU_DEMO_NAME}${createSyntheticCptuDemoCsv()}`).not.toMatch(/营口|CPT09|CPT-09|yingkou/i);
+});
 
 test('PROCESS113 clipboard parser keeps readable negative values and only skips rows without depth or qc', () => {
   const parsed = parseQuickPlotClipboard('深度\tqc\tfs\tu2\n0.01\t1.2\t15\t2\n0.02\t-0.4\t-1\t\n坏行\t2\t3\t4\n0.03\t3\t\t-5');

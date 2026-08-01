@@ -24,6 +24,12 @@ import {
 } from './quickPlotDomain';
 import { createQuickPlotXlsx } from './quickPlotWorkbook';
 import { QuickPlotAssistantPanel } from './QuickPlotAssistantPanel';
+import {
+  createSyntheticCptuDemoRows,
+  SYNTHETIC_CPTU_DEMO_NAME,
+  SYNTHETIC_CPTU_DEMO_POINT_NAME,
+  SYNTHETIC_CPTU_DEMO_WATER_DEPTH_M,
+} from '../demo/syntheticCptuDemo';
 
 export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub, onCommitProject }: {
   project: ProjectWorkspaceV2;
@@ -50,6 +56,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
   const [successNote, setSuccessNote] = useState('');
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [pendingSheet, setPendingSheet] = useState<{ file: File; candidates: ExcelSheetProfileV1[] } | null>(null);
+  const [demoReplacePending, setDemoReplacePending] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const pasteGridRef = useRef<HTMLDivElement>(null);
   const pdfExportControllerRef = useRef<AbortController | null>(null);
@@ -130,6 +137,28 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
       settings: { ...current.settings, pressureBasisConfirmed: false, u2Usage: undefined },
     }));
     window.setTimeout(() => pasteGridRef.current?.focus({ preventScroll: true }), 0);
+  }
+
+  function applyDemoRows() {
+    const rows = createSyntheticCptuDemoRows();
+    reflectAcceptedRows(SYNTHETIC_CPTU_DEMO_NAME);
+    setPendingSheet(null);
+    setDemoReplacePending(false);
+    setPasteNote('系统生成演示数据，仅用于体验功能。');
+    updateQuick((current) => ({
+      ...current,
+      sourceName: SYNTHETIC_CPTU_DEMO_NAME,
+      rows,
+      revisions: [],
+      activeRevisionId: null,
+      settings: {
+        ...current.settings,
+        pointName: SYNTHETIC_CPTU_DEMO_POINT_NAME,
+        waterDepthM: SYNTHETIC_CPTU_DEMO_WATER_DEPTH_M,
+        pressureBasisConfirmed: false,
+        u2Usage: undefined,
+      },
+    }));
   }
 
   function onPaste(event: React.ClipboardEvent<HTMLDivElement>) {
@@ -276,13 +305,14 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
     <main className="quick-input-main">
       <header className="quick-intro"><span className="quick-eyebrow">直接生成图册</span><h1>把数据粘贴进来</h1><p>深度、qc 必填；fs、u2 可空。缺少时，相关页面会标明未计算。</p></header>
       <section className="quick-data-card">
-        <div className="quick-card-heading"><div><h2>数据</h2><span>{workspace.rows.length ? `${workspace.rows.length.toLocaleString('zh-CN')} 行 · ${workspace.sourceName}` : '等待粘贴'}</span></div><div className="quick-card-actions"><button type="button" className="quick-secondary" disabled={!workspace.rows.length} onClick={clearInputRows} data-testid="quick-clear-input" title="清空当前数据和已生成图册"><Trash2 size={16} />清空数据</button><input ref={fileRef} type="file" accept=".xlsx,.xls" hidden onChange={(event) => void onFile(event.target.files?.[0] ?? null)} /><button type="button" className="quick-secondary" onClick={() => fileRef.current?.click()} data-testid="quick-import-excel"><Upload size={16} />从 Excel 导入</button></div></div>
+        <div className="quick-card-heading"><div><h2>数据</h2><span>{workspace.rows.length ? `${workspace.rows.length.toLocaleString('zh-CN')} 行 · ${workspace.sourceName}` : '等待粘贴'}</span></div><div className="quick-card-actions"><button type="button" className="quick-secondary" disabled={!workspace.rows.length} onClick={clearInputRows} data-testid="quick-clear-input" title="清空当前数据和已生成图册"><Trash2 size={16} />清空数据</button><button type="button" className="quick-secondary" onClick={() => workspace.rows.length ? setDemoReplacePending(true) : applyDemoRows()} data-testid="quick-use-demo-data">试用演示数据</button><input ref={fileRef} type="file" accept=".xlsx,.xls" hidden onChange={(event) => void onFile(event.target.files?.[0] ?? null)} /><button type="button" className="quick-secondary" onClick={() => fileRef.current?.click()} data-testid="quick-import-excel"><Upload size={16} />从 Excel 导入</button></div></div>
         <div ref={pasteGridRef} className={`quick-paste-grid${workspace.rows.length ? ' has-data' : ''}`} tabIndex={0} onPaste={onPaste} data-testid="quick-paste-grid">
           <table><thead><tr><th>深度 <small>m · 必填</small></th><th>qc <small>MPa · 必填</small></th><th>fs <small>kPa · 可空</small></th><th>u2 <small>kPa · 可空</small></th></tr></thead>
           <tbody>{visibleRows.length ? visibleRows.map((row) => <tr key={row.rowId}><td>{row.depthM}</td><td>{row.qcMpa}</td><td>{row.fsKpa ?? ''}</td><td>{row.u2Kpa ?? ''}</td></tr>) : <tr><td colSpan={4}><div className="quick-paste-empty"><FileSpreadsheet /><strong>点击这里，按 Ctrl + V 粘贴</strong><span>第一列深度，第二列 qc，第三列 fs，第四列 u2</span></div></td></tr>}</tbody></table>
           {workspace.rows.length > visibleRows.length ? <div className="quick-row-limit">已显示前 {visibleRows.length} 行，共 {workspace.rows.length.toLocaleString('zh-CN')} 行</div> : null}
         </div>
         {pasteNote ? <p className="quick-note" role="status">{pasteNote}</p> : null}
+        {demoReplacePending ? <div className="inline-confirmation quick-demo-confirmation" data-testid="quick-demo-replace-confirmation"><span>将清空当前输入和已生成图册，改用系统生成演示数据。</span><button type="button" className="quick-secondary" onClick={() => setDemoReplacePending(false)}>取消</button><button type="button" className="quick-primary" onClick={applyDemoRows} data-testid="quick-confirm-demo-data">确认载入</button></div> : null}
       </section>
       {pendingSheet ? <section className="quick-sheet-choice" data-testid="quick-sheet-choice"><div><strong>这个文件里有多个数据表</strong><span>请选择要出图的一个。</span></div><div>{pendingSheet.candidates.map((candidate) => <button type="button" className="quick-secondary" key={candidate.sheetName} onClick={() => void chooseSheet(candidate.sheetName)}>{candidate.sheetName} · {candidate.rowCount} 行</button>)}</div></section> : null}
       <section className="quick-settings-card">

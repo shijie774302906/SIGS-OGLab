@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAssistantConnection } from '../assistant/AssistantConnectionProvider';
+import { AssistantPublicQuotaNote, publicAssistantQuotaReady } from '../assistant/AssistantPublicQuotaNote';
 import type {
   AssistantContextSnapshot,
   AssistantToolCall,
@@ -626,7 +627,16 @@ export function QuickPlotAssistantPanel({
   const providerLabel = connection.capability?.provider === 'mock'
     ? '测试模型 · 已连接'
     : `DeepSeek · ${connection.usingPersonalKey ? '自己的 Key' : '公共额度'}`;
-  const canUseAi = Boolean(connection.connected && outboundConsent && connection.capability?.serviceAvailable);
+  const canUseAi = Boolean(
+    connection.connected
+    && outboundConsent
+    && connection.capability?.serviceAvailable
+    && publicAssistantQuotaReady({
+      provider: connection.capability?.provider,
+      usingPersonalKey: connection.usingPersonalKey,
+      quota: connection.publicQuota,
+    }),
+  );
 
   return (
     <>
@@ -666,6 +676,7 @@ export function QuickPlotAssistantPanel({
             </div>
           </div>
         ) : null}
+        <AssistantPublicQuotaNote quota={connection.publicQuota} usingPersonalKey={connection.usingPersonalKey} />
         {connection.connected && !outboundConsent ? (
           <div className="assistant-consent" data-testid="quick-ai-consent">
             <strong>发送哪些内容？</strong>

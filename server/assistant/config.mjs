@@ -82,6 +82,15 @@ export function createAssistantServerConfig(environment = process.env) {
   const secret = resolveAssistantSecret({ environment });
   const mockEnabled = environment.ASSISTANT_PROVIDER === 'mock'
     || /^(1|true|yes)$/i.test(String(environment.ASSISTANT_MOCK ?? ''));
+  // Vercel's current Upstash Marketplace integration injects KV_REST_API_*.
+  // Keep the native Upstash names as an explicit self-hosted/config-file option.
+  const upstashRedisRestUrl = unquote(environment.UPSTASH_REDIS_REST_URL || environment.KV_REST_API_URL);
+  const upstashRedisRestToken = unquote(environment.UPSTASH_REDIS_REST_TOKEN || environment.KV_REST_API_TOKEN);
+  const publicQuotaStorage = upstashRedisRestUrl && upstashRedisRestToken
+    ? 'upstash'
+    : environment.VERCEL
+      ? 'unavailable'
+      : 'memory';
   return Object.freeze({
     host: '127.0.0.1',
     port: Number(environment.ASSISTANT_PORT || 8787),
@@ -94,6 +103,11 @@ export function createAssistantServerConfig(environment = process.env) {
     requestTimeoutMs: Math.min(Math.max(Number(environment.ASSISTANT_TIMEOUT_MS || 60_000), 5_000), 60_000),
     maxBodyBytes: 512 * 1024,
     maxConcurrentRequests: 2,
+    publicQuotaLimit: 100,
+    publicQuotaStorage,
+    upstashRedisRestUrl,
+    upstashRedisRestToken,
+    assistantVisitorSecret: unquote(environment.ASSISTANT_VISITOR_SECRET) || secret.value || 'sigs-oglab-local-visitor',
   });
 }
 

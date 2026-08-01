@@ -6,9 +6,75 @@ import { confirmPendingStratificationLayers } from './stratification-guide-helpe
 
 const process127EvidenceEnabled = process.env.PROCESS127_EVIDENCE === '1' || process.env.MILESTONE_EVIDENCE === '1';
 const process127EvidenceDirectory = join(process.cwd(), 'process_logs', 'playwright-mcp', 'process127-assistant-connection');
+const process140EvidenceDirectory = join(process.cwd(), 'process_logs', 'playwright-mcp', 'process140-public-quota-demo');
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
+});
+
+test('PROCESS140 public quota shows remaining calls and disables public input when exhausted', async ({ page }) => {
+  const browserErrors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
+  page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
+  let publicTurns = 0;
+  await page.route('**/api/assistant/capabilities', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        serviceId: 'sigs-oglab-assistant',
+        buildId: 'process134-ai-import-v1',
+        instanceId: 'playwright-public-quota',
+        protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+        serviceAvailable: true,
+        provider: 'deepseek',
+        model: 'deepseek-v4-pro',
+        requiresApiKey: false,
+        publicAccess: true,
+        publicQuota: { status: 'available', limit: 100, used: 99, remaining: 1, resetAt: '2026-08-01T16:00:00.000Z' },
+      }),
+    });
+  });
+  await page.route('**/api/assistant/turn', async (route) => {
+    publicTurns += 1;
+    expect(route.request().headers()['x-deepseek-api-key']).toBeUndefined();
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        kind: 'message',
+        model: 'deepseek-v4-pro',
+        content: '当前项目尚未导入数据。',
+        serviceInstanceId: 'playwright-public-quota',
+        protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+        publicQuota: { status: 'exhausted', limit: 100, used: 100, remaining: 0, resetAt: '2026-08-01T16:00:00.000Z' },
+      }),
+    });
+  });
+  await page.getByTestId('new-project-name').fill(`公共额度 ${Date.now()}`);
+  await page.getByTestId('project-mode-professional').click();
+  await page.getByTestId('create-project-submit').click();
+  await openAssistant(page);
+  await expect(page.getByTestId('assistant-public-quota')).toHaveText('今日剩余 1 次');
+  await page.getByRole('button', { name: '同意上述发送范围并启用' }).click();
+  await page.getByTestId('assistant-input').fill('当前状态？');
+  await page.getByTestId('assistant-send').click();
+  await expect(page.getByTestId('assistant-messages')).toContainText('当前项目尚未导入数据');
+  await expect(page.getByTestId('assistant-public-quota')).toContainText('今日公共 AI 额度已用完');
+  await expect(page.getByTestId('assistant-input')).toBeDisabled();
+  await expect(page.getByTestId('assistant-provider-status').getByRole('button', { name: '使用自己的 Key' })).toBeVisible();
+  expect(publicTurns).toBe(1);
+  expect(browserErrors).toEqual([]);
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    mkdirSync(process140EvidenceDirectory, { recursive: true });
+    await page.screenshot({ path: join(process140EvidenceDirectory, 'public-quota-exhausted-1440x900.png'), fullPage: true });
+    writeFileSync(join(process140EvidenceDirectory, 'assistant-check.json'), JSON.stringify({
+      viewport: await page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight })),
+      documentOverflowX: await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)),
+      publicTurns,
+      browserErrors,
+    }, null, 2));
+  }
 });
 
 test('professional assistant reads automatically, previews edits, cancels, then confirms once', async ({ page }, testInfo) => {

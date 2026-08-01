@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useAssistantConnection } from './AssistantConnectionProvider';
+import { AssistantPublicQuotaNote, publicAssistantQuotaReady } from './AssistantPublicQuotaNote';
 import { assistantSessionReducer, initialAssistantSessionState } from './assistantState';
 import {
   executeAssistantReadTool,
@@ -125,7 +126,12 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
   const assistantEnabled = Boolean(
     capability?.serviceAvailable
     && connection.connected
-    && (capability.provider === 'mock' || outboundConsent),
+    && (capability.provider === 'mock' || outboundConsent)
+    && publicAssistantQuotaReady({
+      provider: capability?.provider,
+      usingPersonalKey: connection.usingPersonalKey,
+      quota: connection.publicQuota,
+    }),
   );
   const quickPrompts = useMemo(
     () => context.selectedLayer
@@ -365,6 +371,7 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
           ) : null}
         </div>
       ) : null}
+      <AssistantPublicQuotaNote quota={connection.publicQuota} usingPersonalKey={connection.usingPersonalKey} />
       {capability && !capability.serviceAvailable ? (
         <div className="assistant-consent assistant-disconnected" data-testid="assistant-disconnected">
           <strong>AI 服务暂不可用</strong>

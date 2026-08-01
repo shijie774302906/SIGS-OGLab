@@ -6,6 +6,7 @@ import {
   validateDeepSeekConnection,
 } from './providers.mjs';
 import { assistantServiceIdentity } from './protocol.mjs';
+import { createAssistantQuotaService } from './quota.mjs';
 
 function headerValue(headers, name) {
   if (!headers) return '';
@@ -57,6 +58,7 @@ function safeProblem(error, aborted = false) {
 export function createAssistantCore({
   config = assistantServerConfig,
   fetchImpl = fetch,
+  quotaService = createAssistantQuotaService({ config, fetchImpl }),
 } = {}) {
   return async function handleAssistantRequest({
     method,
@@ -64,9 +66,12 @@ export function createAssistantCore({
     headers,
     body,
     signal,
+    quotaSubject = 'direct-core',
   }) {
     if (method === 'GET' && pathname === '/api/assistant/capabilities') {
-      const publicAccess = config.provider !== 'mock' && Boolean(config.deepseekApiKey);
+      const publicConfigured = config.provider !== 'mock' && Boolean(config.deepseekApiKey);
+      const publicQuota = publicConfigured ? await quotaService.status(quotaSubject) : null;
+      const publicAccess = publicConfigured && publicQuota?.status !== 'unavailable';
       return response(200, {
         ...assistantServiceIdentity(),
         serviceAvailable: true,
@@ -74,6 +79,7 @@ export function createAssistantCore({
         model: config.provider === 'mock' ? 'deterministic-mock' : config.deepseekModel,
         requiresApiKey: config.provider !== 'mock' && !publicAccess,
         publicAccess,
+        ...(publicQuota ? { publicQuota } : {}),
       });
     }
 
@@ -108,14 +114,28 @@ export function createAssistantCore({
       return response(404, { problem: '接口不存在。' });
     }
 
-    const apiKey = config.provider === 'mock'
-      ? ''
-      : temporaryApiKey(headers) || config.deepseekApiKey;
+    const personalApiKey = config.provider === 'mock' ? '' : temporaryApiKey(headers);
+    const apiKey = config.provider === 'mock' ? '' : personalApiKey || config.deepseekApiKey;
     if (config.provider !== 'mock' && !apiKey) {
       return response(401, { problem: '公共 AI 暂不可用，请输入自己的 DeepSeek API Key 后重试。' });
     }
     const validated = validateAssistantRequest(body);
     if (!validated.ok) return response(400, { problem: validated.problem });
+    let reservedPublicQuota = null;
+    if (config.provider !== 'mock' && !personalApiKey) {
+      const reservation = await quotaService.reserve(quotaSubject);
+      if (!reservation.accepted) {
+        const unavailable = reservation.reason === 'unavailable';
+        return response(unavailable ? 503 : 429, {
+          problem: unavailable
+            ? '公共 AI 次数服务暂不可用，请稍后重试或使用自己的 DeepSeek Key。'
+            : '今日公共 AI 额度已用完，可明日再试或使用自己的 DeepSeek Key。',
+          code: unavailable ? 'PUBLIC_QUOTA_UNAVAILABLE' : 'PUBLIC_QUOTA_EXHAUSTED',
+          publicQuota: reservation.quota,
+        });
+      }
+      reservedPublicQuota = reservation.quota;
+    }
     try {
       const turn = config.provider === 'mock'
         ? await requestMockTurn({ turns: validated.turns, context: validated.context })
@@ -131,12 +151,15 @@ export function createAssistantCore({
         ...turn,
         serviceInstanceId: assistantServiceIdentity().instanceId,
         protocolVersions: assistantServiceIdentity().protocolVersions,
+        ...(reservedPublicQuota ? { publicQuota: reservedPublicQuota } : {}),
       });
     } catch (error) {
+      const publicQuota = reservedPublicQuota ? await quotaService.release(quotaSubject) : null;
       const safe = safeProblem(error, signal?.aborted);
       return response(safe.status, {
         problem: safe.problem,
         ...(safe.code ? { code: safe.code } : {}),
+        ...(publicQuota ? { publicQuota } : {}),
       });
     }
   };

@@ -3,8 +3,21 @@ import type {
   AssistantConnectionResult,
   AssistantContextSnapshot,
   AssistantProviderTurn,
+  AssistantPublicQuota,
   AssistantWireTurn,
 } from './assistantTypes';
+
+export class AssistantRequestError extends Error {
+  publicQuota?: AssistantPublicQuota;
+  code?: string;
+
+  constructor(message: string, options: { publicQuota?: AssistantPublicQuota; code?: string } = {}) {
+    super(message);
+    this.name = 'AssistantRequestError';
+    this.publicQuota = options.publicQuota;
+    this.code = options.code;
+  }
+}
 
 const ASSISTANT_ENDPOINT = '/api/assistant';
 const REQUIRED_ASSISTANT_SERVICE = 'sigs-oglab-assistant';
@@ -150,14 +163,18 @@ export async function requestAssistantTurn(input: {
       body: JSON.stringify({ turns: input.turns, context: input.context }),
       signal: controller.signal,
     });
-    const payload = await readJson(response) as (AssistantProviderTurn & { problem?: string }) | null;
+    const payload = await readJson(response) as (AssistantProviderTurn & {
+      problem?: string;
+      code?: string;
+      publicQuota?: AssistantPublicQuota;
+    }) | null;
     if (!response.ok) {
-      throw new Error(safeProblem(payload?.problem, input.apiKey ?? '', (
+      throw new AssistantRequestError(safeProblem(payload?.problem, input.apiKey ?? '', (
         response.status === 401 ? 'DeepSeek API Key 无效，请更换后重试。'
           : response.status === 402 ? 'AI 服务额度不足；没有执行任何修改。'
             : response.status === 429 ? '请求较多，请稍后重试；没有执行任何修改。'
               : 'AI 服务暂时不可用；没有执行任何修改。'
-      )));
+      )), { publicQuota: payload?.publicQuota, code: payload?.code });
     }
     if (!payload || (payload.kind !== 'message' && payload.kind !== 'tool_calls')) {
       throw new Error('AI 服务返回格式无效；没有执行任何修改。');

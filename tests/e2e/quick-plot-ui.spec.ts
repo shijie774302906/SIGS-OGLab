@@ -12,6 +12,47 @@ async function pasteGrid(page: import('@playwright/test').Page, text: string) {
   }, text);
 }
 
+test('PROCESS140 quick plot loads, cancels and confirms synthetic demo input without auto-generating', async ({ page }) => {
+  const browserErrors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
+  page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.getByTestId('new-project-name').fill('快捷演示数据');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await page.getByTestId('quick-use-demo-data').click();
+  await expect(page.getByText('121 行 · 系统生成演示数据')).toBeVisible();
+  await expect(page.getByTestId('quick-point-name')).toHaveValue('演示-CPTU-01');
+  await expect(page.getByText('系统生成演示数据，仅用于体验功能。')).toBeVisible();
+  await expect(page.getByTestId('quick-report-workspace')).toHaveCount(0);
+  await expect(page.getByTestId('quick-generate-report')).toBeDisabled();
+
+  await page.getByTestId('quick-use-demo-data').click();
+  await expect(page.getByTestId('quick-demo-replace-confirmation')).toBeVisible();
+  await page.getByTestId('quick-demo-replace-confirmation').getByRole('button', { name: '取消' }).click();
+  await expect(page.getByTestId('quick-demo-replace-confirmation')).toHaveCount(0);
+  await expect(page.getByText('121 行 · 系统生成演示数据')).toBeVisible();
+
+  await page.getByTestId('quick-use-demo-data').click();
+  await page.getByTestId('quick-confirm-demo-data').click();
+  await expect(page.getByText('121 行 · 系统生成演示数据')).toBeVisible();
+  await page.getByTestId('quick-pressure-basis-confirm').check();
+  await expect(page.getByTestId('quick-generate-report')).toBeEnabled();
+  expect(browserErrors).toEqual([]);
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    const evidenceDir = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process140-public-quota-demo');
+    mkdirSync(evidenceDir, { recursive: true });
+    await page.screenshot({ path: path.join(evidenceDir, 'quick-demo-input-1920x1080.png'), fullPage: true });
+    writeFileSync(path.join(evidenceDir, 'quick-demo-check.json'), JSON.stringify({
+      viewport: await page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight })),
+      documentOverflowX: await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)),
+      browserErrors,
+      rows: 121,
+      generatedAutomatically: false,
+    }, null, 2));
+  }
+});
+
 test('PROCESS117 quick project generates the 15-page mixed-orientation atlas with verified classification pages', async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   const browserErrors: string[] = [];
