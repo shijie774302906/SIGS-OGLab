@@ -1064,6 +1064,32 @@ button:focus-visible {
   text-align: left;
 }
 
+.sidebar-help-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  gap: 7px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.sidebar-help-link:hover,
+.sidebar-help-link:focus-visible {
+  border-color: var(--line);
+  background: var(--color-hover);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.sidebar-help-link.contextual { color: #5d4f91; }
+.sidebar-help-link .button-icon { width: 15px; height: 15px; flex: 0 0 auto; }
+.sidebar-help-link span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .sidebar-feedback-button:hover,
 .sidebar-feedback-button:focus-visible {
   border-color: var(--line);
@@ -1080,11 +1106,26 @@ button:focus-visible {
   white-space: nowrap;
 }
 
-.project-feedback-floating {
+.project-utility-launchers.floating {
   position: fixed;
   left: 18px;
   bottom: 18px;
   z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: calc(100vw - 36px);
+  flex-wrap: wrap;
+}
+
+.project-utility-launchers.sidebar {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 2px;
+}
+
+.project-feedback-floating {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -1101,6 +1142,29 @@ button:focus-visible {
   backdrop-filter: blur(8px);
 }
 
+.project-help-floating {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d9dfe2;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 5px 16px rgba(37, 31, 67, 0.08);
+  color: #596a71;
+  font: inherit;
+  font-size: 11px;
+  text-decoration: none;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+
+.project-help-floating.contextual { border-color: #d9d4ec; color: #5d4f91; font-weight: 650; }
+.project-help-floating:hover,
+.project-help-floating:focus-visible { border-color: #9f8ee5; background: #fff; color: #493a83; outline: none; }
+.project-help-floating .button-icon { width: 15px; height: 15px; }
+
 .project-feedback-floating:hover,
 .project-feedback-floating:focus-visible {
   border-color: #9f8ee5;
@@ -1116,11 +1180,39 @@ button:focus-visible {
 }
 
 @media (max-width: 720px) {
-  .project-feedback-floating {
+  .project-utility-launchers.floating {
     left: 12px;
     bottom: 12px;
   }
 }
+
+.visitor-analytics { position: relative; min-width: 0; }
+.visitor-analytics-trigger { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 11px; border: 1px solid #d9dfe2; border-radius: 7px; background: rgba(255,255,255,.96); color: #596a71; box-shadow: 0 5px 16px rgba(37,31,67,.08); cursor: pointer; font: inherit; font-size: 11px; white-space: nowrap; backdrop-filter: blur(8px); }
+.visitor-analytics-trigger:hover, .visitor-analytics-trigger:focus-visible, .visitor-analytics-trigger[aria-expanded="true"] { border-color: #a99aeb; background: #fff; color: #4f4188; outline: none; }
+.visitor-analytics-trigger svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.visitor-analytics.sidebar .visitor-analytics-trigger { width: 100%; min-height: 28px; justify-content: flex-start; padding: 0 7px; border-color: transparent; background: transparent; box-shadow: none; color: var(--text-secondary); overflow: hidden; }
+.visitor-analytics.sidebar .visitor-analytics-trigger span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.visitor-analytics-popover { position: fixed; left: 18px; bottom: 63px; z-index: 80; width: min(300px, calc(100vw - 24px)); padding: 13px; border: 1px solid #d9dfe2; border-radius: 8px; background: #fff; box-shadow: 0 16px 42px rgba(31,42,48,.18); color: #273b43; }
+.visitor-analytics.sidebar .visitor-analytics-popover { left: 12px; bottom: 82px; }
+.visitor-analytics-popover header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.visitor-analytics-popover header div { display: grid; gap: 2px; }
+.visitor-analytics-popover header span { color: #7a898f; font-size: 10px; }
+.visitor-analytics-popover header strong { font-size: 15px; }
+.visitor-analytics-popover header button { display: grid; place-items: center; width: 27px; height: 27px; border: 0; border-radius: 5px; background: transparent; color: #6f7e84; cursor: pointer; }
+.visitor-analytics-popover header button:hover { background: #f0f2f3; }
+.visitor-analytics-popover header svg { width: 16px; height: 16px; }
+.visitor-analytics-popover dl { display: grid; grid-template-columns: 1fr 1fr; margin: 12px 0; border: 1px solid #e2e7e9; border-radius: 6px; }
+.visitor-analytics-popover dl div { padding: 8px 10px; border-right: 1px solid #e2e7e9; }
+.visitor-analytics-popover dl div:last-child { border-right: 0; }
+.visitor-analytics-popover dt { color: #75858b; font-size: 10px; }
+.visitor-analytics-popover dd { margin: 2px 0 0; font-weight: 700; }
+.visitor-region-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+.visitor-region-heading strong { font-size: 12px; }
+.visitor-region-heading span { color: #89969b; font-size: 10px; }
+.visitor-analytics-popover ul { display: grid; max-height: 220px; overflow-y: auto; margin: 0; padding: 0; list-style: none; }
+.visitor-analytics-popover li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 30px; border-top: 1px solid #edf0f1; font-size: 12px; }
+.visitor-analytics-popover li span { color: #53676e; }
+.visitor-analytics-popover li strong { font-variant-numeric: tabular-nums; }
 
 .editor-shell {
   grid-column: 2;
@@ -9401,7 +9493,7 @@ p {
 .project-mode-choice span { color: #6e7d84; font-size: 12px; line-height: 1.45; }
 .project-mode-label { margin-left: 6px; padding: 2px 5px; border-radius: 4px; background: #f1edff; color: #705bd1; font-size: 10px; font-weight: 600; }
 
-.quick-shell { min-height: 100vh; background: #f2f4f4; color: #1d3037; }
+.quick-shell { width: 100%; height: 100vh; min-height: 0; overflow-x: hidden; overflow-y: auto; background: #f2f4f4; color: #1d3037; overscroll-behavior: contain; }
 .quick-topbar { position: sticky; top: 0; z-index: 10; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid #dce2e4; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); }
 .quick-topbar > div { display: flex; align-items: center; gap: 15px; color: #65767d; font-size: 13px; }
 .quick-topbar strong { font-size: 13px; }

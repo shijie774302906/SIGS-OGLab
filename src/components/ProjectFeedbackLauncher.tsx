@@ -1,9 +1,30 @@
-import { CheckCircle2, Copy, MessageSquareText, X } from 'lucide-react';
+import { BookOpenText, CheckCircle2, Copy, ExternalLink, MessageSquareText, X } from 'lucide-react';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { VisitorAnalyticsLauncher } from '../features/analytics/VisitorAnalyticsLauncher';
 
 const PROJECT_FEEDBACK_EMAIL = 'sigsoglab@163.com';
 const PROJECT_FEEDBACK_ENDPOINT = `https://formsubmit.co/ajax/${PROJECT_FEEDBACK_EMAIL}`;
 const PROJECT_FEEDBACK_MAX_FILE_SIZE = 10 * 1024 * 1024;
+const PROJECT_DOCS_ROOT = 'https://docs.sigs-oglab.com';
+
+const PAGE_HELP_PATHS: Record<string, string> = {
+  '项目集合': '/start/',
+  '项目/点位数据': '/professional/import#project',
+  '数据导入': '/professional/import#standard-import',
+  '数据检查': '/professional/check#current-problem',
+  '地层分层': '/professional/stratification#review-layer',
+  '参数解译': '/professional/parameters#choose',
+  '成果输出': '/professional/output#source',
+  '快捷出图 · 数据输入': '/quick/import',
+  '快捷出图 · 图册': '/quick/generate-export#read',
+};
+
+export function projectHelpLinks(pageLabel: string) {
+  return {
+    manual: `${PROJECT_DOCS_ROOT}/`,
+    page: `${PROJECT_DOCS_ROOT}${PAGE_HELP_PATHS[pageLabel] ?? '/start/'}`,
+  };
+}
 
 export function ProjectFeedbackLauncher({
   pageLabel,
@@ -19,6 +40,7 @@ export function ProjectFeedbackLauncher({
   const [fileError, setFileError] = useState('');
   const triggerRef = useRef<HTMLButtonElement>(null);
   const requestRef = useRef<AbortController | null>(null);
+  const helpLinks = projectHelpLinks(pageLabel);
   const mailHref = `mailto:${PROJECT_FEEDBACK_EMAIL}?subject=${encodeURIComponent('SIGS-OGLab 反馈与建议')}&body=${encodeURIComponent(`当前页面：${pageLabel}\n\n请写下问题或建议：\n`)}`;
 
   useEffect(() => {
@@ -133,7 +155,27 @@ export function ProjectFeedbackLauncher({
   }
 
   return (
-    <>
+    <div className={`project-utility-launchers ${placement}`}>
+      <a
+        className={placement === 'floating' ? 'project-help-floating' : 'sidebar-help-link'}
+        href={helpLinks.manual}
+        target="_blank"
+        rel="noreferrer"
+        data-testid="open-project-manual"
+      >
+        <BookOpenText className="button-icon" />
+        <span>使用帮助</span>
+      </a>
+      <a
+        className={placement === 'floating' ? 'project-help-floating contextual' : 'sidebar-help-link contextual'}
+        href={helpLinks.page}
+        target="_blank"
+        rel="noreferrer"
+        data-testid="open-current-page-help"
+      >
+        <ExternalLink className="button-icon" />
+        <span>查看本页说明</span>
+      </a>
       <button
         ref={triggerRef}
         type="button"
@@ -144,6 +186,7 @@ export function ProjectFeedbackLauncher({
         <MessageSquareText className="button-icon" />
         <span>反馈与建议</span>
       </button>
+      <VisitorAnalyticsLauncher placement={placement} />
       {open ? (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => {
           if (event.target === event.currentTarget) closeFeedback();
@@ -245,6 +288,6 @@ export function ProjectFeedbackLauncher({
           </section>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }
