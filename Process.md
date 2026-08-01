@@ -4,7 +4,15 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process139 Vercel 私有预览与安全首发
+## Current - Process140 公共 AI 每日额度与合成演示数据
+
+- Date: 2026-08-01
+- Status: `closed / implemented / verified / deployed`
+- Result: 官网公共 DeepSeek 按匿名浏览器访客每天 100 次、北京时间换日；个人 Key 旁路额度；专业导入与快捷出图均可一键载入明确标识的 121 行固定合成 CPTU 数据。
+- Verification: build、assistant 31/31、domain-fast 262/262、ui-isolated 123/123、real-serial 32/32、双分辨率证据、线上公共/自有 Key 验收和 Known Problem Gate 通过。
+- Detail: `process_logs/Process140.md`
+
+## Recent - Process139 Vercel 私有预览与安全首发
 
 - Date: 2026-07-31
 - Status: `closed / implemented / verified / privately deployed`
@@ -12,7 +20,7 @@ Detailed closure records live in `process_logs/ProcessNNN.md`. The complete form
 - Verification: build、assistant 25/25、domain-fast 260/260、ui-isolated 120/120、real-serial 32/32、双分辨率在线证据和 Known Problem Gate 通过。
 - Detail: `process_logs/Process139.md`
 
-## Current - Process138 本地公开前全面质量审查与整改
+## Recent - Process138 本地公开前全面质量审查与整改
 
 - Date: 2026-07-30
 - Status: `closed / implemented / verified / independently reviewed`

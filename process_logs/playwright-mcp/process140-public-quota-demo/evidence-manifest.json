@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "processId": "Process140",
+  "generatedAt": "2026-08-01T06:57:49.132Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process140-public-quota-demo",
+  "context": {
+    "path": "process_logs/Process140.md",
+    "size": 3566,
+    "sha256": "b0034a584a0a411f0665fd6bd74fa22496b6a1934667a883b1f1036e6a148bd6"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "process_logs/knowledge-reviews/Process140.json",
+        "size": 3691,
+        "sha256": "6acd37b7c709a771a97d4f5a03337731df0da4749ea490ff3d3fe10915044630"
+      },
+      {
+        "path": "server/assistant/assistant.test.mjs",
+        "size": 38365,
+        "sha256": "667f4873dbebf20370db62a43bb9ac6158b5f769597e9592192def65f71de145"
+      },
+      {
+        "path": "server/assistant/config.mjs",
+        "size": 4241,
+        "sha256": "a235438da21bee1be8c9f1ddc152e8b4c0b57124fdbbf662676523c424d7f579"
+      },
+      {
+        "path": "server/assistant/core.mjs",
+        "size": 6571,
+        "sha256": "bca9e1387e350b7d35fc8128adab0e82ebe7636122f00b07dca786958820fa1d"
+      },
+      {
+        "path": "server/assistant/quota.mjs",
+        "size": 7769,
+        "sha256": "ea52b6bd2b286429187458ac243373a385a9c09939a09f63c1f0871767046ac8"
+      },
+      {
+        "path": "src/features/assistant/AssistantConnectionProvider.tsx",
+        "size": 11996,
+        "sha256": "4ae727cb485c0adfe3a90e9479aa80749cd151e22c90d0b23392cc2c64ecd8ce"
+      },
+      {
+        "path": "src/features/assistant/AssistantPublicQuotaNote.tsx",
+        "size": 1107,
+        "sha256": "0ddace5cc800dfee1409d7e09b4636fd160be7f04e40d88132c83c8840a121b7"
+      },
+      {
+        "path": "src/features/demo/syntheticCptuDemo.ts",
+        "size": 2719,
+        "sha256": "7f399f7b32fe64704ea942dde3ae032e0312f421707452c1ffc73010885dc17b"
+      },
+      {
+        "path": "src/features/import/ImportAssistantPanel.tsx",
+        "size": 32227,
+        "sha256": "cb06a8ea1ad415303c0ab717bda06298112d299ecd63409595bc9fdcb21c577e"
+      },
+      {
+        "path": "src/features/quick/QuickPlotWorkspace.tsx",
+        "size": 27838,
+        "sha256": "bcae8f372b2f660d2e2b1455d0e31412e7e837a01a97bb0ab99da45b9ee9d0ef"
+      },
+      {
+        "path": "tests/e2e/assistant-ui.spec.ts",
+        "size": 39097,
+        "sha256": "9f59cdf42d751b859c8169ba730a746e6f94f9ef08b9845a4d71e7cfc346e8e2"
+      },
+      {
+        "path": "tests/e2e/minimal-import-ui.spec.ts",
+        "size": 15865,
+        "sha256": "2a7cfb0a6dcd75a969016526a158c66b6a033db733f15e2e473ebece51d864db"
+      },
+      {
+        "path": "tests/e2e/quick-plot-ui.spec.ts",
+        "size": 58906,
+        "sha256": "7fbf8967e5e4d7d3b33ee06316c8e0892944a4e43d7c526aaaabe55b71412938"
+      }
+    ],
+    "aggregateSha256": "a462e2f2c406cdee84cd4a063a52d34b424234cf33cda99f5d6369e9a956cb3b"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process140-public-quota-demo/assistant-check.json",
+        "size": 129,
+        "sha256": "ba017fabbbb5f278b27f950985ec0a9b95b036c5b433d707bc99a081d6f51045"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process140-public-quota-demo/browser-check.json",
+        "size": 962,
+        "sha256": "a85526c28ee99ed47afa1a6f26a9aaeef3c073e74e909da77d627117c5cb1588"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process140-public-quota-demo/online-check.json",
+        "size": 772,
+        "sha256": "3f9d0f0cb8c640a51a16a9a5fe5055661abb2460ee6e30a1fbc25821b19fc459"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process140-public-quota-demo/professional-demo-import-1440x900.png",
+        "size": 176305,
+        "sha256": "84c409775ffb4ac3150ecdb5347e3553585caf8776efe950ff9e65d63e4da471"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process140-public-quota-demo/professional-import-check.json",
+        "size": 124,
+        "sha256": "57b2124c8df235b2ccf6db5cc3b157da8a5927a6963adbcc491cb5e9c425e966"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process140-public-quota-demo/public-quota-exhausted-1440x900.png",
+        "size": 159721,
+        "sha256": "861fa01e279f74252ffe4c4b7d2ff9a178f968e50b00edf7499fb2ac8ea518a1"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process140-public-quota-demo/quick-demo-check.json",
+        "size": 160,
+        "sha256": "0a7f2b9d83fb2f23d8ddb6d67bcba82a9a8483f826145eaaa63dae8e81eea0c5"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process140-public-quota-demo/quick-demo-input-1920x1080.png",
+        "size": 78769,
+        "sha256": "a0c33c52c6b577ad9c4e9e76ff2b6fa9cc7b44ba93a980b82dd721c5cd8b96a7"
+      }
+    ],
+    "aggregateSha256": "8e4a1e6ba8e1d3ca6a667f4684213b3268c8a7bc3030ffb79f7ef3ea0e907e90"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:assistant-server",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:domain-fast",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:ui-isolated",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:real-serial",
+      "exitCode": 0
+    },
+    {
+      "command": "online capability/public/personal-key/browser smoke",
+      "exitCode": 0
+    }
+  ],
+  "seedOrSource": [
+    "process140-synthetic-cptu-v1"
+  ],
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
+}

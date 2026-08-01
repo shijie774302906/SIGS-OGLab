@@ -1,0 +1,32 @@
+{
+  "process": "Process140",
+  "result": "passed",
+  "screens": [
+    {
+      "file": "public-quota-exhausted-1440x900.png",
+      "viewport": "1440x900",
+      "state": "第 100 次成功后公共输入禁用，并显示次日恢复与自有 Key 入口"
+    },
+    {
+      "file": "professional-demo-import-1440x900.png",
+      "viewport": "1440x900",
+      "state": "系统生成 CPTU 演示数据进入现有专业导入管线"
+    },
+    {
+      "file": "quick-demo-input-1920x1080.png",
+      "viewport": "1920x1080",
+      "state": "系统生成 CPTU 演示数据保持可编辑且不会自动生成图册"
+    }
+  ],
+  "documentOverflowX": 0,
+  "browserErrors": [],
+  "syntheticRows": 121,
+  "sourceLabel": "系统生成演示数据",
+  "automaticAtlasGeneration": false,
+  "visualReview": {
+    "labelsAndUnits": "passed",
+    "selectedAndDisabledStates": "passed",
+    "primaryActionHierarchy": "passed",
+    "realProjectIdentityAbsent": "passed"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "process": "Process140",
+  "deploymentId": "dpl_2vJfe8SSSSp6caei3pGrznsctybR",
+  "productionUrl": "https://sigs-oglab-web.vercel.app",
+  "releaseCommit": "6b803d509a4e16a068d01db427b7b46439368000",
+  "status": "passed",
+  "capability": {
+    "httpStatus": 200,
+    "provider": "deepseek",
+    "model": "deepseek-v4-pro",
+    "publicAccess": true,
+    "quotaStatus": "available",
+    "dailyLimit": 100,
+    "initialRemaining": 100,
+    "cookieHttpOnly": true,
+    "cookieSecure": true
+  },
+  "publicTurn": {
+    "responseReceived": true,
+    "remainingAfterTurn": 99,
+    "sameVisitorReadback": 99
+  },
+  "personalKeyTurn": {
+    "responseReceived": true,
+    "publicQuotaIncludedInTurn": false,
+    "publicQuotaUnchanged": true
+  },
+  "onlineBrowserSmoke": "passed"
+}

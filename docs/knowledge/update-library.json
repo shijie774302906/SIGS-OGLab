@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-07-31",
+  "updated_at": "2026-08-01",
   "updates": [
     {
       "id": "Process070",
@@ -560,7 +560,15 @@
       "title": "Vercel 私有预览与安全首发",
       "status": "closed",
       "record": "process_logs/Process139.md",
-      "problems": ["KPB-002", "KPB-004", "KPB-007", "KPB-011", "KPB-012"]
+      "problems": ["KPB-002", "KPB-004", "KPB-007", "KPB-011", "KPB-012", "KPB-030"]
+    },
+    {
+      "id": "Process140",
+      "date": "2026-08-01",
+      "title": "公共 AI 每日额度与合成演示数据",
+      "status": "closed",
+      "record": "process_logs/Process140.md",
+      "problems": ["KPB-004", "KPB-005", "KPB-006", "KPB-011", "KPB-012", "KPB-030"]
     }
   ]
 }

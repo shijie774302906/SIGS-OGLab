@@ -59,7 +59,7 @@
       "root_causes": ["技术异常直接投影为用户提示。", "错误没有明确责任页面和可执行恢复动作。"],
       "prevention": ["错误状态必须包含原因、影响、证据、责任页面和一个推荐动作。", "能在当前流程恢复时保留用户原任务并自动续接。"],
       "required_checks": ["覆盖失败、取消、返回、重试、连续失败和恢复成功。", "验证恢复入口能到达准确位置而非页面顶部。"],
-      "related_updates": ["Process072", "Process073", "Process074", "Process075", "Process083", "Process086", "Process087", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process103", "Process104", "Process107", "Process108", "Process109", "Process111", "Process112", "Process113", "Process114", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139"],
+      "related_updates": ["Process072", "Process073", "Process074", "Process075", "Process083", "Process086", "Process087", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process103", "Process104", "Process107", "Process108", "Process109", "Process111", "Process112", "Process113", "Process114", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140"],
       "related_tests": ["tests/e2e/jts-classification-recovery-ui.spec.ts", "tests/e2e/workspace-storage-recovery.spec.ts"]
     },
     {
@@ -74,7 +74,7 @@
       "root_causes": ["展示默认值和持久化身份共用同一字段。", "跨页面交接被拆成多个非原子保存动作。"],
       "prevention": ["占位值不得通过领域校验。", "身份、导入草稿和检查交接在一次权威提交中完成。"],
       "required_checks": ["断言真实项目/点位身份，而不只断言路由和行数。", "模拟保存冲突并验证不存在半提交对象。"],
-      "related_updates": ["Process084", "Process091", "Process111", "Process128"],
+      "related_updates": ["Process084", "Process091", "Process111", "Process128", "Process140"],
       "related_tests": ["tests/e2e/preparation-guided-flow.spec.ts", "tests/e2e/workspace-v2-runtime.spec.ts"]
     },
     {
@@ -89,7 +89,7 @@
       "root_causes": ["错误分类被压扁为通用提示。", "清理只提交空列表，没有删除权威数据库及旧指针。"],
       "prevention": ["写入失败时保留内存编辑和真实错误原因。", "破坏性重置必须覆盖权威数据库、数据块、元数据和旧指针。"],
       "required_checks": ["覆盖配额、不可用、多标签、临时失败和重试。", "重置后验证全部 store、指针和刷新启动状态为空。"],
-      "related_updates": ["Process083", "Process085", "Process090", "Process091", "Process092", "Process093", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process115", "Process121", "Process126", "Process127", "Process128", "Process129", "Process131", "Process132", "Process133", "Process134", "Process138"],
+      "related_updates": ["Process083", "Process085", "Process090", "Process091", "Process092", "Process093", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process115", "Process121", "Process126", "Process127", "Process128", "Process129", "Process131", "Process132", "Process133", "Process134", "Process138", "Process140"],
       "related_tests": ["tests/e2e/workspace-storage-recovery.spec.ts", "tests/e2e/workspace-database.spec.ts", "tests/e2e/process131-scpt1-ai-import.spec.ts"]
     },
     {
@@ -164,7 +164,7 @@
       "root_causes": ["问题责任没有绑定到产生该数据的页面。", "跨页恢复没有保存用户原始意图。"],
       "prevention": ["数据问题由数据检查页治理，工程判断留在当前解释页面。", "跳转前保存意图，复检成功后自动回到准确步骤。"],
       "required_checks": ["覆盖返回责任页、取消修复、修复失败、复检和自动续接。", "断言原始测量不被静默改写。"],
-      "related_updates": ["Process071", "Process072", "Process074", "Process075", "Process082", "Process086", "Process087", "Process090", "Process091", "Process092", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process113", "Process114", "Process116", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process133", "Process134", "Process135", "Process136", "Process138", "Process139"],
+      "related_updates": ["Process071", "Process072", "Process074", "Process075", "Process082", "Process086", "Process087", "Process090", "Process091", "Process092", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process113", "Process114", "Process116", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process133", "Process134", "Process135", "Process136", "Process138", "Process139", "Process140"],
       "related_tests": ["tests/e2e/jts-classification-recovery-ui.spec.ts", "tests/e2e/preparation-guided-flow.spec.ts"]
     },
     {
@@ -179,7 +179,7 @@
       "root_causes": ["测试使用预生成夹具绕过首次运行。", "断言没有覆盖用户真正看到和判断的证据。"],
       "prevention": ["验收从真实用户动作开始，并断言可见工程对象。", "UI、领域语义、数据权威和性能分别给出证据。"],
       "required_checks": ["至少包含一个失败恢复和一个真实规模流程。", "截图检查标签、单位、选中态、禁用态、溢出和错误日志。"],
-      "related_updates": ["Process070", "Process080", "Process081", "Process084", "Process086", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process105", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process125", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139"],
+      "related_updates": ["Process070", "Process080", "Process081", "Process084", "Process086", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process105", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process125", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140"],
       "related_tests": ["tests/e2e/preparation-guided-flow.spec.ts", "tests/e2e/check-profile-curves-ui.spec.ts", "tests/e2e/process131-scpt1-ai-import.spec.ts"]
     },
     {
@@ -436,6 +436,21 @@
       "required_checks": ["分别记录检查完成、调整窗口打开/切换和高级曲线打开耗时。", "真实数据 JSON 必须包含测量范围、行数、最长任务和浏览器错误。"],
       "related_updates": ["Process133"],
       "related_tests": ["tests/e2e/yingkou-real-workflow.spec.ts"]
+    },
+    {
+      "id": "KPB-030",
+      "title": "无服务器公共额度使用实例内存导致计数漂移",
+      "status": "active",
+      "severity": "important",
+      "closure_gate": true,
+      "areas": ["assistant", "quota", "serverless", "shared-storage"],
+      "match_groups": [["公共额度", "Vercel"], ["限流", "内存"], ["多实例", "计数"], ["每日次数", "并发"]],
+      "symptoms": ["同一访客刷新或被路由到另一个函数实例后，剩余次数回升或不一致。", "并发请求超过每日上限，或者部署未连接共享存储时仍显示可用。"],
+      "root_causes": ["把开发环境的进程内 Map 当作无服务器生产计数器。", "计数使用先读后写而非共享存储中的原子保留操作。", "生产配置缺失时静默退回实例内存。"],
+      "prevention": ["生产环境只允许共享持久化存储，并以日期桶和匿名访客摘要作为键。", "额度保留、上限判断和过期时间必须由共享存储原子执行。", "共享存储缺失或异常时 fail closed，并保留用户自有 Key 旁路。"],
+      "required_checks": ["覆盖 100/101 边界、并发超限、跨日恢复、不同访客隔离和失败回退。", "断言生产环境未连接共享存储时公共 AI 明确不可用，且不会回退到进程内存。", "验证共享存储只收到不可逆访客摘要、日期和次数，不包含问题、回答、文件或工程数据。"],
+      "related_updates": ["Process139", "Process140"],
+      "related_tests": ["server/assistant/assistant.test.mjs", "tests/e2e/assistant-ui.spec.ts"]
     }
   ]
 }

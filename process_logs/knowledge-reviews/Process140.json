@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-01T06:55:31.197Z",
+  "context_files": [
+    "process_logs/Process140.md"
+  ],
+  "context_hash": "b56164a63c3227788052769a01dc297a737662db51000af66c933481ce06d18e",
+  "library_hash": "8f0027946681c56662f597499d861835249462a15af70aa7521bbb778399bfa6",
+  "status": "reviewed",
+  "matches": [
+    {
+      "problem_id": "KPB-012",
+      "title": "验收只证明状态存在，没有证明工程语义正确",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "验收",
+          "真实"
+        ]
+      ],
+      "related_updates": [
+        "Process070",
+        "Process080",
+        "Process081",
+        "Process084",
+        "Process086",
+        "Process087",
+        "Process088",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process094",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process105",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process114",
+        "Process115",
+        "Process116",
+        "Process117",
+        "Process118",
+        "Process119",
+        "Process120",
+        "Process121",
+        "Process122",
+        "Process123",
+        "Process124",
+        "Process125",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process130",
+        "Process131",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process137",
+        "Process138",
+        "Process139",
+        "Process140"
+      ],
+      "required_checks": [
+        "至少包含一个失败恢复和一个真实规模流程。",
+        "截图检查标签、单位、选中态、禁用态、溢出和错误日志。"
+      ],
+      "disposition": "covered",
+      "note": "归档包含失败回退、真实规模回归、双分辨率人工复核与线上真实调用。",
+      "evidence": [
+        "domain-fast 262/262; ui-isolated 123/123; real-serial 32/32; online Chromium smoke 1/1",
+        "1440x900 and 1920x1080 screenshots plus browser-check.json record labels, units, disabled states, zero overflow and zero browser errors"
+      ]
+    },
+    {
+      "problem_id": "KPB-030",
+      "title": "无服务器公共额度使用实例内存导致计数漂移",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "公共额度",
+          "Vercel"
+        ]
+      ],
+      "related_updates": [
+        "Process139",
+        "Process140"
+      ],
+      "required_checks": [
+        "覆盖 100/101 边界、并发超限、跨日恢复、不同访客隔离和失败回退。",
+        "断言生产环境未连接共享存储时公共 AI 明确不可用，且不会回退到进程内存。",
+        "验证共享存储只收到不可逆访客摘要、日期和次数，不包含问题、回答、文件或工程数据。"
+      ],
+      "disposition": "covered",
+      "note": "Vercel 生产已连接 Upstash；共享键只含日期与 HMAC 访客摘要，值仅为次数。",
+      "evidence": [
+        "assistant server 31/31 covers 100/101, 140 concurrency, Beijing rollover, visitor isolation, upstream rollback, personal-key bypass and production fail-closed",
+        "online-check.json confirms Upstash-backed public 100->99 persistence and personal-key public-quota invariance"
+      ]
+    }
+  ]
+}
