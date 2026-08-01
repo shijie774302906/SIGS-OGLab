@@ -259,13 +259,6 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
         throw new DOMException('连接已变化。', 'AbortError');
       }
       if (
-        capability?.instanceId
-        && result.serviceInstanceId
-        && result.serviceInstanceId !== capability.instanceId
-      ) {
-        throw new Error('AI 服务已重新启动，请重新检测后再判断当前文件。');
-      }
-      if (
         capability?.protocolVersions
         && result.protocolVersions
         && !capability.protocolVersions.every((version) => result.protocolVersions?.includes(version))
