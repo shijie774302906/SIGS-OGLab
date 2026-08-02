@@ -239,7 +239,7 @@
       "root_causes": ["计划、测试、证据、知识库和归档依靠人工按顺序同步。", "精选证据没有绑定上下文、实现、测试、命令退出码和环境。"],
       "prevention": ["活动与关闭阶段运行 process:doctor，机械矛盾必须给出非零退出码。", "关闭证据使用原子生成的 final manifest，绑定归档、实现、测试、知识报告和全部精选产物。", "历史知识报告绑定关闭时库版本，后续库增长不应误伤历史。"],
       "required_checks": ["覆盖活动、关闭、历史关闭、编号冲突、漏索引、pending、stale 和单向关系。", "修改任一绑定输入或证据后，manifest 审计必须指出准确路径并失败。", "失败的 final manifest 生成不得覆盖上一份有效文件。"],
-      "related_updates": ["Process094", "Process095", "Process096", "Process097", "Process098", "Process101", "Process105", "Process107", "Process120", "Process125", "Process126", "Process129", "Process138", "Process142", "Process143"],
+      "related_updates": ["Process094", "Process095", "Process096", "Process097", "Process098", "Process101", "Process105", "Process107", "Process120", "Process125", "Process126", "Process129", "Process138", "Process142", "Process143", "Process144"],
       "related_tests": ["scripts/process-doctor.test.mjs", "scripts/evidence-manifest.test.mjs"]
     },
     {

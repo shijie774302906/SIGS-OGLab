@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-02T04:57:45.362Z",
+  "context_files": [
+    "plan.md"
+  ],
+  "context_hash": "03cfde5a2d15a8bf1200b3af7d66f3f40812af0865080934013caee9328147e8",
+  "library_hash": "a22292b1651116ce2347ed837a4a6acab02424e7bdc4e745a07226f00efb1fae",
+  "status": "reviewed",
+  "matches": []
+}

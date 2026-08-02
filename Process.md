@@ -4,7 +4,15 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process143 桌面端首次使用指引
+## Current - Process144 安全生产发布
+
+- Date: 2026-08-02
+- Status: `closed / verified / deployed`
+- Result: Process126-143 已从干净发布工作树推送到私有 GitHub 发布分支并部署至 Vercel production；私有营口数据、密钥、本机凭据和临时产物未进入发布版本，线上双分辨率与接口检查通过。
+- Verification: build、domain-fast 262/262、ui-isolated 130 passed / 3 private-sample skipped、real-serial 26 passed / 8 external-or-private-sample skipped、assistant-server 36/36、release audit 0 errors、线上浏览器 0 errors。
+- Detail: `process_logs/Process144.md`
+
+## Recent - Process143 桌面端首次使用指引
 
 - Date: 2026-08-02
 - Status: `closed / implemented / verified`

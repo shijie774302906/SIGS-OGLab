@@ -1,0 +1,44 @@
+{
+  "process": "Process144",
+  "checkedAt": "2026-08-02T12:54:30+08:00",
+  "candidateCommit": "b6dc8d0e0685b0d9e301cdf02c3ebd6901768327",
+  "deploymentId": "dpl_2JmRWvJFbCgPLTdpZYf2Z5uDH13r",
+  "productionUrl": "https://sigs-oglab.com/",
+  "http": {
+    "root": 200,
+    "www": 308,
+    "docs": 200,
+    "assistantCapabilities": 200,
+    "visits": 200
+  },
+  "desktop": {
+    "1440x900": {
+      "onboardingVisible": true,
+      "threeStepsCompleted": true,
+      "replayControlVisible": true,
+      "horizontalOverflow": false
+    },
+    "1920x1080": {
+      "quickDemoLoaded": true,
+      "quickWorkspaceScrollMax": 104,
+      "quickWorkspaceScrollTop": 100,
+      "quickWorkspaceScrollWorks": true,
+      "horizontalOverflow": false
+    }
+  },
+  "professionalEntry": {
+    "projectCreated": true,
+    "guideVisible": true,
+    "firstHandoff": "data-import"
+  },
+  "analytics": {
+    "summaryVisible": true,
+    "displayedUniqueVisitors": 485,
+    "displayedRegions": 5
+  },
+  "browser": {
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "consoleWarnings": 0
+  }
+}

@@ -593,6 +593,14 @@
       "status": "closed",
       "record": "process_logs/Process143.md",
       "problems": ["KPB-002", "KPB-004", "KPB-006", "KPB-011", "KPB-012", "KPB-013", "KPB-016", "KPB-019"]
+    },
+    {
+      "id": "Process144",
+      "date": "2026-08-02",
+      "title": "安全生产发布",
+      "status": "closed",
+      "record": "process_logs/Process144.md",
+      "problems": ["KPB-016"]
     }
   ]
 }
