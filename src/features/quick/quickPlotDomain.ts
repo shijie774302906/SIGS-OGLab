@@ -998,9 +998,19 @@ export function quickPlotAssistantPageEvidence(workspace: QuickPlotWorkspaceV1, 
       unavailableMeaning: '参数只在对应 JTS 土类和公式适用条件内生成；其他深度留空，不补零、不跨段连线。',
     };
   }
-  if (pageNumber === 4) return { ...base, available: schneiderLayers.length > 0, method: 'Schneider 2008', layers: schneiderLayers, statistics: pageStats, unavailableReason: schneiderLayers.length ? null : '缺少可靠 u2 或归一化孔压证据，无法形成 Schneider 分类层。' };
-  if (pageNumber === 5) return { ...base, available: fuzzyLayers.length > 0, method: 'Zhang–Tumay Fuzzy（1.0 m 连续深度窗口最高概率）', layers: fuzzyLayers, windowRadiusM: 0.5, unavailableReason: fuzzyLayers.length ? null : '没有形成有效 Fuzzy 概率层。' };
-  if (pageNumber === 6) return { ...base, available: jtsLayers.length > 0, method: 'JTS/T 242—2020（1.0 m 深度窗口最高占比 Zone）', layers: jtsLayers, statistics: pageStats };
+  if (pageNumber === 2) return {
+    ...base,
+    available: true,
+    method: 'Robertson 2010 非归一化 SBT 与孔压参数 Bq',
+    definitions: {
+      sbt: { inputs: ['qc', 'fs'], normalizedTip: 'qc / pa', frictionRatio: 'Rf = fs / qc × 100%', doesNotUse: ['u2'] },
+      bq: { inputs: ['u2', 'u0', 'qt', 'σv0'], formula: 'Bq = (u2 - u0) / (qt - σv0)' },
+    },
+    statistics: pageStats,
+  };
+  if (pageNumber === 4) return { ...base, available: schneiderLayers.length > 0, method: 'Schneider 2008', inputs: ['Q = (qt - σv0) / σ′v0', 'Δu2 / σ′v0 = (u2 - u0) / σ′v0'], layers: schneiderLayers, statistics: pageStats, unavailableReason: schneiderLayers.length ? null : '缺少可靠 u2 或归一化孔压证据，无法形成 Schneider 分类层。' };
+  if (pageNumber === 5) return { ...base, available: fuzzyLayers.length > 0, method: 'Zhang–Tumay Fuzzy（1.0 m 连续深度窗口最高概率）', inputs: ['qc（MPa）', 'Rf = fs / qc × 100%'], outputClasses: ['黏土', '粉土/过渡土', '砂土'], layers: fuzzyLayers, windowRadiusM: 0.5, unavailableReason: fuzzyLayers.length ? null : '没有形成有效 Fuzzy 概率层。' };
+  if (pageNumber === 6) return { ...base, available: jtsLayers.length > 0, method: 'JTS/T 242—2020（1.0 m 深度窗口最高占比 Zone）', inputs: ['JTS 土体行为类型指数 Ic', '净锥尖阻力 qnet'], zoneSystem: 'JTS/T 242—2020 Zone 1–9；本孔仅显示实际命中的 Zone', layers: jtsLayers, statistics: pageStats };
   if (pageNumber === 8) return { ...base, available: robertsonLayers.length > 0, method: 'Modified Robertson 2016', layers: robertsonLayers, statistics: pageStats, unavailableReason: robertsonLayers.length ? null : '缺少有效应力或归一化分类证据。' };
   if (pageNumber === 9) return { ...base, available: true, classificationComparison: { jts: jtsLayers, robertson2016: robertsonLayers, schneider2008: schneiderLayers }, statistics: pageStats };
   if (pageNumber === 15 || pageNumber === 16) {

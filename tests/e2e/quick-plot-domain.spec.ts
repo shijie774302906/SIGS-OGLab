@@ -34,11 +34,18 @@ test('PROCESS145 report tools expose the exact generated Fuzzy, JTS and comparis
   const fuzzy = quickPlotAssistantPageEvidence(workspace, 5) as {
     generatedFromSameRowsAsAtlas: boolean;
     method: string;
+    inputs: string[];
+    outputClasses: string[];
     layers: Array<{ depthFromM: number; depthToM: number; label: string; confidencePercent?: number }>;
   };
   const jts = quickPlotAssistantPageEvidence(workspace, 6) as {
     method: string;
+    inputs: string[];
+    zoneSystem: string;
     layers: Array<{ depthFromM: number; depthToM: number; label: string; confidencePercent?: number }>;
+  };
+  const sbt = quickPlotAssistantPageEvidence(workspace, 2) as {
+    definitions: { sbt: { inputs: string[]; doesNotUse: string[] }; bq: { formula: string } };
   };
   const comparison = quickPlotAssistantPageEvidence(workspace, 9) as {
     classificationComparison: { jts: unknown[]; robertson2016: unknown[]; schneider2008: unknown[] };
@@ -56,10 +63,17 @@ test('PROCESS145 report tools expose the exact generated Fuzzy, JTS and comparis
 
   expect(fuzzy.generatedFromSameRowsAsAtlas).toBe(true);
   expect(fuzzy.method).toContain('Fuzzy');
+  expect(fuzzy.inputs).toEqual(['qc（MPa）', 'Rf = fs / qc × 100%']);
+  expect(fuzzy.outputClasses).toEqual(['黏土', '粉土/过渡土', '砂土']);
   expect(fuzzy.layers.length).toBeGreaterThan(0);
   expect(fuzzy.layers.every((layer) => layer.depthToM > layer.depthFromM && /土/.test(layer.label))).toBe(true);
   expect(fuzzy.layers.every((layer) => typeof layer.confidencePercent === 'number')).toBe(true);
   expect(jts.method).toContain('JTS/T 242');
+  expect(jts.inputs).toEqual(['JTS 土体行为类型指数 Ic', '净锥尖阻力 qnet']);
+  expect(jts.zoneSystem).toContain('Zone 1–9');
+  expect(sbt.definitions.sbt.inputs).toEqual(['qc', 'fs']);
+  expect(sbt.definitions.sbt.doesNotUse).toEqual(['u2']);
+  expect(sbt.definitions.bq.formula).toBe('Bq = (u2 - u0) / (qt - σv0)');
   expect(jts.layers.length).toBeGreaterThan(0);
   expect(jts.layers.every((layer) => /Zone \d/.test(layer.label))).toBe(true);
   expect(jts.layers.every((layer) => typeof layer.confidencePercent === 'number')).toBe(true);
