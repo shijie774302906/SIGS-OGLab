@@ -30,10 +30,12 @@ export function ProjectFeedbackLauncher({
   pageLabel,
   placement = 'floating',
   onOpenOnboarding,
+  onboardingMobile = false,
 }: {
   pageLabel: string;
   placement?: 'floating' | 'sidebar';
   onOpenOnboarding?: () => void;
+  onboardingMobile?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'manual'>('idle');
@@ -181,7 +183,7 @@ export function ProjectFeedbackLauncher({
       {onOpenOnboarding ? (
         <button
           type="button"
-          className={`${placement === 'floating' ? 'project-help-floating contextual' : 'sidebar-help-link contextual'} onboarding-replay`}
+          className={`${placement === 'floating' ? 'project-help-floating contextual' : 'sidebar-help-link contextual'} onboarding-replay${onboardingMobile ? ' onboarding-mobile' : ''}`}
           onClick={onOpenOnboarding}
           data-testid="open-project-onboarding"
         >

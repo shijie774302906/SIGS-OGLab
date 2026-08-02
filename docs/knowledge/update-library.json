@@ -609,6 +609,14 @@
       "status": "closed",
       "record": "process_logs/Process145.md",
       "problems": ["KPB-025", "KPB-033"]
+    },
+    {
+      "id": "Process146",
+      "date": "2026-08-02",
+      "title": "快捷出图输入与图册首次使用指引",
+      "status": "closed",
+      "record": "process_logs/Process146.md",
+      "problems": ["KPB-004", "KPB-006", "KPB-009", "KPB-012", "KPB-013", "KPB-019", "KPB-023"]
     }
   ]
 }

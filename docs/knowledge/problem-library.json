@@ -59,7 +59,7 @@
       "root_causes": ["技术异常直接投影为用户提示。", "错误没有明确责任页面和可执行恢复动作。"],
       "prevention": ["错误状态必须包含原因、影响、证据、责任页面和一个推荐动作。", "能在当前流程恢复时保留用户原任务并自动续接。"],
       "required_checks": ["覆盖失败、取消、返回、重试、连续失败和恢复成功。", "验证恢复入口能到达准确位置而非页面顶部。"],
-      "related_updates": ["Process072", "Process073", "Process074", "Process075", "Process083", "Process086", "Process087", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process103", "Process104", "Process107", "Process108", "Process109", "Process111", "Process112", "Process113", "Process114", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143"],
+      "related_updates": ["Process072", "Process073", "Process074", "Process075", "Process083", "Process086", "Process087", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process103", "Process104", "Process107", "Process108", "Process109", "Process111", "Process112", "Process113", "Process114", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process146"],
       "related_tests": ["tests/e2e/jts-classification-recovery-ui.spec.ts", "tests/e2e/workspace-storage-recovery.spec.ts"]
     },
     {
@@ -89,7 +89,7 @@
       "root_causes": ["错误分类被压扁为通用提示。", "清理只提交空列表，没有删除权威数据库及旧指针。"],
       "prevention": ["写入失败时保留内存编辑和真实错误原因。", "破坏性重置必须覆盖权威数据库、数据块、元数据和旧指针。"],
       "required_checks": ["覆盖配额、不可用、多标签、临时失败和重试。", "重置后验证全部 store、指针和刷新启动状态为空。"],
-      "related_updates": ["Process083", "Process085", "Process090", "Process091", "Process092", "Process093", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process115", "Process121", "Process126", "Process127", "Process128", "Process129", "Process131", "Process132", "Process133", "Process134", "Process138", "Process140", "Process143"],
+      "related_updates": ["Process083", "Process085", "Process090", "Process091", "Process092", "Process093", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process115", "Process121", "Process126", "Process127", "Process128", "Process129", "Process131", "Process132", "Process133", "Process134", "Process138", "Process140", "Process143", "Process146"],
       "related_tests": ["tests/e2e/workspace-storage-recovery.spec.ts", "tests/e2e/workspace-database.spec.ts", "tests/e2e/process131-scpt1-ai-import.spec.ts"]
     },
     {
@@ -134,7 +134,7 @@
       "root_causes": ["显示层把 null 转为 0 或在抽样时丢失断点。", "点位上下文被错误伪装成局部行证据。"],
       "prevention": ["缺失、问题、不适用和停测区间使用 null 断线。", "没有测量通道时不挂载对应轨道。"],
       "required_checks": ["覆盖完整 CPTU、无 u2、单点缺失和真实深度间断。", "断言不存在补零、跨缺口连接或伪造定位点。"],
-      "related_updates": ["Process071", "Process076", "Process080", "Process087", "Process088", "Process091", "Process092", "Process099", "Process102", "Process107", "Process109", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process122", "Process126", "Process138"],
+      "related_updates": ["Process071", "Process076", "Process080", "Process087", "Process088", "Process091", "Process092", "Process099", "Process102", "Process107", "Process109", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process122", "Process126", "Process138", "Process146"],
       "related_tests": ["tests/e2e/check-profile-curves-ui.spec.ts", "tests/e2e/jts-parameter-curve.spec.ts"]
     },
     {
@@ -179,7 +179,7 @@
       "root_causes": ["测试使用预生成夹具绕过首次运行。", "断言没有覆盖用户真正看到和判断的证据。"],
       "prevention": ["验收从真实用户动作开始，并断言可见工程对象。", "UI、领域语义、数据权威和性能分别给出证据。"],
       "required_checks": ["至少包含一个失败恢复和一个真实规模流程。", "截图检查标签、单位、选中态、禁用态、溢出和错误日志。"],
-      "related_updates": ["Process070", "Process080", "Process081", "Process084", "Process086", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process105", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process125", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143"],
+      "related_updates": ["Process070", "Process080", "Process081", "Process084", "Process086", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process105", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process125", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process146"],
       "related_tests": ["tests/e2e/preparation-guided-flow.spec.ts", "tests/e2e/check-profile-curves-ui.spec.ts", "tests/e2e/process131-scpt1-ai-import.spec.ts"]
     },
     {
@@ -194,7 +194,7 @@
       "root_causes": ["系统能力按模块展示，而不是按当前判断组织。", "高级审计和默认路径没有分层。"],
       "prevention": ["默认一次只呈现一个当前判断和少量固定选项。", "规则、历史、来源和高级编辑默认折叠。"],
       "required_checks": ["1440 首屏能够看到当前问题、证据和全部主要选择。", "确认中心只有一个最强主要动作。"],
-      "related_updates": ["Process073", "Process075", "Process076", "Process077", "Process078", "Process080", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process095", "Process099", "Process100", "Process101", "Process104", "Process107", "Process109", "Process110", "Process111", "Process112", "Process113", "Process115", "Process116", "Process117", "Process120", "Process126", "Process132", "Process133", "Process134", "Process135", "Process136", "Process141", "Process143"],
+      "related_updates": ["Process073", "Process075", "Process076", "Process077", "Process078", "Process080", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process095", "Process099", "Process100", "Process101", "Process104", "Process107", "Process109", "Process110", "Process111", "Process112", "Process113", "Process115", "Process116", "Process117", "Process120", "Process126", "Process132", "Process133", "Process134", "Process135", "Process136", "Process141", "Process143", "Process146"],
       "related_tests": ["tests/e2e/parameter-guided-workflow-ui.spec.ts", "tests/e2e/check-profile-curves-ui.spec.ts"]
     },
     {
@@ -284,7 +284,7 @@
       "root_causes": ["功能直接挂在某个页面专属导航，而不是共享组件和所有顶层外壳。", "验收只从单一路由进入，没有列出并逐一检查独立页面外壳。"],
       "prevention": ["全局功能必须先枚举全部顶层页面外壳，再由共享组件接入每种外壳。", "每个外壳断言入口唯一、可见、可操作，避免重复挂载。"],
       "required_checks": ["逐一覆盖项目首页、标准工作台及独立流程的输入态和结果态。", "在每种外壳断言入口数量恰好为一，并验证打开、关闭、焦点恢复和页面身份。"],
-      "related_updates": ["Process124", "Process141", "Process142", "Process143"],
+      "related_updates": ["Process124", "Process141", "Process142", "Process143", "Process146"],
       "related_tests": ["tests/e2e/project-feedback.spec.ts"]
     },
     {
@@ -344,7 +344,7 @@
       "root_causes": ["导出层直接读取标准化数值对象，缺失字段已经被内部占位值替代。", "测试只验证列存在和行数，没有验证缺失语义在导出、下载和重新导入之间保持不变。"],
       "prevention": ["导出必须读取带来源语义的可选测量值；未映射、空白或不可用字段保持空白，不得写入数值占位符。", "标准化计算值与可追溯的原始/整理后导出值使用不同字段，禁止互相回退。"],
       "required_checks": ["构造没有 u2 映射的来源，断言整理后预览与 CSV 的 u2 单元格为空且不包含 0。", "覆盖下载后重新导入，断言缺失状态仍为缺失，并验证已有真实 0 值不会被误删。"],
-      "related_updates": ["Process128", "Process130", "Process132", "Process138", "Process142"],
+      "related_updates": ["Process128", "Process130", "Process132", "Process138", "Process142", "Process146"],
       "related_tests": ["tests/e2e/import-assistant-domain.spec.ts", "tests/e2e/import-assistant-ui.spec.ts"]
     },
     {

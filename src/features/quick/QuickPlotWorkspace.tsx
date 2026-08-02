@@ -24,6 +24,7 @@ import {
 } from './quickPlotDomain';
 import { createQuickPlotXlsx } from './quickPlotWorkbook';
 import { QuickPlotAssistantPanel } from './QuickPlotAssistantPanel';
+import { QuickPlotFirstUseGuide } from './QuickPlotFirstUseGuide';
 import {
   createSyntheticCptuDemoRows,
   SYNTHETIC_CPTU_DEMO_NAME,
@@ -55,6 +56,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
   const [pasteNote, setPasteNote] = useState('');
   const [successNote, setSuccessNote] = useState('');
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const [guideReplayToken, setGuideReplayToken] = useState(0);
   const [pendingSheet, setPendingSheet] = useState<{ file: File; candidates: ExcelSheetProfileV1[] } | null>(null);
   const [demoReplacePending, setDemoReplacePending] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -277,14 +279,16 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
           <div className="quick-report-actions">
             <button type="button" className="quick-secondary" disabled={Boolean(exporting)} onClick={() => setView('input')}>修改输入</button>
             <div className="quick-zoom-controls" aria-label="页面缩放"><button type="button" className={pageZoom === 0 ? 'active' : ''} onClick={() => setPageZoom(0)}>适合页面</button><button type="button" className={pageZoom === 100 ? 'active' : ''} onClick={() => setPageZoom(100)}>100%</button><button type="button" className={pageZoom === 150 ? 'active' : ''} onClick={() => setPageZoom(150)}>150%</button></div>
-            <button type="button" className="quick-secondary" disabled={!pages.length || generating || Boolean(exporting)} onClick={() => void exportExcel()} data-testid="quick-export-excel"><FileSpreadsheet size={17} />{exporting === 'excel' ? '正在准备 Excel…' : '导出 Excel'}</button>
-            <button type="button" className="quick-primary" disabled={!pages.length || generating || Boolean(exporting)} onClick={() => void exportPdf()} data-testid="quick-export-pdf"><FileText size={17} />{pdfButtonLabel}</button>
+            <div className="quick-report-export-actions" data-testid="quick-report-export-actions">
+              <button type="button" className="quick-secondary" disabled={!pages.length || generating || Boolean(exporting)} onClick={() => void exportExcel()} data-testid="quick-export-excel"><FileSpreadsheet size={17} />{exporting === 'excel' ? '正在准备 Excel…' : '导出 Excel'}</button>
+              <button type="button" className="quick-primary" disabled={!pages.length || generating || Boolean(exporting)} onClick={() => void exportPdf()} data-testid="quick-export-pdf"><FileText size={17} />{pdfButtonLabel}</button>
+            </div>
           </div>
         </section>
         {exporting === 'pdf' && pdfProgress ? <p className="sr-only" role="status" data-testid="quick-pdf-progress">{pdfProgress.page ? '正在生成' : '正在准备'} A3 600 DPI 高清 PDF：{pdfProgress.page}/{pdfProgress.total}</p> : null}
         {problem ? <p className="quick-problem" role="alert">{problem}</p> : null}
         {successNote ? <p className="quick-note" role="status">{successNote}</p> : null}
-        <section className="quick-report-viewer">
+        <section className="quick-report-viewer" data-testid="quick-report-viewer">
           <div className={`quick-page-stage${pageZoom ? ' is-zoomed' : ''}`} data-testid="quick-page-stage">
             {pages[selectedPage] ? <img src={pages[selectedPage].previewUrl} alt={`第 ${selectedPage + 1} 页：${pages[selectedPage].title}`} data-orientation={pages[selectedPage].orientation} data-reference-page={pages[selectedPage].referencePage} style={pageZoom ? { width: `${pageZoom}%` } : undefined} /> : <div className="quick-page-loading">正在准备图册…</div>}
             <button type="button" aria-label="上一页" disabled={selectedPage === 0} onClick={() => setSelectedPage((page) => Math.max(0, page - 1))}><ChevronLeft /></button>
@@ -295,8 +299,9 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
           </aside>
         </section>
       </main>
+      <QuickPlotFirstUseGuide key="quick-report-guide" mode="report" hasRows={workspace.rows.length > 0} hasU2Data={hasU2Data} replayToken={guideReplayToken} />
       <QuickPlotAssistantPanel open={assistantOpen} mode="report" project={project} workspace={workspace} pages={pages} selectedPage={selectedPage} onClose={() => setAssistantOpen(false)} onImport={async () => ({ ok: false, problem: '当前图册页不能导入文件。' })} />
-      <ProjectFeedbackLauncher pageLabel="快捷出图 · 图册" />
+      <ProjectFeedbackLauncher pageLabel="快捷出图 · 图册" onOpenOnboarding={() => setGuideReplayToken((current) => current + 1)} onboardingMobile />
     </div>;
   }
 
@@ -304,7 +309,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
     <header className="quick-topbar"><div><button type="button" className="quick-back" onClick={onOpenProjectHub}><FolderOpen size={17} />项目</button><span>快捷出图</span></div><div className="quick-topbar-actions"><strong>{project.projectName}</strong><button type="button" className={`quick-assistant-toggle${assistantOpen ? ' active' : ''}`} onClick={() => setAssistantOpen((current) => !current)} data-testid="quick-ai-toggle"><Bot size={16} />AI 整理数据</button></div></header>
     <main className="quick-input-main">
       <header className="quick-intro"><span className="quick-eyebrow">直接生成图册</span><h1>把数据粘贴进来</h1><p>深度、qc 必填；fs、u2 可空。缺少时，相关页面会标明未计算。</p></header>
-      <section className="quick-data-card">
+      <section className="quick-data-card" data-testid="quick-data-card">
         <div className="quick-card-heading"><div><h2>数据</h2><span>{workspace.rows.length ? `${workspace.rows.length.toLocaleString('zh-CN')} 行 · ${workspace.sourceName}` : '等待粘贴'}</span></div><div className="quick-card-actions"><button type="button" className="quick-secondary" disabled={!workspace.rows.length} onClick={clearInputRows} data-testid="quick-clear-input" title="清空当前数据和已生成图册"><Trash2 size={16} />清空数据</button><button type="button" className="quick-secondary" onClick={() => workspace.rows.length ? setDemoReplacePending(true) : applyDemoRows()} data-testid="quick-use-demo-data">试用演示数据</button><input ref={fileRef} type="file" accept=".xlsx,.xls" hidden onChange={(event) => void onFile(event.target.files?.[0] ?? null)} /><button type="button" className="quick-secondary" onClick={() => fileRef.current?.click()} data-testid="quick-import-excel"><Upload size={16} />从 Excel 导入</button></div></div>
         <div ref={pasteGridRef} className={`quick-paste-grid${workspace.rows.length ? ' has-data' : ''}`} tabIndex={0} onPaste={onPaste} data-testid="quick-paste-grid">
           <table><thead><tr><th>深度 <small>m · 必填</small></th><th>qc <small>MPa · 必填</small></th><th>fs <small>kPa · 可空</small></th><th>u2 <small>kPa · 可空</small></th></tr></thead>
@@ -315,7 +320,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
         {demoReplacePending ? <div className="inline-confirmation quick-demo-confirmation" data-testid="quick-demo-replace-confirmation"><span>将清空当前输入和已生成图册，改用系统生成演示数据。</span><button type="button" className="quick-secondary" onClick={() => setDemoReplacePending(false)}>取消</button><button type="button" className="quick-primary" onClick={applyDemoRows} data-testid="quick-confirm-demo-data">确认载入</button></div> : null}
       </section>
       {pendingSheet ? <section className="quick-sheet-choice" data-testid="quick-sheet-choice"><div><strong>这个文件里有多个数据表</strong><span>请选择要出图的一个。</span></div><div>{pendingSheet.candidates.map((candidate) => <button type="button" className="quick-secondary" key={candidate.sheetName} onClick={() => void chooseSheet(candidate.sheetName)}>{candidate.sheetName} · {candidate.rowCount} 行</button>)}</div></section> : null}
-      <section className="quick-settings-card">
+      <section className="quick-settings-card" data-testid="quick-settings-card">
         <div className="quick-card-heading"><div><h2>确认图册信息</h2><span>其他设置已按常用值填写</span></div></div>
         <div className="quick-settings-row">
           <label><span>孔位名称</span><input value={workspace.settings.pointName} onChange={(event) => updateQuick((current) => ({ ...current, settings: { ...current.settings, pointName: event.target.value } }))} data-testid="quick-point-name" /></label>
@@ -325,8 +330,9 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
         {hasU2Data ? <fieldset className="quick-basis-confirm"><legend>u2 怎么使用？</legend><label><input type="radio" name="quick-u2-usage" checked={workspace.settings.u2Usage === 'total' || (!workspace.settings.u2Usage && workspace.settings.pressureBasisConfirmed)} onChange={() => updateQuick((current) => ({ ...current, settings: { ...current.settings, pressureBasisConfirmed: true, u2Usage: 'total' } }))} data-testid="quick-pressure-basis-confirm" /><span><b>按总孔压计算</b>　确认深度从泥面向下，u2 包含静水压力；缺失行只跳过孔压方法。</span></label><label><input type="radio" name="quick-u2-usage" checked={workspace.settings.u2Usage === 'raw_only'} onChange={() => updateQuick((current) => ({ ...current, settings: { ...current.settings, pressureBasisConfirmed: true, u2Usage: 'raw_only' } }))} data-testid="quick-pressure-raw-only" /><span><b>不确定，只展示原始 u2</b>　仍生成图册，但不计算 Schneider、Bq 等孔压方法。</span></label></fieldset> : <p className="quick-cpt-route">u2 少于 2 个有效点，将按 CPT 近似路线出图；Schneider、Bq 和孔压相关结果不生成。</p>}
       </section>
       {problem ? <p className="quick-problem" role="alert">{problem}</p> : null}
-      <section className={`quick-ready-bar ${canGenerate && !stale ? 'ready' : ''}${stale ? ' stale' : ''}`}><div><strong>{stale ? '图册需要更新' : activeRevision ? '当前图册仍可查看' : generateFailed ? '图册没有生成' : canGenerate ? '数据已准备好' : readiness.ready && !pressureBasisConfirmed ? '请选择 u2 的使用方式' : '粘贴数据后即可生成'}</strong><span>{stale ? '孔位或数据已改变；当前预览已失效，请重新生成后再预览或导出。' : activeRevision ? '输入没有变化，不需要重复生成。' : generateFailed ? '数据仍在当前页面，可以直接重试。' : readiness.ready ? `${workspace.settings.pointName}${fullCptu ? ` · 水深 ${workspace.settings.waterDepthM.toFixed(1)} m` : ' · CPT 近似'} · 不会改动你粘贴的数据。` : readiness.message}</span></div><button type="button" className="quick-primary" disabled={!canGenerate || generating} onClick={() => activeRevision && !stale ? setView('report') : void generate()} data-testid="quick-generate-report">{generating ? '正在生成图册…' : activeRevision && !stale ? '返回当前图册' : stale ? '重新生成图册' : generateFailed ? '重试生成图册' : '确认并生成图册'}<ArrowLeft className="quick-forward" size={18} /></button></section>
+      <section className={`quick-ready-bar ${canGenerate && !stale ? 'ready' : ''}${stale ? ' stale' : ''}`} data-testid="quick-ready-bar"><div><strong>{stale ? '图册需要更新' : activeRevision ? '当前图册仍可查看' : generateFailed ? '图册没有生成' : canGenerate ? '数据已准备好' : readiness.ready && !pressureBasisConfirmed ? '请选择 u2 的使用方式' : '粘贴数据后即可生成'}</strong><span>{stale ? '孔位或数据已改变；当前预览已失效，请重新生成后再预览或导出。' : activeRevision ? '输入没有变化，不需要重复生成。' : generateFailed ? '数据仍在当前页面，可以直接重试。' : readiness.ready ? `${workspace.settings.pointName}${fullCptu ? ` · 水深 ${workspace.settings.waterDepthM.toFixed(1)} m` : ' · CPT 近似'} · 不会改动你粘贴的数据。` : readiness.message}</span></div><button type="button" className="quick-primary" disabled={!canGenerate || generating} onClick={() => activeRevision && !stale ? setView('report') : void generate()} data-testid="quick-generate-report">{generating ? '正在生成图册…' : activeRevision && !stale ? '返回当前图册' : stale ? '重新生成图册' : generateFailed ? '重试生成图册' : '确认并生成图册'}<ArrowLeft className="quick-forward" size={18} /></button></section>
     </main>
+    <QuickPlotFirstUseGuide key="quick-input-guide" mode="input" hasRows={workspace.rows.length > 0} hasU2Data={hasU2Data} replayToken={guideReplayToken} />
     <QuickPlotAssistantPanel
       open={assistantOpen}
       mode="input"
@@ -362,7 +368,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
         return { ok: true };
       }}
     />
-    <ProjectFeedbackLauncher pageLabel="快捷出图 · 数据输入" />
+    <ProjectFeedbackLauncher pageLabel="快捷出图 · 数据输入" onOpenOnboarding={() => setGuideReplayToken((current) => current + 1)} onboardingMobile />
   </div>;
 }
 
