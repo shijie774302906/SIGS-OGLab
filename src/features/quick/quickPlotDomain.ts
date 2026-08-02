@@ -865,6 +865,12 @@ function assistantRound(value: number, digits = 3) {
   return Number(value.toFixed(digits));
 }
 
+function assistantStatValue(value: number) {
+  return value !== 0 && Math.abs(value) < 0.001
+    ? Number(value.toPrecision(4))
+    : assistantRound(value);
+}
+
 function assistantLayers<T extends string | number>(
   layers: ReportLayer<T>[],
   label: (category: T) => string,
@@ -901,9 +907,9 @@ function assistantStat(
     unit,
     validCount: values.length,
     missingCount: Math.max(0, rows.length - values.length),
-    minimum: values.length ? assistantRound(values[0]) : null,
-    maximum: values.length ? assistantRound(values[values.length - 1]) : null,
-    median: median === null ? null : assistantRound(median),
+    minimum: values.length ? assistantStatValue(values[0]) : null,
+    maximum: values.length ? assistantStatValue(values[values.length - 1]) : null,
+    median: median === null ? null : assistantStatValue(median),
   };
 }
 
@@ -986,6 +992,9 @@ export function quickPlotAssistantPageEvidence(workspace: QuickPlotWorkspaceV1, 
         return sandPage ? zone >= 7 && zone <= 9 : zone >= 1 && zone <= 5;
       }),
       parameterGroups: audit.groups.filter((group) => groupTitles.has(group.title)),
+      references: QUICK_PLOT_REFERENCES.filter(([id]) => (
+        sandPage ? ['R03', 'R05', 'R06'].includes(id) : ['R06', 'A02'].includes(id)
+      )),
       unavailableMeaning: '参数只在对应 JTS 土类和公式适用条件内生成；其他深度留空，不补零、不跨段连线。',
     };
   }

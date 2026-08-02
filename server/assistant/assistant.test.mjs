@@ -669,7 +669,8 @@ test('PROCESS145 DeepSeek report synthesizes after one read batch instead of loo
     },
     fetchImpl: async (_url, init) => {
       const request = JSON.parse(init.body);
-      assert.equal(request.tool_choice, 'none');
+      assert.equal(request.tool_choice, undefined);
+      assert.equal(request.tools, undefined);
       return new Response(JSON.stringify({
         model: 'deepseek-v4-pro',
         choices: [{ finish_reason: 'stop', message: { content: '已根据读取证据回答。' } }],
