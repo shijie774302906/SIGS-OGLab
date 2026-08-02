@@ -626,7 +626,7 @@ test('PROCESS136 DeepSeek report turns keep automatic tool choice and preserve a
     fetchImpl: async (_url, init) => {
       const request = JSON.parse(init.body);
       assert.equal(request.tool_choice, 'auto');
-      assert.equal(request.max_tokens, 1_000);
+      assert.equal(request.max_tokens, 600);
       assert.deepEqual(
         request.tools.map((tool) => tool.function.name),
         [
@@ -671,7 +671,7 @@ test('PROCESS145 DeepSeek report synthesizes after one read batch instead of loo
       const request = JSON.parse(init.body);
       assert.equal(request.tool_choice, undefined);
       assert.equal(request.tools, undefined);
-      assert.equal(request.max_tokens, 1_600);
+      assert.equal(request.max_tokens, 900);
       return new Response(JSON.stringify({
         model: 'deepseek-v4-pro',
         choices: [{ finish_reason: 'stop', message: { content: '已根据读取证据回答。' } }],
