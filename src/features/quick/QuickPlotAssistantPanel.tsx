@@ -641,11 +641,14 @@ export function QuickPlotAssistantPanel({
     try {
       let activeTurns = nextTurns;
       let transientRetryUsed = false;
-      const requestReportTurn = async (requestTurns: AssistantWireTurn[]) => {
+      const requestReportTurn = async (
+        requestTurns: AssistantWireTurn[],
+        requestContext: AssistantContextSnapshot = context,
+      ) => {
         try {
           return await connection.requestTurn({
             turns: requestTurns,
-            context,
+            context: requestContext,
             consentScope: 'engineering',
             signal: controller.signal,
           });
@@ -656,7 +659,7 @@ export function QuickPlotAssistantPanel({
           transientRetryUsed = true;
           return connection.requestTurn({
             turns: requestTurns,
-            context,
+            context: requestContext,
             consentScope: 'engineering',
             signal: controller.signal,
           });
@@ -676,11 +679,20 @@ export function QuickPlotAssistantPanel({
           };
           const repairResult = executeQuickReportReadTool(repairCall, context, workspace);
           evidence.push({ toolName: repairCall.name, payload: repairResult.payload });
+          const boundedEvidence = JSON.stringify(repairResult.payload).slice(0, 3_200);
           response = await requestReportTurn(trimQuickReportTurns([
-              ...activeTurns,
-              { role: 'assistant', content: null, toolCalls: [repairCall] },
-              { role: 'tool', toolCallId: repairCall.id, content: JSON.stringify(repairResult.payload) },
-            ]));
+            ...activeTurns,
+            {
+              role: 'user',
+              content: `[系统只读证据]\n${boundedEvidence}\n请直接回答原问题，不再调用工具。`,
+            },
+          ]), {
+            ...context,
+            quickPlotReport: {
+              ...requestReport,
+              evidenceOnly: true,
+            },
+          });
         }
         if (response.kind === 'message') {
           const answer = buildQuickReportExplanation(

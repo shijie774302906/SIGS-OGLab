@@ -90,7 +90,9 @@ export async function requestDeepSeekTurn({
   const availableTools = assistantToolsForContext(context);
   const allowedToolNames = new Set(availableTools.map((tool) => tool.function.name));
   const importRoute = ['import', 'quick-input'].includes(context.scope.route);
-  const quickReportSynthesis = context.scope.route === 'quick-report' && turns.at(-1)?.role === 'tool';
+  const quickReportSynthesis = context.scope.route === 'quick-report' && (
+    turns.at(-1)?.role === 'tool' || context.quickPlotReport?.evidenceOnly === true
+  );
   const response = await fetchImpl(`${config.deepseekBaseUrl}/chat/completions`, {
     method: 'POST',
     headers: {

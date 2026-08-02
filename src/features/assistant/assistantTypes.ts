@@ -98,6 +98,7 @@ export type AssistantContextSnapshot = {
     depthToM: number | null;
     sourceName: string;
     notices: string[];
+    evidenceOnly?: boolean;
     pages: Array<{
       pageNumber: number;
       title: string;

@@ -181,6 +181,7 @@ function sanitizeContext(context) {
     depthFromM: Number.isFinite(Number(context.quickPlotReport.depthFromM)) ? Number(context.quickPlotReport.depthFromM) : null,
     depthToM: Number.isFinite(Number(context.quickPlotReport.depthToM)) ? Number(context.quickPlotReport.depthToM) : null,
     sourceName: boundedString(context.quickPlotReport.sourceName, 160),
+    evidenceOnly: Boolean(context.quickPlotReport.evidenceOnly),
     notices: Array.isArray(context.quickPlotReport.notices)
       ? context.quickPlotReport.notices.slice(0, 12).map((value) => boundedString(value, 240))
       : [],
