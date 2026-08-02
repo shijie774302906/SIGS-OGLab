@@ -130,7 +130,7 @@ export async function requestDeepSeekTurn({
         : importRoute
           ? 8_000
           : context.scope.route === 'quick-report'
-            ? quickReportSynthesis ? 700 : 320
+            ? quickReportSynthesis ? 900 : 700
             : 1_200,
       stream: false,
     }),

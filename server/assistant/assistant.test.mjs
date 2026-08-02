@@ -650,7 +650,7 @@ test('PROCESS136 DeepSeek report turns keep automatic tool choice and preserve a
       const request = JSON.parse(init.body);
       assert.equal(request.tool_choice, 'auto');
       assert.deepEqual(request.thinking, { type: 'disabled' });
-      assert.equal(request.max_tokens, 320);
+      assert.equal(request.max_tokens, 700);
       assert.match(request.messages[0].content, /只读图册解读助手/);
       assert.doesNotMatch(request.messages[0].content, /数据导入页附加规则/);
       assert.deepEqual(
@@ -698,7 +698,7 @@ test('PROCESS145 DeepSeek report synthesizes after one read batch instead of loo
       assert.equal(request.tool_choice, undefined);
       assert.equal(request.tools, undefined);
       assert.deepEqual(request.thinking, { type: 'disabled' });
-      assert.equal(request.max_tokens, 700);
+      assert.equal(request.max_tokens, 900);
       return new Response(JSON.stringify({
         model: 'deepseek-v4-pro',
         choices: [{ finish_reason: 'stop', message: { content: '已根据读取证据回答。' } }],
