@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
-import { createQuickPlotRevision, createQuickPlotWorkspace, deriveQuickPlotRows, parseQuickPlotClipboard, QUICK_BQ_REFERENCE_POLYGONS, QUICK_PARAMETER_CLASSIFICATION_BASIS, QUICK_PARAMETER_COMPARISON_ROLE, QUICK_PDF_A3_PIXELS, QUICK_PDF_DPI, QUICK_REPORT_AXIS_LABELS, QUICK_REPORT_PAGE_SPECS, QUICK_REPORT_STYLE, QUICK_REPORT_ZONE_COLORS, QUICK_SOIL_COLORS, quickCrossCorrelation, quickFuzzyMembership, quickFuzzyMembershipFromU, quickPermeabilityFromIc, quickPlotClassificationEvidence, quickPlotFormulaAudit, quickPlotInputHash, quickPlotPdfAuthority, quickPlotReadiness, quickPlotRoute, quickRelativeDensityPercent, quickRobertson2010SbtZone, quickRobertsonSbtnZone, quickRobustDisplayRange, quickRowsFromTable, quickSandStateParameter, quickSaturatedPhysicalIndices } from '../../src/features/quick/quickPlotDomain';
+import { createQuickPlotRevision, createQuickPlotWorkspace, deriveQuickPlotRows, parseQuickPlotClipboard, QUICK_BQ_REFERENCE_POLYGONS, QUICK_PARAMETER_CLASSIFICATION_BASIS, QUICK_PARAMETER_COMPARISON_ROLE, QUICK_PDF_A3_PIXELS, QUICK_PDF_DPI, QUICK_REPORT_AXIS_LABELS, QUICK_REPORT_PAGE_SPECS, QUICK_REPORT_STYLE, QUICK_REPORT_ZONE_COLORS, QUICK_SOIL_COLORS, quickCrossCorrelation, quickFuzzyMembership, quickFuzzyMembershipFromU, quickPermeabilityFromIc, quickPlotAssistantPageEvidence, quickPlotClassificationEvidence, quickPlotFormulaAudit, quickPlotInputHash, quickPlotPdfAuthority, quickPlotReadiness, quickPlotRoute, quickRelativeDensityPercent, quickRobertson2010SbtZone, quickRobertsonSbtnZone, quickRobustDisplayRange, quickRowsFromTable, quickSandStateParameter, quickSaturatedPhysicalIndices } from '../../src/features/quick/quickPlotDomain';
 import { classifyRobertson2016, classifySchneider2008, deriveRobertsonQtn, schneider2008Boundaries } from '../../src/features/quick/quickClassificationDomain';
 import { createQuickPlotXlsx } from '../../src/features/quick/quickPlotWorkbook';
 import { buildQuickPlotRowsFromProposal, QUICK_PLOT_IMPORT_PROTOCOL, quickPlotDecisionFromTool, quickPlotProposalFromTool, quickPlotQuestionOptionLabel } from '../../src/features/quick/quickPlotAssistantDomain';
@@ -22,6 +22,41 @@ test('PROCESS140 synthetic CPTU demo is deterministic, complete and explicitly n
   expect(rows.every((row) => Number.isFinite(row.qcMpa) && Number.isFinite(row.fsKpa) && Number.isFinite(row.u2Kpa))).toBe(true);
   expect(createSyntheticCptuDemoCsv()).toContain('Depth(m),qc(MPa),fs(kPa),u2(kPa)');
   expect(`${SYNTHETIC_CPTU_DEMO_NAME}${createSyntheticCptuDemoCsv()}`).not.toMatch(/营口|CPT09|CPT-09|yingkou/i);
+});
+
+test('PROCESS145 report tools expose the exact generated Fuzzy, JTS and comparison layers', () => {
+  const workspace = createQuickPlotWorkspace('process145-evidence');
+  workspace.rows = createSyntheticCptuDemoRows();
+  workspace.settings.pressureBasisConfirmed = true;
+  workspace.settings.u2Usage = 'total';
+  const before = structuredClone(workspace);
+
+  const fuzzy = quickPlotAssistantPageEvidence(workspace, 5) as {
+    generatedFromSameRowsAsAtlas: boolean;
+    method: string;
+    layers: Array<{ depthFromM: number; depthToM: number; label: string; confidencePercent?: number }>;
+  };
+  const jts = quickPlotAssistantPageEvidence(workspace, 6) as {
+    method: string;
+    layers: Array<{ depthFromM: number; depthToM: number; label: string; confidencePercent?: number }>;
+  };
+  const comparison = quickPlotAssistantPageEvidence(workspace, 9) as {
+    classificationComparison: { jts: unknown[]; robertson2016: unknown[]; schneider2008: unknown[] };
+  };
+
+  expect(fuzzy.generatedFromSameRowsAsAtlas).toBe(true);
+  expect(fuzzy.method).toContain('Fuzzy');
+  expect(fuzzy.layers.length).toBeGreaterThan(0);
+  expect(fuzzy.layers.every((layer) => layer.depthToM > layer.depthFromM && /土/.test(layer.label))).toBe(true);
+  expect(fuzzy.layers.every((layer) => typeof layer.confidencePercent === 'number')).toBe(true);
+  expect(jts.method).toContain('JTS/T 242');
+  expect(jts.layers.length).toBeGreaterThan(0);
+  expect(jts.layers.every((layer) => /Zone \d/.test(layer.label))).toBe(true);
+  expect(jts.layers.every((layer) => typeof layer.confidencePercent === 'number')).toBe(true);
+  expect(comparison.classificationComparison.jts).toEqual(jts.layers);
+  expect(comparison.classificationComparison.robertson2016.length).toBeGreaterThan(0);
+  expect(comparison.classificationComparison.schneider2008.length).toBeGreaterThan(0);
+  expect(workspace).toEqual(before);
 });
 
 test('PROCESS113 clipboard parser keeps readable negative values and only skips rows without depth or qc', () => {

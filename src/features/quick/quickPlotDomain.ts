@@ -841,6 +841,155 @@ function rollingCategorySamples<T extends string | number>(rows: QuickDerived[],
   return output;
 }
 
+type QuickPlotAssistantLayer = {
+  layer: string;
+  depthFromM: number;
+  depthToM: number;
+  category: string;
+  label: string;
+  confidencePercent?: number;
+};
+
+type QuickPlotAssistantStat = {
+  field: string;
+  label: string;
+  unit: string;
+  validCount: number;
+  missingCount: number;
+  minimum: number | null;
+  maximum: number | null;
+  median: number | null;
+};
+
+function assistantRound(value: number, digits = 3) {
+  return Number(value.toFixed(digits));
+}
+
+function assistantLayers<T extends string | number>(
+  layers: ReportLayer<T>[],
+  label: (category: T) => string,
+  confidence?: (layer: ReportLayer<T>) => number | undefined,
+): QuickPlotAssistantLayer[] {
+  return layers.slice(0, 120).map((layer, index) => ({
+    layer: `L${String(index + 1).padStart(3, '0')}`,
+    depthFromM: assistantRound(layer.top),
+    depthToM: assistantRound(layer.bottom),
+    category: String(layer.category),
+    label: label(layer.category),
+    ...(confidence?.(layer) === undefined
+      ? {}
+      : { confidencePercent: assistantRound(confidence(layer) as number, 1) }),
+  }));
+}
+
+function assistantStat(
+  rows: QuickDerived[],
+  field: string,
+  label: string,
+  unit: string,
+  read: (row: QuickDerived) => number | null,
+): QuickPlotAssistantStat {
+  const values = rows.map(read).filter((value): value is number => value !== null && Number.isFinite(value)).sort((a, b) => a - b);
+  const median = values.length
+    ? values.length % 2
+      ? values[Math.floor(values.length / 2)]
+      : (values[values.length / 2 - 1] + values[values.length / 2]) / 2
+    : null;
+  return {
+    field,
+    label,
+    unit,
+    validCount: values.length,
+    missingCount: Math.max(0, rows.length - values.length),
+    minimum: values.length ? assistantRound(values[0]) : null,
+    maximum: values.length ? assistantRound(values[values.length - 1]) : null,
+    median: median === null ? null : assistantRound(median),
+  };
+}
+
+/**
+ * Returns bounded, read-only evidence from the exact derived rows and merging
+ * helpers used to draw the atlas. The assistant never infers layers from pixels.
+ */
+export function quickPlotAssistantPageEvidence(workspace: QuickPlotWorkspaceV1, pageNumber: number) {
+  const rows = deriveQuickPlotRows(workspace.rows, workspace.settings);
+  const spec = QUICK_REPORT_PAGE_SPECS.find((candidate) => candidate.referencePage === pageNumber)
+    ?? QUICK_REPORT_PAGE_SPECS[pageNumber - 1];
+  const rawDepths = workspace.rows.map((row) => row.depthM).filter(Number.isFinite);
+  const base = {
+    generatedFromSameRowsAsAtlas: true,
+    pageNumber,
+    pageTitle: spec?.title ?? `第 ${pageNumber} 页`,
+    validDerivedRows: rows.length,
+    sourceRows: workspace.rows.length,
+    depthFromM: rawDepths.length ? assistantRound(Math.min(...rawDepths)) : null,
+    depthToM: rawDepths.length ? assistantRound(Math.max(...rawDepths)) : null,
+    omittedDerivedRows: Math.max(0, workspace.rows.length - rows.length),
+    omissionMeaning: '未进入解译的行可能缺少必要值、深度重复、qc/fs 非正或修正锥阻无效；图册不补值、不跨数据断点合并。',
+  };
+  if (!rows.length) return { ...base, available: false, reason: '没有可用于本页解译的有效测点。' };
+
+  const jtsSamples = rollingZoneSamples(rows);
+  const jts = mergeCategorySamples(jtsSamples);
+  const jtsLayers = assistantLayers(jts, (zone) => {
+    const soil = JTS_SOIL_CLASSES.find((item) => item.zone === Number(zone));
+    return `Zone ${zone} · ${soil?.label ?? '未定义'}`;
+  }, (layer) => {
+    const matching = jtsSamples.filter((sample) => sample.depth >= layer.top && sample.depth <= layer.bottom && sample.category === layer.category);
+    return matching.length ? matching.reduce((sum, sample) => sum + sample.share, 0) / matching.length * 100 : undefined;
+  });
+  const robertson = mergeCategorySamples(rollingCategorySamples(rows, (row) => row.robertson2016?.code ?? null, ['CCS', 'CC', 'CD', 'TC', 'TD', 'SC', 'SD'] as const));
+  const robertsonLayers = assistantLayers(robertson, (code) => `${code} · ${REPORT_ROBERTSON_LABELS[code]}`);
+  const schneider = mergeCategorySamples(rollingCategorySamples(rows, (row) => row.schneider2008?.code ?? null, ['1a', '1b', '1c', '2', '3'] as const));
+  const schneiderLayers = assistantLayers(schneider, (code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code]}`);
+  const fuzzySamples = majorWindowEvidence(rows);
+  const fuzzy = mergeCategorySamples(fuzzySamples.map((sample) => ({ depth: sample.depth, category: sample.dominant, breakBefore: sample.breakBefore })));
+  const fuzzyLabels = ['黏土', '粉土/过渡土', '砂土'] as const;
+  const fuzzyLayers = assistantLayers(fuzzy, (category) => fuzzyLabels[Number(category)] ?? '未分类', (layer) => {
+    const matching = fuzzySamples.filter((sample) => sample.depth >= layer.top && sample.depth <= layer.bottom && sample.dominant === layer.category);
+    return matching.length ? matching.reduce((sum, sample) => sum + sample.shares[Number(layer.category)], 0) / matching.length : undefined;
+  });
+
+  const statsByPage: Record<number, QuickPlotAssistantStat[]> = {
+    1: [
+      assistantStat(rows, 'qc', '锥尖阻力 qc', 'MPa', (row) => row.qcKpa / 1000),
+      assistantStat(rows, 'fs', '侧壁摩阻力 fs', 'kPa', (row) => row.fsKpa),
+      assistantStat(rows, 'u2', '孔隙水压力 u2', 'kPa', (row) => row.u2Kpa ?? null),
+    ],
+    2: [assistantStat(rows, 'robertson2010Index', '非归一化 SBT 指数', '-', (row) => row.robertson2010Index), assistantStat(rows, 'bq', '孔压参数 Bq', '-', (row) => row.bq)],
+    3: [assistantStat(rows, 'robertsonQtn', '归一化锥尖阻力 Qtn', '-', (row) => row.robertsonQtn), assistantStat(rows, 'bq', '孔压参数 Bq', '-', (row) => row.bq)],
+    4: [assistantStat(rows, 'schneiderQ', 'Schneider 归一化锥阻 Q', '-', (row) => row.schneider2008?.q ?? null), assistantStat(rows, 'schneiderExcessPorePressure', 'Schneider 归一化超静孔压', '-', (row) => row.schneider2008?.normalizedExcessPorePressure ?? null)],
+    6: [assistantStat(rows, 'qt', '修正锥尖阻力 qt', 'MPa', (row) => row.qtKpa / 1000), assistantStat(rows, 'rf', '摩阻比 Rf', '%', (row) => row.rfPercent), assistantStat(rows, 'u2', '孔隙水压力 u2', 'kPa', (row) => row.u2Kpa ?? null), assistantStat(rows, 'ic', 'JTS 土体行为类型指数 Ic', '-', (row) => row.ic)],
+    7: [assistantStat(rows, 'qtn', '归一化锥尖阻力 Qtn', '-', (row) => row.robertsonQtn), assistantStat(rows, 'fr', '归一化摩阻比 Fr', '%', (row) => row.frPercent), assistantStat(rows, 'bq', '孔压参数 Bq', '-', (row) => row.bq), assistantStat(rows, 'robertsonIc', 'Robertson Ic', '-', (row) => row.robertsonIc), assistantStat(rows, 'jtsIc', 'JTS Ic', '-', (row) => row.ic)],
+    8: [assistantStat(rows, 'qtn', '归一化锥尖阻力 Qtn', '-', (row) => row.robertsonQtn), assistantStat(rows, 'fr', '归一化摩阻比 Fr', '%', (row) => row.frPercent), assistantStat(rows, 'ib', '修正土体行为类型指数 IB', '-', (row) => row.robertson2016?.ib ?? null), assistantStat(rows, 'cd', '收缩–剪胀参数 CD', '-', (row) => row.robertson2016?.cd ?? null)],
+    9: [assistantStat(rows, 'g0', '小应变剪切模量 G0', 'MPa', (row) => row.g0Mpa), assistantStat(rows, 'k0', '静止土压力系数 K0', '-', (row) => row.k0)],
+    10: [assistantStat(rows, 'permeability', '渗透系数 k', 'm/s', (row) => row.major === 'sand' ? row.permeability : null), assistantStat(rows, 'sptN', '标准贯入击数 N', '击/0.30 m', (row) => row.sptN), assistantStat(rows, 'es', '压缩模量 Es（R05）', 'MPa', (row) => row.major === 'sand' ? row.esMpa : null), assistantStat(rows, 'dr', '相对密实度 Dr', '%', (row) => row.major === 'sand' ? row.drPercent : null), assistantStat(rows, 'phi', '有效摩擦角 φ′', '°', (row) => row.major === 'sand' ? row.phiDeg : null)],
+    11: [assistantStat(rows, 'jtsEs', '压缩模量 Es（JTS）', 'MPa', (row) => row.major === 'clay' ? row.jtsCompressionModulusMpa : null), assistantStat(rows, 'g0', '小应变剪切模量 G0', 'MPa', (row) => row.major === 'clay' ? row.g0Mpa : null), assistantStat(rows, 'su', '不排水强度 Su', 'kPa', (row) => row.major === 'clay' ? row.suKpa : null), assistantStat(rows, 'suRatio', '归一化不排水强度', '-', (row) => row.major === 'clay' ? row.suRatio : null), assistantStat(rows, 'ocr', '超固结比 OCR', '-', (row) => row.major === 'clay' ? row.ocr : null)],
+    12: [assistantStat(rows, 'vs', '剪切波速 Vs', 'm/s', (row) => row.vsMps), assistantStat(rows, 'stateParameter', '状态参数 ψ', '-', (row) => row.stateParameter), assistantStat(rows, 'k0', '静止土压力系数 K0', '-', (row) => row.k0), assistantStat(rows, 'sensitivity', '灵敏度 St', '-', (row) => row.sensitivity), assistantStat(rows, 'phi', '有效摩擦角 φ′', '°', (row) => row.major !== 'clay' ? row.phiDeg : null)],
+    13: [assistantStat(rows, 'gammaSat', '饱和重度 γsat', 'kN/m³', (row) => row.gammaSatKnM3), assistantStat(rows, 'waterContent', '含水率 w', '%', (row) => row.waterContentPercent), assistantStat(rows, 'voidRatio', '孔隙比 e', '-', (row) => row.voidRatio), assistantStat(rows, 'dryUnitWeight', '干重度 γd', 'kN/m³', (row) => row.dryUnitWeight), assistantStat(rows, 'porosity', '孔隙率 n', '-', (row) => row.porosity)],
+    14: [assistantStat(rows, 'qt', '修正锥尖阻力 qt', 'MPa', (row) => row.qtKpa / 1000), assistantStat(rows, 'qtn', '归一化锥尖阻力 Qtn', '-', (row) => row.robertsonQtn), assistantStat(rows, 'ic', '土体行为类型指数 Ic', '-', (row) => row.robertsonIc), assistantStat(rows, 'qtnCs', '等效洁净砂 Qtn,cs', '-', (row) => row.qtnCs), assistantStat(rows, 'residualStrengthRatio', '残余不排水强度比', '-', (row) => row.residualStrengthRatio)],
+  };
+  const pageStats = statsByPage[pageNumber] ?? [];
+  if (pageNumber === 4) return { ...base, available: schneiderLayers.length > 0, method: 'Schneider 2008', layers: schneiderLayers, statistics: pageStats, unavailableReason: schneiderLayers.length ? null : '缺少可靠 u2 或归一化孔压证据，无法形成 Schneider 分类层。' };
+  if (pageNumber === 5) return { ...base, available: fuzzyLayers.length > 0, method: 'Zhang–Tumay Fuzzy（1.0 m 连续深度窗口最高概率）', layers: fuzzyLayers, windowRadiusM: 0.5, unavailableReason: fuzzyLayers.length ? null : '没有形成有效 Fuzzy 概率层。' };
+  if (pageNumber === 6) return { ...base, available: jtsLayers.length > 0, method: 'JTS/T 242—2020（1.0 m 深度窗口最高占比 Zone）', layers: jtsLayers, statistics: pageStats };
+  if (pageNumber === 8) return { ...base, available: robertsonLayers.length > 0, method: 'Modified Robertson 2016', layers: robertsonLayers, statistics: pageStats, unavailableReason: robertsonLayers.length ? null : '缺少有效应力或归一化分类证据。' };
+  if (pageNumber === 9) return { ...base, available: true, classificationComparison: { jts: jtsLayers, robertson2016: robertsonLayers, schneider2008: schneiderLayers }, statistics: pageStats };
+  if (pageNumber === 15 || pageNumber === 16) {
+    const audit = quickPlotFormulaAudit(workspace.settings, rows);
+    return { ...base, available: true, parameterClassificationBasis: QUICK_PARAMETER_CLASSIFICATION_BASIS, comparisonRole: QUICK_PARAMETER_COMPARISON_ROLE, settings: workspace.settings, formulaGroups: audit.groups, references: QUICK_PLOT_REFERENCES };
+  }
+  return {
+    ...base,
+    available: true,
+    statistics: pageStats,
+    classificationCounts: {
+      jts: Object.fromEntries([...new Set(rows.flatMap((row) => row.zone === null ? [] : [row.zone]))].map((zone) => [String(zone), rows.filter((row) => row.zone === zone).length])),
+      robertson2010: Object.fromEntries([...new Set(rows.flatMap((row) => row.robertson2010Zone === null ? [] : [row.robertson2010Zone]))].map((zone) => [String(zone), rows.filter((row) => row.robertson2010Zone === zone).length])),
+    },
+  };
+}
+
 function drawCategoricalLayerTrack<T extends string | number>(ctx: CanvasRenderingContext2D, box: PlotBox, layers: ReportLayer<T>[], minDepth: number, maxDepth: number, color: (category: T) => string, label: (category: T) => string, options: { depthLabels?: boolean; directLabels?: boolean; labelMinM?: number } = {}) {
   drawTrackFrame(ctx, box, '', '', minDepth, maxDepth, Boolean(options.depthLabels));
   layers.forEach((layer, index) => {

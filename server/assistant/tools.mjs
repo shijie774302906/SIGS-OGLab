@@ -118,7 +118,7 @@ export const ASSISTANT_TOOLS = Object.freeze([
     type: 'function',
     function: {
       name: 'propose_import_cleanup',
-      description: '为当前来源提出一个待确认的导入整理草稿。只声明工作表、表头、字段、单位和已授权的有限单元格修正；绝不直接导入、补值、插值、平滑或删除测量行。',
+      description: '为当前来源提出一个待确认的导入整理草稿。声明工作表、表头、数据起止行、字段、单位和已授权的有限单元格修正；绝不直接导入、补值、插值、平滑或删除测量行。',
       parameters: {
         type: 'object',
         required: ['sourceFingerprint', 'sheetName', 'headerRow', 'summary', 'columns', 'cellEdits'],
@@ -127,6 +127,8 @@ export const ASSISTANT_TOOLS = Object.freeze([
           sourceFingerprint: { type: 'string', minLength: 32, maxLength: 96 },
           sheetName: { type: 'string', minLength: 1, maxLength: 120 },
           headerRow: { type: 'integer', minimum: 1 },
+          dataStartRow: { type: 'integer', minimum: 1 },
+          dataEndRow: { type: 'integer', minimum: 1 },
           summary: { type: 'string', minLength: 1, maxLength: 320 },
           columns: {
             type: 'array',
@@ -426,7 +428,7 @@ export const ASSISTANT_TOOLS = Object.freeze([
     type: 'function',
     function: {
       name: 'read_quick_plot_page',
-      description: '读取当前冻结图册的当前页或指定页，包括标题、图表类型、方法、数据范围和路线。只读，不生成或修改结果。',
+      description: '读取当前冻结图册的当前页或指定页，包括标题、图表类型、方法、数据范围，以及与图中同源的分层、统计或不可计算原因。只读，不生成或修改结果。',
       parameters: {
         type: 'object',
         additionalProperties: false,
@@ -440,7 +442,7 @@ export const ASSISTANT_TOOLS = Object.freeze([
     type: 'function',
     function: {
       name: 'read_quick_plot_chart',
-      description: '读取指定图册页的一项图表元数据，包括图表名称、所在页、关联方法和深度范围；不返回图片像素，也不重新计算。',
+      description: '读取指定图册页的一项图表及其同源工程证据，包括名称、方法、深度范围、分层或统计；不读取图片像素，也不重新计算。',
       parameters: {
         type: 'object',
         required: ['chartType'],
@@ -456,7 +458,7 @@ export const ASSISTANT_TOOLS = Object.freeze([
     type: 'function',
     function: {
       name: 'read_quick_plot_method',
-      description: '读取当前图册中一个方法标识出现在哪些页面、配套显示哪些图表。只解释已生成图册中的方法元数据。',
+      description: '读取当前图册中一个方法标识出现在哪些页面、配套图表及各页同源工程证据。只解释已生成图册。',
       parameters: {
         type: 'object',
         required: ['methodId'],

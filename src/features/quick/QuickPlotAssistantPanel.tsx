@@ -16,6 +16,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAssistantConnection } from '../assistant/AssistantConnectionProvider';
 import { AssistantPublicQuotaNote, publicAssistantQuotaReady } from '../assistant/AssistantPublicQuotaNote';
+import { AssistantRequestError } from '../assistant/assistantClient';
 import type {
   AssistantContextSnapshot,
   AssistantToolCall,
@@ -33,6 +34,7 @@ import {
 } from '../import/importAssistantDomain';
 import type { ProjectWorkspaceV2 } from '../workspace/workspaceV2';
 import {
+  quickPlotAssistantPageEvidence,
   quickPlotInputHash,
   quickPlotRoute,
   type QuickPlotPage,
@@ -611,12 +613,26 @@ export function QuickPlotAssistantPanel({
       let activeTurns = nextTurns;
       for (let step = 0; step < 5; step += 1) {
         activeTurns = trimQuickReportTurns(activeTurns);
-        const response = await connection.requestTurn({
-          turns: activeTurns,
-          context,
-          consentScope: 'engineering',
-          signal: controller.signal,
-        });
+        let response;
+        try {
+          response = await connection.requestTurn({
+            turns: activeTurns,
+            context,
+            consentScope: 'engineering',
+            signal: controller.signal,
+          });
+        } catch (error) {
+          if (!(error instanceof AssistantRequestError) || error.code !== 'MODEL_TOOL_FORMAT') throw error;
+          response = await connection.requestTurn({
+            turns: trimQuickReportTurns([...activeTurns, {
+              role: 'user',
+              content: '上一轮只读工具参数不是有效 JSON。请保留原问题，重新选择合适的只读工具并严格按工具参数结构调用；不要猜测图册数据。',
+            }]),
+            context,
+            consentScope: 'engineering',
+            signal: controller.signal,
+          });
+        }
         if (response.kind === 'message') {
           const answer = buildQuickReportExplanation(
             requestReport,
@@ -1026,6 +1042,7 @@ export function executeQuickReportReadTool(
         depthFromM: report.depthFromM,
         depthToM: report.depthToM,
         notices: report.notices,
+        engineeringEvidence: quickPlotAssistantPageEvidence(workspace, page.pageNumber),
       },
       establishesRevisionRead: true,
       establishesCurrentPageRead: isCurrent,
@@ -1050,6 +1067,7 @@ export function executeQuickReportReadTool(
         depthFromM: report.depthFromM,
         depthToM: report.depthToM,
         isCurrentPage: isCurrent,
+        engineeringEvidence: quickPlotAssistantPageEvidence(workspace, page.pageNumber),
       },
       establishesRevisionRead: true,
       establishesCurrentPageRead: isCurrent,
@@ -1070,6 +1088,7 @@ export function executeQuickReportReadTool(
           pageNumber: page.pageNumber,
           title: page.title,
           chartTypes: page.chartTypes,
+          engineeringEvidence: quickPlotAssistantPageEvidence(workspace, page.pageNumber),
         })),
         currentPageIncluded,
       },

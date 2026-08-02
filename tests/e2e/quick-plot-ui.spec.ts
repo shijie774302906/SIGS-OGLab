@@ -1033,6 +1033,32 @@ test('PROCESS145 report timeout keeps the question and retries in the same conve
   }
 });
 
+test('PROCESS145 malformed read-tool arguments are repaired once without duplicating the user turn', async ({ page }) => {
+  let malformedOnce = true;
+  await installQuickAssistantMock(page, () => {
+    if (!malformedOnce) return false;
+    malformedOnce = false;
+    return true;
+  }, 'direct', {
+    status: 422,
+    problem: '这次没有读出有效的图册信息。你的问题已保留，可以直接重新解读；图册和数据没有改变。',
+    code: 'MODEL_TOOL_FORMAT',
+  });
+  await page.reload();
+  await page.getByTestId('new-project-name').fill('快捷图册工具格式恢复');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await pasteGrid(page, '深度\tqc\n0.01\t1.2\n0.02\t1.8\n0.03\t2.1');
+  await page.getByTestId('quick-generate-report').click();
+  await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
+  await page.getByTestId('quick-ai-toggle').click();
+  await page.getByRole('button', { name: '解释当前页' }).click();
+  const assistant = page.getByTestId('quick-ai-assistant');
+  await expect(assistant.locator('.assistant-message.user')).toHaveCount(1);
+  await expect(assistant.locator('.assistant-message.assistant')).toHaveCount(1);
+  await expect(page.getByTestId('quick-ai-error')).toHaveCount(0);
+});
+
 test('PROCESS145 changing pages lets the old-page answer finish with its original source label', async ({ page }) => {
   await installQuickAssistantMock(page, undefined, 'delayed-direct');
   await page.reload();
