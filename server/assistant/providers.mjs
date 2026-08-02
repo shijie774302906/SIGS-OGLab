@@ -119,6 +119,9 @@ export async function requestDeepSeekTurn({
       // quick-atlas read has returned, the next request must synthesize the
       // answer instead of entering an unbounded read -> read loop.
       tool_choice: quickReportSynthesis ? undefined : 'auto',
+      thinking: context.scope.route === 'quick-report'
+        ? { type: 'disabled' }
+        : undefined,
       temperature: 0.1,
       max_tokens: context.scope.route === 'quick-input'
         ? 3_000
