@@ -1201,7 +1201,7 @@ export function quickPlotFormulaAudit(_settings: QuickPlotSettingsV1, rows: Quic
   const ocrCount = count((row) => row.ocr), k0Count = count((row) => row.k0), cleanSandCount = count((row) => row.qtnCs), stateCount = count((row) => row.stateParameter);
   const robertsonCount = count((row) => row.robertsonQtn), robertson2016Count = count((row) => row.robertson2016?.ib ?? null), schneiderCount = count((row) => row.schneider2008?.q ?? null);
   const specs: Array<[string, number, string, string[]]> = [
-    ['基础修正与土类指数', count((row) => row.qtKpa, (row) => row.ic), basicApplicability, ['Ic =']],
+    ['基础修正与土类指数', count((row) => row.ic), basicApplicability, ['Ic =']],
     ['饱和重度 γsat (kN/m³)', count((row) => row.gammaSatKnM3), '全部有效解译行', ['γsat(kN/m³)']],
     ['渗透系数 k (m/s)', count((row) => row.permeability), 'JTS Zone 7–9 土类筛选；相关式来源 R05', ['k(m/s)']],
     ['标准贯入击数 N', count((row) => row.sptN), 'JTS 已分类土体（Zone 1–9）', ['N=']],

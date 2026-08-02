@@ -43,6 +43,7 @@ test('PROCESS145 report tools expose the exact generated Fuzzy, JTS and comparis
     inputs: string[];
     zoneSystem: string;
     layers: Array<{ depthFromM: number; depthToM: number; label: string; confidencePercent?: number }>;
+    statistics: Array<{ field: string; validCount: number }>;
   };
   const sbt = quickPlotAssistantPageEvidence(workspace, 2) as {
     definitions: { sbt: { inputs: string[]; doesNotUse: string[] }; bq: { formula: string } };
@@ -59,6 +60,9 @@ test('PROCESS145 report tools expose the exact generated Fuzzy, JTS and comparis
   const clayParameters = quickPlotAssistantPageEvidence(workspace, 11) as {
     applicableJtsLayers: Array<{ category: string }>;
     parameterGroups: Array<{ title: string; validCount: number; applicability: string; formulas: string[] }>;
+  };
+  const formulas = quickPlotAssistantPageEvidence(workspace, 15) as {
+    formulaGroups: Array<{ title: string; validCount: number }>;
   };
 
   expect(fuzzy.generatedFromSameRowsAsAtlas).toBe(true);
@@ -88,6 +92,8 @@ test('PROCESS145 report tools expose the exact generated Fuzzy, JTS and comparis
   expect(clayParameters.applicableJtsLayers.length).toBeGreaterThan(0);
   expect(clayParameters.applicableJtsLayers.every((layer) => Number(layer.category) <= 5)).toBe(true);
   expect(clayParameters.parameterGroups.some((group) => group.title.includes('不排水强度') && group.formulas.length > 0)).toBe(true);
+  expect(formulas.formulaGroups.find((group) => group.title === '基础修正与土类指数')?.validCount)
+    .toBe(jts.statistics.find((stat) => stat.field === 'ic')?.validCount);
   expect(workspace).toEqual(before);
 });
 
