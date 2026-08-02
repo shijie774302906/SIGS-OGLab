@@ -568,6 +568,29 @@ test('PROCESS145 quick report truncation uses report wording instead of import w
   });
 });
 
+test('PROCESS145 quick report preserves a readable completed partial instead of discarding it', async () => {
+  const response = await requestDeepSeekTurn({
+    apiKey: 'sk-report-partial-test-1234567890',
+    turns: [{ role: 'user', content: '比较两种分类。' }],
+    context: quickReportContext(),
+    config: {
+      deepseekModel: 'deepseek-v4-pro',
+      deepseekBaseUrl: 'https://api.deepseek.com',
+    },
+    fetchImpl: async () => new Response(JSON.stringify({
+      model: 'deepseek-v4-pro',
+      usage: { prompt_tokens: 100, completion_tokens: 700 },
+      choices: [{
+        finish_reason: 'length',
+        message: { content: '### 结论\n\n两种分类边界不同，因为采用的指标不同；当前页证据已经显示主要边界及对应土类。\n\n- 第一项证据完整，能够支持当前结论。\n- 第二项证据用于解释局部差异。\n- 第三项仍在生成' },
+      }],
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }),
+  });
+  assert.equal(response.kind, 'message');
+  assert.match(response.content, /第一项证据完整/);
+  assert.match(response.content, /可继续追问/);
+});
+
 test('ordinary professional assistant turns keep the smaller output budget', async () => {
   await requestDeepSeekTurn({
     apiKey: 'sk-regular-test-12345678901234567890',

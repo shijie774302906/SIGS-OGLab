@@ -28,6 +28,22 @@ function providerProtocolError(code, message) {
   return error;
 }
 
+function readableQuickReportPartial(value) {
+  const text = String(value ?? '').trim();
+  if (text.length < 80) return '';
+  const paragraphEnd = text.lastIndexOf('\n');
+  const sentenceEnd = Math.max(
+    text.lastIndexOf('。'),
+    text.lastIndexOf('！'),
+    text.lastIndexOf('？'),
+  );
+  const safeEnd = Math.max(paragraphEnd, sentenceEnd);
+  const complete = safeEnd >= Math.min(120, text.length - 1)
+    ? text.slice(0, safeEnd + 1).trim()
+    : text;
+  return `${complete}\n\n> 回答较长，已显示生成完成的部分；可继续追问。`;
+}
+
 function assertApiKey(apiKey) {
   const normalized = String(apiKey ?? '').trim();
   if (
@@ -134,6 +150,20 @@ export async function requestDeepSeekTurn({
   const message = choice?.message;
   if (!message) throw providerError(502);
   if (choice?.finish_reason === 'length') {
+    const partial = context.scope.route === 'quick-report' && !message.tool_calls?.length
+      ? readableQuickReportPartial(message.content)
+      : '';
+    if (partial) {
+      return {
+        kind: 'message',
+        content: partial,
+        model: String(payload.model || config.deepseekModel),
+        usage: {
+          inputTokens: Number(payload?.usage?.prompt_tokens) || undefined,
+          outputTokens: Number(payload?.usage?.completion_tokens) || undefined,
+        },
+      };
+    }
     throw providerProtocolError(
       'MODEL_OUTPUT_TRUNCATED',
       'DeepSeek 整理内容未生成完整，请重试；原文件未修改。',
