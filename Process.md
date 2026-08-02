@@ -4,7 +4,15 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process144 安全生产发布
+## Current - Process145 图册解读持续会话与精确证据
+
+- Date: 2026-08-02
+- Status: `closed / verified / deployed`
+- Result: 同一图册跨页保留一段只读对话；当前页随问题附带有界同源证据，跨页与精确深度由 DeepSeek 自主调用只读工具；10 轮生产问答和跨页来源专项复核完成。
+- Verification: build、assistant-server 41/41、quick domain/UI 75/75、生产 10 轮 10/10、双分辨率、Known Problem Gate 和 evidence manifest 已通过，等待关闭归档。
+- Detail: `process_logs/Process145.md`
+
+## Recent - Process144 安全生产发布
 
 - Date: 2026-08-02
 - Status: `closed / verified / deployed`

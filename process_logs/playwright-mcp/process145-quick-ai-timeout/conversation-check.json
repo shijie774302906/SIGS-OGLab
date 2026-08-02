@@ -1,0 +1,28 @@
+{
+  "process": 145,
+  "test": "PROCESS145 switching atlas pages keeps one conversation and uses the new page for the next question",
+  "layouts": [
+    {
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflow": 0
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "horizontalOverflow": 0
+    }
+  ],
+  "browserErrors": [],
+  "requestPages": [
+    1,
+    1,
+    2
+  ],
+  "assertions": {
+    "pageOneHistoryRetained": true,
+    "pageTwoContextSent": true,
+    "boundedHistorySent": true,
+    "sourceLabelsVisible": true
+  }
+}

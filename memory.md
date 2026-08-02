@@ -43,3 +43,4 @@ This file records only confirmed recurring mistakes and durable user preferences
 - For non-trivial solution choices, present multiple bounded candidates and use three independent judges to score them against engineering semantics, interaction clarity, maintainability, testability/traceability, and delivery risk. Select the highest total only when no judge triggers a safety or scope veto; retain the scores and rationale with the Process evidence.
 - 数据导入与 AI 整理的回归测试默认使用固定随机种子的生成 CSV/Excel，不要求用户提供真实工程文件；只有无法复现专有文件结构时，才请求最小脱敏样本。
 - 思考模型的连接验证成功不代表多轮工具调用可用。必须保留提供方要求的受限协议字段、按任务设置足够输出预算，并根据 `finish_reason` 区分截断、协议问题和真实服务故障；不要把它们统一显示为连接失败。
+- 图册 AI 的历史自然语言回答不是跨页工程证据。当前页可随请求携带有界同源证据；比较其他页的公式、数值、层段或方法来源时，没有目标页原始工具结果就必须重新读取。生产验收既要检查工具/状态/Markdown，也要人工核对窗口、单位、有效点、类别和公式来源是否一致。

@@ -601,6 +601,14 @@
       "status": "closed",
       "record": "process_logs/Process144.md",
       "problems": ["KPB-016"]
+    },
+    {
+      "id": "Process145",
+      "date": "2026-08-02",
+      "title": "图册解读持续会话与精确跨页证据",
+      "status": "closed",
+      "record": "process_logs/Process145.md",
+      "problems": ["KPB-025", "KPB-033"]
     }
   ]
 }

@@ -1,0 +1,27 @@
+{
+  "process": 145,
+  "test": "PROCESS145 report retries one transient timeout without exposing a failure card",
+  "layouts": [
+    {
+      "width": 1440,
+      "height": 900,
+      "horizontalOverflow": 0
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "horizontalOverflow": 0
+    }
+  ],
+  "browserErrors": [],
+  "expectedTimeoutDiagnostics": [
+    "console: Failed to load resource: the server responded with a status of 504 (Gateway Timeout)"
+  ],
+  "assertions": {
+    "originalQuestionRetainedOnce": true,
+    "transientRetryHidden": true,
+    "retryInSamePanel": true,
+    "unchangedImpactVisible": true,
+    "recoverySucceeded": true
+  }
+}

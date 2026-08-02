@@ -1,0 +1,46 @@
+{
+  "processId": "Process145",
+  "validatedAt": "2026-08-02T13:48:30Z",
+  "productionUrl": "https://sigs-oglab.com/",
+  "releaseCommit": "edae629",
+  "dataset": "121-row deterministic synthetic CPTU demo",
+  "checks": {
+    "tenRoundConversation": true,
+    "userMessages": 10,
+    "assistantMessages": 10,
+    "pageReloads": 0,
+    "visibleRecoveries": 0,
+    "pageErrors": 0,
+    "terminalResponsesSuccessful": true,
+    "crossPageHistoryPreserved": true,
+    "exactDepthToolCalled": true,
+    "exactDepthWindow": "20.00-21.00 m / 5 points",
+    "exactQcRange": "1702-2008 kPa",
+    "exactFsRange": "110-124 kPa",
+    "exactU2Range": "505-522 kPa",
+    "bqFormula": "Bq=(u2-u0)/(qt-sigma_v0)",
+    "fuzzyAndJtsWindow": "1.0 m total width / 0.5 m radius",
+    "schneiderClassCount": 5,
+    "unsafeEngineeringRecommendationAbsent": true,
+    "rawToolProtocolAbsent": true,
+    "markdownHeadings": 3,
+    "markdownListItems": 11,
+    "markdownTables": 1,
+    "rawMarkdownVisible": false,
+    "scriptElements": 0
+  },
+  "crossPagePrecisionFollowup": {
+    "rounds": 2,
+    "fromPage": 10,
+    "toPage": 11,
+    "readQuickPlotPageCalls": 2,
+    "rawPreviousPageEvidenceRead": true,
+    "methodSourcesKeptDistinct": true,
+    "pageErrors": 0
+  },
+  "notes": [
+    "Current-page bounded evidence is sent with each question; other pages and exact depth windows remain available through read-only tools.",
+    "The assistant has no write, edit, import, delete or regenerate tool in quick-report mode.",
+    "Answers remain explanatory and require engineering review; they do not alter the generated atlas."
+  ]
+}

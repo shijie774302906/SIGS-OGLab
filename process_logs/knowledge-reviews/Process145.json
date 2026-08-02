@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-02T13:55:41.362Z",
+  "context_files": [
+    "process_logs/Process145.md"
+  ],
+  "context_hash": "4998a20e06db69c8ba37d2dd4f02a4ab875914202ead100371ce6904c54163e2",
+  "library_hash": "2fd4100f61801945ec012aef6a659fa28192e4f07ab31ffb4949dd550860a3aa",
+  "status": "reviewed",
+  "matches": [
+    {
+      "problem_id": "KPB-011",
+      "title": "问题没有回到责任页面处理并续接原任务",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "恢复",
+          "继续"
+        ]
+      ],
+      "related_updates": [
+        "Process071",
+        "Process072",
+        "Process074",
+        "Process075",
+        "Process082",
+        "Process086",
+        "Process087",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process113",
+        "Process114",
+        "Process116",
+        "Process120",
+        "Process121",
+        "Process122",
+        "Process123",
+        "Process124",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process130",
+        "Process131",
+        "Process133",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process138",
+        "Process139",
+        "Process140",
+        "Process141",
+        "Process142",
+        "Process143"
+      ],
+      "required_checks": [
+        "覆盖返回责任页、取消修复、修复失败、复检和自动续接。",
+        "断言原始测量不被静默改写。"
+      ],
+      "disposition": "not-applicable",
+      "note": "本轮图册助手严格只读，没有问题修复、责任页返回或原始测量写回动作；恢复仅指同一只读问答内部的超时重试。",
+      "evidence": ["process_logs/playwright-mcp/process145-quick-ai-timeout/production-validation.json"]
+    },
+    {
+      "problem_id": "KPB-025",
+      "title": "思考模型的第二轮工具调用失败却被误报为连接失败",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "DeepSeek",
+          "协议",
+          "工具"
+        ]
+      ],
+      "related_updates": [
+        "Process130",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process145"
+      ],
+      "required_checks": [
+        "模拟第一轮工具响应含 reasoning_content，断言第二轮请求原样带回且 tool_call_id 正确。",
+        "模拟 finish_reason=length，断言显示可恢复的截断原因而非服务不可用。",
+        "断言真实思考模型使用兼容的工具选择参数，同时应用层拒绝自由文本、多工具和未知工具终态。",
+        "至少完成一次真实文件的两轮模型调用，同时验证原文件和工作数据不变。"
+      ],
+      "disposition": "covered",
+      "note": "Assistant server 41/41 covers multi-round tool protocol, finish_reason recovery and provider compatibility; production 10-round read-only atlas conversation completed without visible error or data mutation.",
+      "evidence": ["server/assistant/assistant.test.mjs", "process_logs/playwright-mcp/process145-quick-ai-timeout/production-cross-page-engineering.json", "process_logs/playwright-mcp/process145-quick-ai-timeout/production-validation.json"]
+    },
+    {
+      "problem_id": "KPB-033",
+      "title": "跨页 AI 把历史回答当原始证据导致公式和方法来源漂移",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "工具",
+          "精确",
+          "历史回答"
+        ],
+        [
+          "Fuzzy",
+          "JTS",
+          "窗口"
+        ]
+      ],
+      "related_updates": [
+        "Process145"
+      ],
+      "required_checks": [
+        "连续 10 轮切页问答不刷新，记录每轮页码、工具、回答和错误；至少一次精确深度读取。",
+        "从砂土参数页切到黏性土参数页比较，断言模型重新读取上一页原始证据且 R05/R06 来源不混淆。",
+        "断言 Fuzzy/JTS 均为总宽 1.0 m、半径 0.5 m，Schneider 为 5 类，连续层覆盖不等于每个源点有分类。",
+        "断言 Markdown 正常渲染且模型不泄露工具协议、不越界推荐最终分类方法。"
+      ],
+      "disposition": "covered",
+      "note": "Production 10-round conversation and focused page10-to-page11 comparison verified raw tool rereads, R05/R06 separation, exact depth values, window semantics, safe Markdown and no final-method recommendation.",
+      "evidence": ["process_logs/playwright-mcp/process145-quick-ai-timeout/production-cross-page-engineering.json", "process_logs/playwright-mcp/process145-quick-ai-timeout/production-cross-page-engineering-scope-followup.json", "process_logs/playwright-mcp/process145-quick-ai-timeout/markdown-answer-1440x900.png", "process_logs/playwright-mcp/process145-quick-ai-timeout/production-validation.json"]
+    }
+  ]
+}

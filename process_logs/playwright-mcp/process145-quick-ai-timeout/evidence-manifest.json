@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "processId": "Process145",
+  "generatedAt": "2026-08-02T13:56:08.601Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process145-quick-ai-timeout",
+  "context": {
+    "path": "process_logs/Process145.md",
+    "size": 3463,
+    "sha256": "d9761a4a3d68d7e126e167d80c69276fb0229e2688c24bb7ecdf313487dd5863"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "process_logs/knowledge-reviews/Process145.json",
+        "size": 5293,
+        "sha256": "145df55b25470ad06b1c1fa6746ac158be53c315bf5e9651d67f5b51a2ea8bc7"
+      },
+      {
+        "path": "server/assistant/assistant.test.mjs",
+        "size": 44463,
+        "sha256": "5e4229a14f787b36b631f7c4c58d0b8fb27ca5a15d329d7792c35bcd286ece74"
+      },
+      {
+        "path": "server/assistant/config.mjs",
+        "size": 4403,
+        "sha256": "8aa60a847887146b501e858737556004bab4eed3b00c4c91515385c80c0d6706"
+      },
+      {
+        "path": "server/assistant/core.mjs",
+        "size": 7398,
+        "sha256": "c2bad73afff1373ef2d8282c43a704342da5440a63e9207c27594c764c260ae8"
+      },
+      {
+        "path": "server/assistant/deepseek-smoke.mjs",
+        "size": 5643,
+        "sha256": "83cb9ef8debe558e5c26ed76ca9cfe56b5552d3fc44ed1623ce07ab536f37ac6"
+      },
+      {
+        "path": "server/assistant/policy.mjs",
+        "size": 17445,
+        "sha256": "ccb5456a79138103387f3a44c6eaf63a2ec238f70469fa8b3863a659f208dceb"
+      },
+      {
+        "path": "server/assistant/protocol.mjs",
+        "size": 551,
+        "sha256": "6f5b05aea7f70612d3899b54ee54a74c991e0f516fcc07fcc91b19f998ed8753"
+      },
+      {
+        "path": "server/assistant/providers.mjs",
+        "size": 23328,
+        "sha256": "1250cbaaf882f7510b022eeca6f2854c496bbb905c13e54c3626ee34f12277ac"
+      },
+      {
+        "path": "server/assistant/quota.mjs",
+        "size": 7769,
+        "sha256": "ea52b6bd2b286429187458ac243373a385a9c09939a09f63c1f0871767046ac8"
+      },
+      {
+        "path": "server/assistant/server.mjs",
+        "size": 5083,
+        "sha256": "5c8ac28b5966b4fc8dba91136ed5e5e5062562c8d2209250eddb24d653684073"
+      },
+      {
+        "path": "server/assistant/tools.mjs",
+        "size": 21641,
+        "sha256": "6fac770ef708fb031fb2c5b56b428d625477a20a5f8f5501b0729b90d0be509f"
+      },
+      {
+        "path": "src/features/assistant/assistantClient.ts",
+        "size": 7760,
+        "sha256": "4c14f6f1f023628a2c70e57af9638a26590b9092a376917d32be76c6b6d53fb4"
+      },
+      {
+        "path": "src/features/assistant/AssistantConnectionProvider.tsx",
+        "size": 11740,
+        "sha256": "979bfc89a9232bc6c5aa0180486e54e2db87bd6ef765e68e536226e7e5562507"
+      },
+      {
+        "path": "src/features/assistant/assistantContext.ts",
+        "size": 6191,
+        "sha256": "de20ba94d8b93b10e08a4046b53784fd5876f84e2bc572ba2f0ce080cdfe93c7"
+      },
+      {
+        "path": "src/features/assistant/AssistantPublicQuotaNote.tsx",
+        "size": 1107,
+        "sha256": "0ddace5cc800dfee1409d7e09b4636fd160be7f04e40d88132c83c8840a121b7"
+      },
+      {
+        "path": "src/features/assistant/assistantState.ts",
+        "size": 3558,
+        "sha256": "01c30bae6cbfaf9e71a2601ff78551f400fe764de358149bf2332a1053083e6c"
+      },
+      {
+        "path": "src/features/assistant/assistantToolRegistry.ts",
+        "size": 7123,
+        "sha256": "a9534ace191c66eaa660ee2741ce8cb0f4e4bd097bfef094fd2fc53003923c76"
+      },
+      {
+        "path": "src/features/assistant/assistantTypes.ts",
+        "size": 7714,
+        "sha256": "23d42c5ee74e769ee09ccc268a31414fbddc8888758070f9d6382b40b31d7fa3"
+      },
+      {
+        "path": "src/features/assistant/ProfessionalAssistantPanel.tsx",
+        "size": 26751,
+        "sha256": "8ba2dc277660af4023a99e0b90805e75e01557b635245def2fffc6daa43435fc"
+      },
+      {
+        "path": "src/features/quick/quickClassificationDomain.ts",
+        "size": 6080,
+        "sha256": "cb6a96e1f5ffe69baed932cca81f3df1969e3f89d13dfe74c4e0a3cd1aa12830"
+      },
+      {
+        "path": "src/features/quick/quickPlotAssistantDomain.ts",
+        "size": 33771,
+        "sha256": "3a7d6d45f00db64e9d76cc4536d855f6222ed746c6a300e25ecac5d521256450"
+      },
+      {
+        "path": "src/features/quick/QuickPlotAssistantPanel.tsx",
+        "size": 62029,
+        "sha256": "e8bfc399972815320d347ad5f4e46dba3cb102d53439900d7cb8a90f12f400e1"
+      },
+      {
+        "path": "src/features/quick/quickPlotDomain.ts",
+        "size": 128299,
+        "sha256": "27c318014ac7c88dc05470848c6944ba026be96a22b45c76ff35d3adc8d18900"
+      },
+      {
+        "path": "src/features/quick/quickPlotWorkbook.ts",
+        "size": 9690,
+        "sha256": "32378167a1456ba55473329ec15052db1696f101f9c54165063c24415791b102"
+      },
+      {
+        "path": "src/features/quick/QuickPlotWorkspace.tsx",
+        "size": 27838,
+        "sha256": "bcae8f372b2f660d2e2b1455d0e31412e7e837a01a97bb0ab99da45b9ee9d0ef"
+      },
+      {
+        "path": "src/features/quick/QuickReportMarkdown.tsx",
+        "size": 1011,
+        "sha256": "612bd4a8ffe1e9595f7ddd44e92f85d5c1ed7af5fb39ac2bcaaccc9fa65a50e8"
+      },
+      {
+        "path": "tests/e2e/quick-plot-domain.spec.ts",
+        "size": 63126,
+        "sha256": "c09a112daf2f2ce35e9ff858a2c7c357f3cbbb5b2e26bfa32a30522044ea296c"
+      },
+      {
+        "path": "tests/e2e/quick-plot-ui.spec.ts",
+        "size": 77265,
+        "sha256": "0b54bacea56fb44888f68a2ced33e41c6d4888953c2a714c5a803e2efab9729c"
+      }
+    ],
+    "aggregateSha256": "c9108b1a361f7d33fff578b9e83e44d5d53b6d1729d5b8f2faed9f6ec957ee33"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/auto-retry-success-1920x1080.png",
+        "size": 234623,
+        "sha256": "6982b36c5ea415336e85c98e3ba961e6ee10040a47ed866a298a3af49b36eb72"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/browser-check.json",
+        "size": 660,
+        "sha256": "45bd5d3c5fa83ed5d6751639ba173953cbdcb6b62066428e17beeb11471ad396"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/conversation-check.json",
+        "size": 546,
+        "sha256": "cb37c1fad291f1243acd406d8922cdbe14e46e5436e031c70793c9f9c6485f59"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/cross-page-conversation-1440x900.png",
+        "size": 254746,
+        "sha256": "4e1775ab525e4eb37015d0acf80f0692084574eb9c885c573e5959bc26bc311d"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/cross-page-conversation-1920x1080.png",
+        "size": 483723,
+        "sha256": "c803781b9f7ee4b343b41890acc9a7871c991966b1b77ac4b7f8f8f5451bece0"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/markdown-answer-1440x900.png",
+        "size": 182292,
+        "sha256": "9718173ae5f4a1492040e3beb924dfc4576351056e5da283845fb7a6a5814fb6"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/production-cross-page-engineering-scope-followup.json",
+        "size": 5325,
+        "sha256": "3493e0bccc27e2d6721913381fb1c73d786845f3cdbde9902684eefd4280df9c"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/production-cross-page-engineering-scope-followup.png",
+        "size": 226019,
+        "sha256": "92e8a96314f1b7ef99b01c3ddc2b67f5fbe094303e0acf5bd3a599648b838fba"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/production-cross-page-engineering.json",
+        "size": 22593,
+        "sha256": "9547ad80fc0837c5c64bd5d6c72d865b97ed1fbe23bd69a6c7416a7664a910a3"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/production-cross-page-engineering.png",
+        "size": 340578,
+        "sha256": "ff4a7f6e7918709b918e3e989cef7fe14f86176cd3c7d0f81e8ee6b3f48a31e8"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/production-cross-page-progress-scope-followup.json",
+        "size": 4940,
+        "sha256": "49809e0ec7929eb0a82b701f5b67785d91150d66168fb6af7b6c83150af50f15"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/production-cross-page-progress.json",
+        "size": 22231,
+        "sha256": "b78203aca8e00898d67919437e4419a7936434dfdb32c82c3d5e2b87c1401f45"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/production-validation.json",
+        "size": 1606,
+        "sha256": "8bb61173a8df899fc310c358c970a3b0e8433c23b7212e3237c2e13503ecce7c"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/timeout-auto-retry-1440x900.png",
+        "size": 180365,
+        "sha256": "71b65bdceed03d16715b17f875d107c4ff4489011d1bd6d0818cf6e5deb78a2b"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process145-quick-ai-timeout/timeout-auto-retry-1920x1080.png",
+        "size": 234623,
+        "sha256": "6982b36c5ea415336e85c98e3ba961e6ee10040a47ed866a298a3af49b36eb72"
+      }
+    ],
+    "aggregateSha256": "baec95297466127a21d88677ec8d73fd16db250bebcb3934f10ca56fe8e2457e"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:assistant-server (41/41)",
+      "exitCode": 0
+    },
+    {
+      "command": "npx.cmd playwright test tests/e2e/quick-plot-domain.spec.ts tests/e2e/quick-plot-ui.spec.ts --workers=1 (75/75)",
+      "exitCode": 0
+    }
+  ],
+  "seedOrSource": [
+    "deterministic synthetic CPTU demo / 121 rows"
+  ],
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
+}
