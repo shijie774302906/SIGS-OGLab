@@ -2,7 +2,7 @@
 
 Date: 2026-08-02
 
-Status: `closed / implemented / verified`
+Status: `closed / implemented / verified / deployed`
 
 ## Goal
 
@@ -25,6 +25,7 @@ Status: `closed / implemented / verified`
 - 390×844、1440×900、1920×1080：目标聚焦、卡片位置、自动滚动与水平溢出检查通过。
 - 浏览器 page errors 与 console errors：0。
 - Known Problem Gate：6 个重要问题已处置，1 个提示已记录。
+- 生产环境：输入页首次显示“先放入数据”，图册页独立显示“查看图册”；0 浏览器错误、无水平溢出。
 
 ## Evidence
 
@@ -43,3 +44,8 @@ Status: `closed / implemented / verified`
 - 本切片没有改变数据导入、图册计算、导出或 AI 读写权限。
 - 指引状态属于浏览器界面偏好，不进入项目工程数据。
 - 指引完成不等于用户已经生成或审阅工程成果。
+
+## Release
+
+- Commit: `6d78d48`
+- Production: `https://sigs-oglab.com`

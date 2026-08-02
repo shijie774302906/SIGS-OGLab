@@ -7,9 +7,9 @@ Detailed closure records live in `process_logs/ProcessNNN.md`. The complete form
 ## Current - Process146 快捷出图输入与图册首次使用指引
 
 - Date: 2026-08-02
-- Status: `closed / implemented / verified`
+- Status: `closed / implemented / verified / deployed`
 - Result: 快捷输入页和图册页各提供一次性的三步聚焦指引；桌面贴近目标，移动端底部卡自动滚动，独立记录且可按当前页重播。
-- Verification: build、专项 3/3、相关回归 41/41、三种分辨率、Known Problem Gate、evidence manifest 和 process doctor 均通过。
+- Verification: build、专项 3/3、相关回归 41/41、三种分辨率、线上输入/图册双指引、Known Problem Gate、evidence manifest 和 process doctor 均通过。
 - Detail: `process_logs/Process146.md`
 - Plan: `plan.md`（无活动切片）
 
