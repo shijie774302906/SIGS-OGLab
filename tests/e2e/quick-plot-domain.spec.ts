@@ -4,7 +4,7 @@ import { createQuickPlotRevision, createQuickPlotWorkspace, deriveQuickPlotRows,
 import { classifyRobertson2016, classifySchneider2008, deriveRobertsonQtn, schneider2008Boundaries } from '../../src/features/quick/quickClassificationDomain';
 import { createQuickPlotXlsx } from '../../src/features/quick/quickPlotWorkbook';
 import { buildQuickPlotRowsFromProposal, QUICK_PLOT_IMPORT_PROTOCOL, quickPlotDecisionFromTool, quickPlotProposalFromTool, quickPlotQuestionOptionLabel } from '../../src/features/quick/quickPlotAssistantDomain';
-import { buildQuickReportExplanation, executeQuickReportReadTool, hasQuickReportEvidenceForQuestion, trimQuickReportTurns } from '../../src/features/quick/QuickPlotAssistantPanel';
+import { buildQuickReportExplanation, executeQuickReportReadTool, hasQuickReportEvidenceForQuestion, quickReportSourceDetail, trimQuickReportTurns } from '../../src/features/quick/QuickPlotAssistantPanel';
 import type { AssistantContextSnapshot, AssistantWireTurn } from '../../src/features/assistant/assistantTypes';
 import type { ImportAssistantSource } from '../../src/features/import/importAssistantDomain';
 import {
@@ -381,6 +381,39 @@ test('PROCESS134 unknown labels may be model-inferred, while stale identity and 
     name: 'submit_quick_plot_import_decision',
     arguments: JSON.stringify(explicitDecision),
   }, explicitSource, explicitExpected)).toMatchObject({ ok: false, problem: expect.stringContaining('明确冲突') });
+
+  const userCorrectedDecision = structuredClone(explicitDecision);
+  userCorrectedDecision.proposal.columns[1].evidenceKind = 'user-corrected';
+  expect(quickPlotDecisionFromTool({
+    id: 'decision-user-corrected-without-confirmation',
+    name: 'submit_quick_plot_import_decision',
+    arguments: JSON.stringify(userCorrectedDecision),
+  }, explicitSource, explicitExpected)).toMatchObject({ ok: false, problem: expect.stringContaining('明确冲突') });
+
+  const exactConfirmation = [{
+    sheetName: 'CSV',
+    headerRow: 1,
+    sourceColumnIndex: 1,
+    targetField: 'qc' as const,
+    sourceUnit: 'kPa' as const,
+  }];
+  const confirmed = quickPlotDecisionFromTool({
+    id: 'decision-user-corrected-confirmed',
+    name: 'submit_quick_plot_import_decision',
+    arguments: JSON.stringify(userCorrectedDecision),
+  }, explicitSource, explicitExpected, exactConfirmation);
+  expect(confirmed).toMatchObject({
+    ok: true,
+    decision: {
+      kind: 'proposal',
+      proposal: { ambiguityConfirmations: exactConfirmation },
+    },
+  });
+  if (!confirmed.ok || confirmed.decision.kind !== 'proposal') return;
+  const built = buildQuickPlotRowsFromProposal(confirmed.decision.proposal, explicitSource);
+  expect('problem' in built).toBe(false);
+  if ('problem' in built) return;
+  expect(built.rows.map((row) => row.qcMpa)).toEqual([2, 2.5]);
 });
 
 test('PROCESS134 a structured question renders local choices and cannot point outside the source', () => {
@@ -454,6 +487,36 @@ test('PROCESS136 current-page explanation preserves the model answer instead of 
   };
   const modelAnswer = 'SBT 是土体行为类型分类；这和“当前页怎么看”是两个不同问题。';
   expect(buildQuickReportExplanation(report, '什么是 SBT？', modelAnswer)).toBe(modelAnswer);
+});
+
+test('PROCESS145 report source label keeps the question page and lists extra pages read by tools', () => {
+  const report = {
+    revisionId: 'quick-revision',
+    authorityHash: 'quick-authority',
+    pageNumber: 6,
+    pageCount: 15,
+    pageTitle: 'CPT 解译参考地层',
+    methodIds: ['JTS-T242-2020'],
+    chartTypes: ['qc-depth', 'jts-layer-depth'],
+    route: 'full_cptu' as const,
+    measuredRows: 3,
+    depthFromM: 0.01,
+    depthToM: 20.01,
+    sourceName: 'test.csv',
+    notices: [],
+    pages: [],
+  };
+  expect(quickReportSourceDetail(report, [])).toBe(`来源：提问时第 ${report.pageNumber} 页 · ${report.pageTitle}`);
+  expect(quickReportSourceDetail(report, [{
+    toolName: 'read_quick_plot_method',
+    payload: {
+      pages: [
+        { pageNumber: report.pageNumber, title: report.pageTitle },
+        { pageNumber: 4, title: 'Schneider 2008 分类证据' },
+        { pageNumber: 9, title: '多方法分类与刚度证据' },
+      ],
+    },
+  }])).toBe(`来源：提问时第 ${report.pageNumber} 页 · ${report.pageTitle}；另读取第 4、9 页`);
 });
 
 test('PROCESS136 long report conversations keep complete recent exchanges without orphaning tool results', () => {

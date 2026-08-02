@@ -22,6 +22,21 @@ export class AssistantRequestError extends Error {
 const ASSISTANT_ENDPOINT = '/api/assistant';
 const REQUIRED_ASSISTANT_SERVICE = 'sigs-oglab-assistant';
 const REQUIRED_ASSISTANT_PROTOCOLS = ['sigs.assistant/1', 'sigs.ai-import/1'];
+const ASSISTANT_TURN_TIMEOUT_MS = 65_000;
+
+export function assistantTurnTimeoutMs() {
+  return ASSISTANT_TURN_TIMEOUT_MS;
+}
+
+function clientTimeoutProblem(route: AssistantContextSnapshot['scope']['route']) {
+  if (route === 'quick-report') {
+    return '等待图册解读超过 65 秒。你的问题已保留，可直接重新解读；图册和数据没有改变。';
+  }
+  if (route === 'import' || route === 'quick-input') {
+    return '等待文件整理超过 65 秒。可以直接重试；原文件没有改变。';
+  }
+  return '等待 AI 回答超过 65 秒。可以直接重试；没有执行任何修改。';
+}
 
 async function readJson(response: Response) {
   const text = await response.text();
@@ -148,8 +163,11 @@ export async function requestAssistantTurn(input: {
   signal?: AbortSignal;
 }): Promise<AssistantProviderTurn> {
   const controller = new AbortController();
-  const timeoutMs = ['import', 'quick-input'].includes(input.context.scope.route) ? 65_000 : 25_000;
-  const timeout = globalThis.setTimeout(() => controller.abort('timeout'), timeoutMs);
+  let timedOut = false;
+  const timeout = globalThis.setTimeout(() => {
+    timedOut = true;
+    controller.abort('timeout');
+  }, assistantTurnTimeoutMs());
   const abort = () => controller.abort(input.signal?.reason);
   input.signal?.addEventListener('abort', abort, { once: true });
   try {
@@ -181,7 +199,14 @@ export async function requestAssistantTurn(input: {
     }
     return payload;
   } catch (error) {
-    if (controller.signal.aborted) throw new Error('AI 请求已取消或超时；没有执行任何修改。');
+    if (timedOut) {
+      throw new AssistantRequestError(clientTimeoutProblem(input.context.scope.route), {
+        code: 'CLIENT_TIMEOUT',
+      });
+    }
+    if (controller.signal.aborted || (error instanceof DOMException && error.name === 'AbortError')) {
+      throw new DOMException('AI 请求已取消。', 'AbortError');
+    }
     throw error;
   } finally {
     globalThis.clearTimeout(timeout);

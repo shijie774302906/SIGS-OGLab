@@ -138,6 +138,7 @@ export function quickPlotDecisionFromTool(
   call: AssistantToolCall,
   source: ImportAssistantSource,
   expected: QuickPlotDecisionExpectation,
+  ambiguityConfirmations: QuickPlotAmbiguityConfirmation[] = [],
 ): { ok: true; decision: QuickPlotAssistantDecision } | { ok: false; problem: string } {
   if (call.name !== 'submit_quick_plot_import_decision') {
     return { ok: false, problem: 'AI 没有返回当前文件的整理判断。' };
@@ -191,7 +192,7 @@ export function quickPlotDecisionFromTool(
     warnings: Array.isArray(proposalArgs.warnings)
       ? proposalArgs.warnings.slice(0, 12).map((value) => boundedString(value, 240)).filter(Boolean)
       : [],
-    ambiguityConfirmations: [],
+    ambiguityConfirmations,
   }, source);
   if (!proposalValidation.ok) return proposalValidation;
   return {
@@ -212,7 +213,7 @@ export function quickPlotDecisionFromTool(
 export function quickPlotProposalFromTool(
   call: AssistantToolCall,
   source: ImportAssistantSource,
-  _ambiguityConfirmations: QuickPlotAmbiguityConfirmation[] = [],
+  ambiguityConfirmations: QuickPlotAmbiguityConfirmation[] = [],
 ): QuickPlotProposalValidation {
   const args = parseArguments(call);
   if (!args) return { ok: false, problem: 'AI 整理建议格式无效。' };
@@ -236,7 +237,7 @@ export function quickPlotProposalFromTool(
     columns: parseColumns(args.columns),
     ignoredColumns: parseIgnoredColumns(args.ignoredColumns),
     warnings: [],
-    ambiguityConfirmations: [],
+    ambiguityConfirmations,
   }, source);
 }
 
@@ -615,13 +616,22 @@ function validateProposal(
         problem: `${headerLabel || `${excelColumnLabel(column.sourceColumnIndex)} 列`}明确不是深度、qc、fs 或 u2，不能导入。`,
       };
     }
-    if (evidence.explicitConflictTargets.has(column.targetField)) {
+    const userConfirmedCorrection = column.evidenceKind === 'user-corrected'
+      && input.headerRow !== null
+      && input.ambiguityConfirmations.some((confirmation) => (
+        confirmation.sheetName === input.sheetName
+        && confirmation.headerRow === input.headerRow
+        && confirmation.sourceColumnIndex === column.sourceColumnIndex
+        && confirmation.targetField === column.targetField
+        && confirmation.sourceUnit === column.sourceUnit
+      ));
+    if (evidence.explicitConflictTargets.has(column.targetField) && !userConfirmedCorrection) {
       return {
         ok: false,
         problem: `${headerLabel || `${excelColumnLabel(column.sourceColumnIndex)} 列`}与 ${quickPlotFieldLabel(column.targetField)} 的含义明确冲突，不能导入。`,
       };
     }
-    if (evidence.fields.size && !evidence.fields.has(column.targetField)) {
+    if (evidence.fields.size && !evidence.fields.has(column.targetField) && !userConfirmedCorrection) {
       return {
         ok: false,
         problem: `${headerLabel || `${excelColumnLabel(column.sourceColumnIndex)} 列`}与 ${quickPlotFieldLabel(column.targetField)} 不一致，不能导入。`,

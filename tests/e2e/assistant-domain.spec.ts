@@ -4,7 +4,9 @@ import {
   readBoundedAssistantDepthWindow,
 } from '../../src/features/assistant/assistantContext';
 import { getAssistantTurnAccessProblem } from '../../src/features/assistant/AssistantConnectionProvider';
+import { assistantTurnTimeoutMs } from '../../src/features/assistant/assistantClient';
 import { assistantSessionReducer, initialAssistantSessionState } from '../../src/features/assistant/assistantState';
+import { QUICK_REPORT_TOTAL_BUDGET_MS } from '../../src/features/quick/QuickPlotAssistantPanel';
 import {
   executeAssistantReadTool,
   proposalFromAssistantTool,
@@ -81,6 +83,11 @@ test('assistant authority hash changes with route, revision and engineering stat
   expect(context({
     layers: [{ ...base.layers[0], engineeringSoilGroup: 'clay' }],
   }).scope.authorityHash).not.toBe(base.scope.authorityHash);
+});
+
+test('PROCESS145 browser waits long enough to receive the server timeout response', () => {
+  expect(assistantTurnTimeoutMs()).toBe(65_000);
+  expect(QUICK_REPORT_TOTAL_BUDGET_MS).toBe(120_000);
 });
 
 test('DeepSeek turn access is denied until outbound engineering-data consent is granted', () => {

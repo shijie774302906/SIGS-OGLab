@@ -1915,6 +1915,91 @@ button:focus-visible {
   line-height: 1.45;
 }
 
+.assistant-markdown {
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: 11px;
+  line-height: 1.58;
+  overflow-wrap: anywhere;
+}
+
+.assistant-markdown > :first-child { margin-top: 0; }
+.assistant-markdown > :last-child { margin-bottom: 0; }
+
+.assistant-markdown h1,
+.assistant-markdown h2,
+.assistant-markdown h3,
+.assistant-markdown h4 {
+  margin: 10px 0 5px;
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.assistant-markdown p {
+  margin: 5px 0;
+  white-space: normal;
+}
+
+.assistant-markdown ul,
+.assistant-markdown ol {
+  margin: 5px 0;
+  padding-left: 18px;
+}
+
+.assistant-markdown li + li { margin-top: 3px; }
+
+.assistant-markdown blockquote {
+  margin: 7px 0;
+  padding: 5px 8px;
+  border-left: 3px solid #c8bcf7;
+  background: #f8f6ff;
+  color: var(--text-secondary);
+}
+
+.assistant-markdown code {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #f1f4f6;
+  font-family: var(--font-data);
+  font-size: 10px;
+}
+
+.assistant-markdown pre {
+  max-width: 100%;
+  margin: 7px 0;
+  padding: 8px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #f6f8fa;
+}
+
+.assistant-markdown pre code { padding: 0; background: transparent; }
+
+.assistant-markdown-table {
+  max-width: 100%;
+  margin: 7px 0;
+  overflow-x: auto;
+}
+
+.assistant-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+
+.assistant-markdown th,
+.assistant-markdown td {
+  padding: 4px 5px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.assistant-markdown th { background: #f4f7f8; font-weight: 700; }
+.assistant-markdown a { color: #654ec0; text-decoration: underline; }
+
 .assistant-running {
   display: flex;
   align-items: center;

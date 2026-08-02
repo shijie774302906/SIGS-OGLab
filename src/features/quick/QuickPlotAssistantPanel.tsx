@@ -46,10 +46,12 @@ import {
   quickPlotQuestionOptionLabel,
   quickPlotStandardUnit,
   sourceHeader,
+  type QuickPlotAmbiguityConfirmation,
   type QuickPlotAssistantQuestion,
   type QuickPlotImportBuildResult,
   type QuickPlotImportProposal,
 } from './quickPlotAssistantDomain';
+import { QuickReportMarkdown } from './QuickReportMarkdown';
 
 type Props = {
   open: boolean;
@@ -90,6 +92,8 @@ const QUICK_REPORT_READ_TOOLS = new Set([
   'read_quick_plot_method',
   'read_quick_plot_depth_window',
 ]);
+
+export const QUICK_REPORT_TOTAL_BUDGET_MS = 120_000;
 
 export function trimQuickReportTurns(
   turns: AssistantWireTurn[],
@@ -193,6 +197,7 @@ export function QuickPlotAssistantPanel({
   const fileGenerationRef = useRef(0);
   const correctionCountRef = useRef(0);
   const decisionHistoryRef = useRef<string[]>([]);
+  const ambiguityConfirmationsRef = useRef<QuickPlotAmbiguityConfirmation[]>([]);
   const commitLockRef = useRef(false);
   const contextKeyRef = useRef('');
   const lastReportQuestionRef = useRef('');
@@ -209,7 +214,7 @@ export function QuickPlotAssistantPanel({
     : 'not-report';
   const contextKey = `${context.scope.route}:${context.scope.authorityHash}:${reportPageKey}:${source?.operationId ?? 'none'}:${connection.generation}`;
   const assistantSessionKey = mode === 'report'
-    ? `${context.scope.route}:${context.scope.authorityHash}:${reportPageKey}:${connection.generation}`
+    ? `${project.projectId}:${context.scope.route}:${context.scope.authorityHash}:${connection.generation}`
     : `${context.scope.route}:${source?.operationId ?? 'none'}:${connection.generation}`;
   contextKeyRef.current = contextKey;
   sourceIdentityRef.current = source
@@ -236,6 +241,7 @@ export function QuickPlotAssistantPanel({
     setProposal(null);
     correctionCountRef.current = 0;
     decisionHistoryRef.current = [];
+    ambiguityConfirmationsRef.current = [];
     setCorrectionOpen(false);
     setCorrectionText('');
     setProblem('');
@@ -250,6 +256,7 @@ export function QuickPlotAssistantPanel({
     requestAbortRef.current?.abort('quick-source-changed');
     correctionCountRef.current = 0;
     decisionHistoryRef.current = [];
+    ambiguityConfirmationsRef.current = [];
     setTurns([]);
     setQuestion(null);
     setProposal(null);
@@ -280,6 +287,7 @@ export function QuickPlotAssistantPanel({
     requestAbortRef.current?.abort('quick-session-reset');
     correctionCountRef.current = 0;
     decisionHistoryRef.current = [];
+    ambiguityConfirmationsRef.current = [];
     setTurns([]);
     setQuestion(null);
     setProposal(null);
@@ -371,7 +379,7 @@ export function QuickPlotAssistantPanel({
           const validation = quickPlotDecisionFromTool(call, source, {
             requestId,
             contextHash: context.scope.authorityHash,
-          });
+          }, ambiguityConfirmationsRef.current);
           if (!validation.ok) throw new Error(validation.problem);
           const fingerprint = validation.decision.kind === 'question'
             ? `q:${validation.decision.question.questionId}:${JSON.stringify(validation.decision.question.options)}`
@@ -414,6 +422,31 @@ export function QuickPlotAssistantPanel({
       setQuestion(null);
       setProblem('当前信息不足以可靠判断必需字段。文件没有改变；可以换文件、重新判断或使用手动粘贴。');
       return;
+    }
+    const patch = option.decisionPatch;
+    if (
+      patch.decisionType === 'map-column'
+      && patch.sheetName
+      && Number.isInteger(patch.headerRow)
+      && Number.isInteger(patch.sourceColumnIndex)
+      && patch.targetField
+      && patch.sourceUnit
+    ) {
+      const confirmation: QuickPlotAmbiguityConfirmation = {
+        sheetName: patch.sheetName,
+        headerRow: Number(patch.headerRow),
+        sourceColumnIndex: Number(patch.sourceColumnIndex),
+        targetField: patch.targetField,
+        sourceUnit: patch.sourceUnit,
+      };
+      ambiguityConfirmationsRef.current = [
+        ...ambiguityConfirmationsRef.current.filter((candidate) => !(
+          candidate.sheetName === confirmation.sheetName
+          && candidate.headerRow === confirmation.headerRow
+          && candidate.sourceColumnIndex === confirmation.sourceColumnIndex
+        )),
+        confirmation,
+      ];
     }
     const toolTurn: AssistantWireTurn = {
       role: 'tool',
@@ -475,6 +508,12 @@ export function QuickPlotAssistantPanel({
     requestAbortRef.current?.abort('stopped-by-user');
     setStatus('idle');
     setProblem('已停止判断，当前文件仍在这里。');
+  }
+
+  function stopReportRequest() {
+    requestAbortRef.current?.abort('stopped-by-user');
+    setStatus('idle');
+    setProblem('已停止本次解读。你的问题已保留，可以直接重新解读；图册和数据没有改变。');
   }
 
   async function retryCurrentJudgement() {
@@ -544,7 +583,12 @@ export function QuickPlotAssistantPanel({
   async function askReport(questionText: string, retry = false) {
     const content = questionText.trim();
     if (!content || !activePage || status !== 'idle') return;
-    const userTurn: AssistantWireTurn = { role: 'user', content };
+    const requestReport = context.quickPlotReport;
+    if (!requestReport) return;
+    const userTurn: AssistantWireTurn = {
+      role: 'user',
+      content: `[提问时页面：第 ${requestReport.pageNumber} 页「${requestReport.pageTitle}」]\n${content}`,
+    };
     const nextTurns = trimQuickReportTurns(retry ? turns : [...turns, userTurn]);
     if (!retry) {
       setTurns(nextTurns);
@@ -555,7 +599,12 @@ export function QuickPlotAssistantPanel({
     requestAbortRef.current?.abort();
     const controller = new AbortController();
     requestAbortRef.current = controller;
-    const requestContextKey = contextKeyRef.current;
+    let totalTimedOut = false;
+    const totalBudget = globalThis.setTimeout(() => {
+      totalTimedOut = true;
+      controller.abort('quick-report-total-timeout');
+    }, QUICK_REPORT_TOTAL_BUDGET_MS);
+    const evidence: QuickReportEvidence[] = [];
     setStatus('reading');
     setProblem('');
     try {
@@ -568,15 +617,20 @@ export function QuickPlotAssistantPanel({
           consentScope: 'engineering',
           signal: controller.signal,
         });
-        if (requestContextKey !== contextKeyRef.current) return;
         if (response.kind === 'message') {
           const answer = buildQuickReportExplanation(
-            context.quickPlotReport,
+            requestReport,
             content,
             response.content,
+            evidence,
           );
           setTurns(trimQuickReportTurns([...activeTurns, { role: 'assistant', content: answer }]));
-          setMessages((current) => [...current, { id: messageId('assistant'), role: 'assistant', content: answer }]);
+          setMessages((current) => [...current, {
+            id: messageId('assistant'),
+            role: 'assistant',
+            content: answer,
+            detail: quickReportSourceDetail(requestReport, evidence),
+          }]);
           return;
         }
         if (
@@ -594,6 +648,7 @@ export function QuickPlotAssistantPanel({
         };
         const toolTurns = response.calls.map((call): AssistantWireTurn => {
           const toolResult = executeQuickReportReadTool(call, context, workspace);
+          evidence.push({ toolName: call.name, payload: toolResult.payload });
           return {
             role: 'tool',
             toolCallId: call.id,
@@ -605,11 +660,17 @@ export function QuickPlotAssistantPanel({
       }
       throw new Error('图册解读没有生成完整，请重试。');
     } catch (error) {
-      if (!controller.signal.aborted) {
+      if (totalTimedOut) {
+        setProblem('本次图册解读已等待 2 分钟。你的问题已保留，可以直接重新解读；图册和数据没有改变。');
+      } else if (!controller.signal.aborted) {
         setProblem(error instanceof Error ? error.message : 'AI 图册解读暂时不可用。');
       }
     } finally {
-      if (!controller.signal.aborted) setStatus('idle');
+      globalThis.clearTimeout(totalBudget);
+      if (requestAbortRef.current === controller) {
+        requestAbortRef.current = null;
+        setStatus('idle');
+      }
     }
   }
 
@@ -680,7 +741,7 @@ export function QuickPlotAssistantPanel({
         {connection.connected && !outboundConsent ? (
           <div className="assistant-consent" data-testid="quick-ai-consent">
             <strong>发送哪些内容？</strong>
-            <p>{mode === 'input' ? '只发送工作表名称、表头和有限预览行，不发送原文件。' : '发送图册目录和当前页；问题需要时，额外发送最多 20 m、120 个源测点。空值保留，不插值。'}</p>
+            <p>{mode === 'input' ? '只发送工作表名称、表头和有限预览行，不发送原文件。' : '发送本图册目录、当前页和本次有限对话；问题需要时，额外发送最多 20 m、120 个源测点。空值保留，不插值。'}</p>
             <button type="button" className="toolbar-button primary" onClick={() => connection.grantOutboundConsent(consentScope, context.scope.authorityHash)}>同意发送</button>
           </div>
         ) : null}
@@ -702,9 +763,9 @@ export function QuickPlotAssistantPanel({
 
         <div className="assistant-messages" aria-live="polite">
           {!messages.length ? <article className="assistant-message system"><p>{mode === 'input' ? '上传文件后，我会识别中文或英文表头，并列出未使用的列。' : '可询问当前页、其他页面、方法或某个深度范围。'}</p></article> : null}
-          {!proposal ? messages.map((message) => <article key={message.id} className={`assistant-message ${message.role}`}><p>{message.content}</p>{message.detail ? <small>{message.detail}</small> : null}</article>) : null}
+          {!proposal ? messages.map((message) => <article key={message.id} className={`assistant-message ${message.role}`}>{mode === 'report' && message.role === 'assistant' ? <QuickReportMarkdown content={message.content} /> : <p>{message.content}</p>}{message.detail ? <small>{message.detail}</small> : null}</article>) : null}
           {status === 'parsing' ? <div className="assistant-running"><LoaderCircle />正在读取文件…</div> : null}
-          {status === 'reading' ? <div className="assistant-running"><LoaderCircle />{mode === 'input' ? 'AI 正在判断工作表、字段和单位…' : '正在回答…'}{mode === 'input' ? <button type="button" className="toolbar-button" onClick={stopRequest}><Square />停止判断</button> : null}</div> : null}
+          {status === 'reading' ? <div className="assistant-running"><LoaderCircle />{mode === 'input' ? 'AI 正在判断工作表、字段和单位…' : '正在回答（最多 2 分钟）…'}{mode === 'input' ? <button type="button" className="toolbar-button" onClick={stopRequest}><Square />停止判断</button> : <button type="button" className="toolbar-button" onClick={stopReportRequest}><Square />停止</button>}</div> : null}
           {question ? (
             <article className="import-assistant-question" data-testid="quick-ai-question">
               <strong>{question.question.prompt}</strong><p>{question.question.reason}</p>
@@ -1059,6 +1120,38 @@ export function buildQuickReportExplanation(
   if (!report) return '当前图册页信息已经失效，请重新选择页面。';
   const answer = modelResponse.trim();
   return answer || '本次没有生成可显示的回答，请重试。';
+}
+
+export function quickReportSourceDetail(
+  report: NonNullable<AssistantContextSnapshot['quickPlotReport']>,
+  evidence: QuickReportEvidence[],
+) {
+  const extraPages = new Map<number, string>();
+  for (const item of evidence) {
+    const pageNumber = typeof item.payload.pageNumber === 'number'
+      ? item.payload.pageNumber
+      : null;
+    const pageTitle = typeof item.payload.pageTitle === 'string'
+      ? item.payload.pageTitle
+      : typeof item.payload.title === 'string'
+        ? item.payload.title
+        : '';
+    if (pageNumber && pageNumber !== report.pageNumber) extraPages.set(pageNumber, pageTitle);
+    if (item.toolName === 'read_quick_plot_method' && Array.isArray(item.payload.pages)) {
+      for (const candidate of item.payload.pages) {
+        if (!candidate || typeof candidate !== 'object') continue;
+        const page = candidate as { pageNumber?: unknown; title?: unknown };
+        if (typeof page.pageNumber === 'number' && page.pageNumber !== report.pageNumber) {
+          extraPages.set(page.pageNumber, typeof page.title === 'string' ? page.title : '');
+        }
+      }
+    }
+  }
+  const extra = [...extraPages.entries()].sort((left, right) => left[0] - right[0]);
+  const extraLabel = extra.length
+    ? `；另读取第 ${extra.slice(0, 4).map(([pageNumber]) => pageNumber).join('、')} 页${extra.length > 4 ? `等 ${extra.length} 页` : ''}`
+    : '';
+  return `来源：提问时第 ${report.pageNumber} 页 · ${report.pageTitle}${extraLabel}`;
 }
 
 export function hasQuickReportEvidenceForQuestion(

@@ -10,6 +10,7 @@ import { requestDeepSeekTurn, requestMockTurn } from './providers.mjs';
 import { createNodeAssistantServer } from './server.mjs';
 import { buildDevCommands, developmentServiceCompatibilityProblem } from '../../scripts/dev-full.mjs';
 import { assistantToolsForContext } from './tools.mjs';
+import { ASSISTANT_BUILD_ID } from './protocol.mjs';
 import {
   createAssistantQuotaService,
   createAssistantVisitor,
@@ -143,6 +144,8 @@ function quickReportContext() {
 test('default DeepSeek model is v4-pro and import route exposes only import tools', () => {
   const config = createAssistantServerConfig({});
   assert.equal(config.deepseekModel, 'deepseek-v4-pro');
+  assert.equal(config.requestTimeoutMs, 55_000);
+  assert.equal(createAssistantServerConfig({ ASSISTANT_TIMEOUT_MS: '60000' }).requestTimeoutMs, 55_000);
   assert.equal(assistantServerConfig.deepseekModel, 'deepseek-v4-pro');
   assert.deepEqual(
     assistantToolsForContext(importContext()).map((tool) => tool.function.name),
@@ -500,6 +503,71 @@ test('truncated DeepSeek import output reports the real recoverable reason', asy
   });
 });
 
+test('PROCESS145 quick report timeout explains the reason and preserves a direct retry path', async () => {
+  const core = createAssistantCore({
+    config: {
+      provider: 'deepseek',
+      deepseekModel: 'deepseek-v4-pro',
+      deepseekBaseUrl: 'https://api.deepseek.com',
+    },
+    fetchImpl: async (_url, init) => {
+      await new Promise((_resolve, reject) => {
+        init.signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')), { once: true });
+      });
+    },
+  });
+  const controller = new AbortController();
+  const pending = core({
+    method: 'POST',
+    pathname: '/api/assistant/turn',
+    headers: { 'x-deepseek-api-key': 'sk-report-timeout-test-1234567890' },
+    body: {
+      turns: [{ role: 'user', content: '为什么这里缺了一部分土体分层？' }],
+      context: quickReportContext(),
+    },
+    signal: controller.signal,
+  });
+  controller.abort('timeout');
+  const result = await pending;
+  assert.deepEqual(result, {
+    status: 504,
+    body: {
+      problem: '模型读取图册超过 55 秒。你的问题已保留，可以直接重新解读；图册和数据没有改变。',
+      code: 'UPSTREAM_TIMEOUT',
+    },
+  });
+});
+
+test('PROCESS145 quick report truncation uses report wording instead of import wording', async () => {
+  const core = createAssistantCore({
+    config: {
+      provider: 'deepseek',
+      deepseekModel: 'deepseek-v4-pro',
+      deepseekBaseUrl: 'https://api.deepseek.com',
+    },
+    fetchImpl: async () => new Response(JSON.stringify({
+      model: 'deepseek-v4-pro',
+      choices: [{ finish_reason: 'length', message: { content: '', reasoning_content: 'unfinished' } }],
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }),
+  });
+  const result = await core({
+    method: 'POST',
+    pathname: '/api/assistant/turn',
+    headers: { 'x-deepseek-api-key': 'sk-report-truncated-test-1234567890' },
+    body: {
+      turns: [{ role: 'user', content: '解释当前页。' }],
+      context: quickReportContext(),
+    },
+  });
+  assert.deepEqual(result, {
+    status: 422,
+    body: {
+      problem: '这次图册回答没有生成完整。你的问题已保留，可以直接重新解读；图册和数据没有改变。',
+      code: 'MODEL_OUTPUT_TRUNCATED',
+    },
+  });
+});
+
 test('ordinary professional assistant turns keep the smaller output budget', async () => {
   await requestDeepSeekTurn({
     apiKey: 'sk-regular-test-12345678901234567890',
@@ -708,7 +776,7 @@ test('capability only reports the stateless relay and never creates a server ses
   assert.equal(result.status, 200);
   assert.deepEqual(result.body, {
     serviceId: 'sigs-oglab-assistant',
-    buildId: 'process134-ai-import-v1',
+    buildId: ASSISTANT_BUILD_ID,
     instanceId: result.body.instanceId,
     protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
     serviceAvailable: true,
@@ -1048,7 +1116,7 @@ test('Node adapter exposes the same stateless capability and connection contract
     const capability = await fetch(`${baseUrl}/api/assistant/capabilities`).then((response) => response.json());
     assert.deepEqual(capability, {
       serviceId: 'sigs-oglab-assistant',
-      buildId: 'process134-ai-import-v1',
+      buildId: ASSISTANT_BUILD_ID,
       instanceId: capability.instanceId,
       protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
       serviceAvailable: true,

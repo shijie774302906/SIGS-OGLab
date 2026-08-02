@@ -837,7 +837,23 @@ test('PROCESS136 long report conversations stay within the server limit without 
   await expect(page.getByTestId('quick-ai-error')).toHaveCount(0);
 });
 
-test('PROCESS136 switching atlas pages starts a clean question context without forcing a read', async ({ page }) => {
+test('PROCESS145 switching atlas pages keeps one conversation and uses the new page for the next question', async ({ page }, testInfo) => {
+  const browserErrors: string[] = [];
+  page.on('pageerror', (error) => browserErrors.push(`page: ${error.message}`));
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
+  const reportRequests: Array<{ pageNumber?: number; userTurns: string[] }> = [];
+  page.on('request', (request) => {
+    if (!request.url().includes('/api/assistant/turn')) return;
+    const body = request.postDataJSON() as {
+      turns?: Array<{ role?: string; content?: string }>;
+      context?: { scope?: { route?: string }; quickPlotReport?: { pageNumber?: number } };
+    } | null;
+    if (body?.context?.scope?.route !== 'quick-report') return;
+    reportRequests.push({
+      pageNumber: body.context.quickPlotReport?.pageNumber,
+      userTurns: body.turns?.filter((turn) => turn.role === 'user').map((turn) => turn.content ?? '') ?? [],
+    });
+  });
   await installQuickAssistantMock(page, undefined, 'stale-direct');
   await page.reload();
   await page.getByTestId('new-project-name').fill('快捷图册切页失效');
@@ -851,11 +867,50 @@ test('PROCESS136 switching atlas pages starts a clean question context without f
   await expect(page.getByTestId('quick-ai-assistant').locator('.assistant-message.assistant')).toHaveCount(1);
 
   await page.getByTestId('quick-page-2').click();
+  await expect(page.getByTestId('quick-ai-current-page')).toContainText('2. SBT - Bq 分类图');
+  await expect(page.getByTestId('quick-ai-assistant').locator('.assistant-message.assistant')).toHaveCount(1);
   await page.getByRole('button', { name: '解释当前页' }).click();
   const assistant = page.getByTestId('quick-ai-assistant');
-  await expect(assistant.locator('.assistant-message.assistant')).toHaveCount(1);
-  await expect(assistant).toContainText('这是模型针对当前问题直接生成的回答。');
+  await expect(assistant.locator('.assistant-message.assistant')).toHaveCount(2);
+  await expect(assistant.locator('.assistant-message.assistant').first()).toContainText('来源：提问时第 1 页');
+  await expect(assistant.locator('.assistant-message.assistant').last()).toContainText('来源：提问时第 2 页');
+  expect(reportRequests[0]).toMatchObject({ pageNumber: 1 });
+  expect(reportRequests.at(-1)).toMatchObject({ pageNumber: 2 });
+  expect(reportRequests.at(-1)?.userTurns.some((turn) => turn.includes('第 1 页'))).toBe(true);
+  expect(reportRequests.at(-1)?.userTurns.at(-1)).toContain('第 2 页');
   await expect(page.getByTestId('quick-ai-error')).toHaveCount(0);
+  const layouts = [];
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+    await page.setViewportSize(viewport);
+    layouts.push(await page.evaluate(() => ({
+      width: window.innerWidth,
+      height: window.innerHeight,
+      horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+    })));
+    if (process.env.MILESTONE_EVIDENCE === '1') {
+      const evidenceDirectory = path.resolve('process_logs/playwright-mcp/process145-quick-ai-timeout');
+      mkdirSync(evidenceDirectory, { recursive: true });
+      await page.screenshot({ path: path.join(evidenceDirectory, `cross-page-conversation-${viewport.width}x${viewport.height}.png`) });
+    }
+  }
+  expect(layouts.every((layout) => layout.horizontalOverflow === 0)).toBe(true);
+  expect(browserErrors).toEqual([]);
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    const evidenceDirectory = path.resolve('process_logs/playwright-mcp/process145-quick-ai-timeout');
+    writeFileSync(path.join(evidenceDirectory, 'conversation-check.json'), JSON.stringify({
+      process: 145,
+      test: testInfo.title,
+      layouts,
+      browserErrors,
+      requestPages: reportRequests.map((request) => request.pageNumber),
+      assertions: {
+        pageOneHistoryRetained: true,
+        pageTwoContextSent: true,
+        boundedHistorySent: true,
+        sourceLabelsVisible: true,
+      },
+    }, null, 2));
+  }
 });
 
 test('PROCESS136 report request shows a running state and prevents duplicate sends', async ({ page }) => {
@@ -903,10 +958,181 @@ test('PROCESS135 report retry repeats the unfinished question and preserves the 
   await expect(page.getByTestId('quick-ai-error')).toHaveCount(0);
 });
 
+test('PROCESS145 report timeout keeps the question and retries in the same conversation', async ({ page }, testInfo) => {
+  const browserErrors: string[] = [];
+  const expectedTimeoutDiagnostics: string[] = [];
+  page.on('pageerror', (error) => browserErrors.push(`page: ${error.message}`));
+  page.on('console', (message) => {
+    if (message.type() !== 'error') return;
+    const detail = `console: ${message.text()}`;
+    if (message.text().includes('status of 504')) expectedTimeoutDiagnostics.push(detail);
+    else browserErrors.push(detail);
+  });
+  let failOnce = true;
+  await installQuickAssistantMock(page, () => {
+    if (!failOnce) return false;
+    failOnce = false;
+    return true;
+  }, 'echo-direct', {
+    status: 504,
+    problem: '模型读取图册超过 55 秒。你的问题已保留，可以直接重新解读；图册和数据没有改变。',
+    code: 'UPSTREAM_TIMEOUT',
+  });
+  await page.reload();
+  await page.getByTestId('new-project-name').fill('快捷图册超时恢复');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await pasteGrid(page, '深度\tqc\n0.01\t1.2\n0.02\t1.8\n0.03\t2.1');
+  await page.getByTestId('quick-generate-report').click();
+  await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
+  await page.getByTestId('quick-ai-toggle').click();
+  const input = page.getByPlaceholder('询问图册内容…');
+  await input.fill('为什么这里缺了一部分土体分层？');
+  await page.getByRole('button', { name: '发送' }).click();
+  await expect(page.getByTestId('quick-ai-error')).toContainText('问题已保留');
+  await expect(page.getByTestId('quick-ai-error')).toContainText('图册和数据没有改变');
+  const layouts = [];
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+    await page.setViewportSize(viewport);
+    layouts.push(await page.evaluate(() => ({
+      width: window.innerWidth,
+      height: window.innerHeight,
+      horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+    })));
+    if (process.env.MILESTONE_EVIDENCE === '1') {
+      const evidenceDirectory = path.resolve('process_logs/playwright-mcp/process145-quick-ai-timeout');
+      mkdirSync(evidenceDirectory, { recursive: true });
+      await page.screenshot({ path: path.join(evidenceDirectory, `timeout-recovery-${viewport.width}x${viewport.height}.png`) });
+    }
+  }
+  expect(layouts.every((layout) => layout.horizontalOverflow === 0)).toBe(true);
+  await page.getByTestId('quick-ai-retry-report').click();
+  const assistant = page.getByTestId('quick-ai-assistant');
+  await expect(assistant.locator('.assistant-message.user')).toHaveCount(1);
+  await expect(assistant.locator('.assistant-message.user')).toContainText('为什么这里缺了一部分土体分层？');
+  await expect(assistant.locator('.assistant-message.assistant')).toContainText('收到：为什么这里缺了一部分土体分层？');
+  await expect(page.getByTestId('quick-ai-error')).toHaveCount(0);
+  expect(browserErrors).toEqual([]);
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    const evidenceDirectory = path.resolve('process_logs/playwright-mcp/process145-quick-ai-timeout');
+    await page.screenshot({ path: path.join(evidenceDirectory, 'retry-success-1920x1080.png') });
+    writeFileSync(path.join(evidenceDirectory, 'browser-check.json'), JSON.stringify({
+      process: 145,
+      test: testInfo.title,
+      layouts,
+      browserErrors,
+      expectedTimeoutDiagnostics,
+      assertions: {
+        originalQuestionRetainedOnce: true,
+        retryInSamePanel: true,
+        timeoutReasonVisible: true,
+        unchangedImpactVisible: true,
+        recoverySucceeded: true,
+      },
+    }, null, 2));
+  }
+});
+
+test('PROCESS145 changing pages lets the old-page answer finish with its original source label', async ({ page }) => {
+  await installQuickAssistantMock(page, undefined, 'delayed-direct');
+  await page.reload();
+  await page.getByTestId('new-project-name').fill('快捷图册切页取消');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await pasteGrid(page, '深度\tqc\n0.01\t1.2\n0.02\t1.8\n0.03\t2.1');
+  await page.getByTestId('quick-generate-report').click();
+  await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
+  await page.getByTestId('quick-ai-toggle').click();
+  await page.getByRole('button', { name: '解释当前页' }).click();
+  await page.getByTestId('quick-page-2').click();
+  const assistant = page.getByTestId('quick-ai-assistant');
+  await expect(page.getByTestId('quick-ai-current-page')).toContainText('SBT - Bq 分类图');
+  await expect(assistant.locator('.assistant-message.user')).toHaveCount(1);
+  await expect(assistant.locator('.assistant-message.assistant')).toHaveCount(1);
+  await expect(assistant.locator('.assistant-message.assistant')).toContainText('来源：提问时第 1 页');
+  await expect(page.getByTestId('quick-ai-error')).toHaveCount(0);
+});
+
+test('PROCESS145 stopping a slow report keeps the question and offers the same retry path', async ({ page }) => {
+  await installQuickAssistantMock(page, undefined, 'delayed-direct');
+  await page.reload();
+  await page.getByTestId('new-project-name').fill('快捷图册主动停止');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await pasteGrid(page, '深度\tqc\n0.01\t1.2\n0.02\t1.8\n0.03\t2.1');
+  await page.getByTestId('quick-generate-report').click();
+  await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
+  await page.getByTestId('quick-ai-toggle').click();
+  await page.getByRole('button', { name: '解释当前页' }).click();
+  await expect(page.getByText('正在回答（最多 2 分钟）…')).toBeVisible();
+  await page.getByRole('button', { name: '停止', exact: true }).click();
+  await expect(page.getByTestId('quick-ai-error')).toContainText('已停止本次解读');
+  await expect(page.getByTestId('quick-ai-error')).toContainText('问题已保留');
+  await expect(page.getByTestId('quick-ai-assistant').locator('.assistant-message.user')).toHaveCount(1);
+  await page.getByTestId('quick-ai-retry-report').click();
+  await expect(page.getByTestId('quick-ai-assistant').locator('.assistant-message.assistant')).toHaveCount(1);
+  await expect(page.getByTestId('quick-ai-error')).toHaveCount(0);
+});
+
+test('PROCESS145 report answers render safe readable Markdown', async ({ page }) => {
+  await installQuickAssistantMock(page, undefined, 'markdown-direct');
+  await page.reload();
+  await page.getByTestId('new-project-name').fill('快捷图册 Markdown');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await pasteGrid(page, '深度\tqc\n0.01\t1.2\n0.02\t1.8\n0.03\t2.1');
+  await page.getByTestId('quick-generate-report').click();
+  await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
+  await page.getByTestId('quick-ai-toggle').click();
+  await page.getByRole('button', { name: '解释当前页' }).click();
+  const markdown = page.getByTestId('quick-ai-markdown');
+  await expect(markdown.getByRole('heading', { name: '本页说明' })).toBeVisible();
+  await expect(markdown.locator('li')).toHaveCount(2);
+  await expect(markdown.locator('table')).toBeVisible();
+  await expect(markdown.locator('code', { hasText: 'qc' })).toBeVisible();
+  await expect(markdown.locator('table')).toContainText('Ic');
+  await expect(markdown.locator('script')).toHaveCount(0);
+  await expect(markdown).not.toContainText('window.bad');
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    const evidenceDirectory = path.resolve('process_logs/playwright-mcp/process145-quick-ai-timeout');
+    mkdirSync(evidenceDirectory, { recursive: true });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.screenshot({ path: path.join(evidenceDirectory, 'markdown-answer-1440x900.png') });
+  }
+});
+
+test('PROCESS145 regenerating the atlas starts a clean conversation for the new revision', async ({ page }) => {
+  await installQuickAssistantMock(page, undefined, 'direct');
+  await page.reload();
+  await page.getByTestId('new-project-name').fill('快捷图册修订失效');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await pasteGrid(page, '深度\tqc\n0.01\t1.2\n0.02\t1.8\n0.03\t2.1');
+  await page.getByTestId('quick-generate-report').click();
+  await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
+  await page.getByTestId('quick-ai-toggle').click();
+  const assistant = page.getByTestId('quick-ai-assistant');
+  await page.getByRole('button', { name: '解释当前页' }).click();
+  await expect(assistant.locator('.assistant-message.assistant')).toHaveCount(1);
+  await page.getByTestId('quick-ai-toggle').click();
+  await page.getByRole('button', { name: '修改输入' }).click();
+  await page.getByTestId('quick-point-name').fill('CPT-02');
+  await page.getByTestId('quick-generate-report').click();
+  await expect(page.getByRole('heading', { name: /CPT-02/ })).toBeVisible({ timeout: 45_000 });
+  await page.getByTestId('quick-ai-toggle').click();
+  await expect(assistant.locator('.assistant-message.user')).toHaveCount(0);
+  await expect(assistant.locator('.assistant-message.assistant')).toHaveCount(0);
+  await expect(assistant).toContainText('可询问当前页、其他页面、方法或某个深度范围');
+});
+
 async function installQuickAssistantMock(
   page: import('@playwright/test').Page,
   shouldFail?: () => boolean,
-  reportMode: 'normal' | 'direct' | 'delayed-direct' | 'invented' | 'followup-direct' | 'stale-direct' | 'echo-direct' = 'normal',
+  reportMode: 'normal' | 'direct' | 'delayed-direct' | 'invented' | 'followup-direct' | 'stale-direct' | 'echo-direct' | 'markdown-direct' = 'normal',
+  failure: { status: number; problem: string; code?: string } = {
+    status: 503,
+    problem: 'DeepSeek 服务暂时繁忙。',
+  },
 ) {
   let completedReportAnswers = 0;
   await page.route('**/api/assistant/capabilities', async (route) => {
@@ -932,9 +1158,9 @@ async function installQuickAssistantMock(
     };
     if (shouldFail?.()) {
       await route.fulfill({
-        status: 503,
+        status: failure.status,
         contentType: 'application/json',
-        body: JSON.stringify({ problem: 'DeepSeek 服务暂时繁忙。' }),
+        body: JSON.stringify({ problem: failure.problem, ...(failure.code ? { code: failure.code } : {}) }),
       });
       return;
     }
@@ -956,18 +1182,22 @@ async function installQuickAssistantMock(
     const last = body.turns.at(-1);
     if (body.context.scope.route === 'quick-report') {
       const userTurnCount = body.turns.filter((turn) => turn.role === 'user').length;
-      const latestQuestion = [...body.turns].reverse().find((turn) => turn.role === 'user')?.content ?? '';
+      const latestQuestionWithPage = [...body.turns].reverse().find((turn) => turn.role === 'user')?.content ?? '';
+      const latestQuestion = latestQuestionWithPage.replace(/^\[提问时页面：[^\n]+\]\n/, '');
       const directContent = /什么是\s*SBT/i.test(latestQuestion)
         ? 'SBT 是土体行为类型分类，用 CPT/CPTU 测量响应描述土体表现。'
         : /本页各图表|图表分别/.test(latestQuestion)
           ? '本页图表分别显示锥尖阻力、侧摩阻力和孔隙水压力随深度的变化。'
           : reportMode === 'echo-direct'
             ? `收到：${latestQuestion}`
+          : reportMode === 'markdown-direct'
+            ? '### 本页说明\n\n- 先看 `qc` 曲线\n- 再核对分层\n\n| 项目 | 作用 |\n| --- | --- |\n| Ic | 分类参考 |\n\n<script>window.bad = true</script>'
           : '这是模型针对当前问题直接生成的回答。';
       if (
         reportMode === 'direct'
         || reportMode === 'delayed-direct'
         || reportMode === 'echo-direct'
+        || reportMode === 'markdown-direct'
         || (reportMode === 'followup-direct' && userTurnCount > 1 && last?.role === 'user')
         || (reportMode === 'stale-direct' && completedReportAnswers > 0 && last?.role === 'user')
       ) {

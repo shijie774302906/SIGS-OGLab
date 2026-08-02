@@ -26,17 +26,26 @@ function response(status, body) {
   return { status, body };
 }
 
-function safeProblem(error, aborted = false) {
+function safeProblem(error, aborted = false, route = null) {
   const status = Number(error?.status) || (aborted ? 504 : 500);
   const safeStatus = [400, 401, 402, 413, 422, 429, 500, 502, 503, 504].includes(status)
     ? status
     : 500;
+  const isFileRoute = route === 'import' || route === 'quick-input';
   const problem = aborted
-    ? '模型响应超时；没有执行任何修改。'
+    ? route === 'quick-report'
+      ? '模型读取图册超过 55 秒。你的问题已保留，可以直接重新解读；图册和数据没有改变。'
+      : isFileRoute
+        ? '模型整理文件超过 55 秒。可以直接重试；原文件没有改变。'
+        : '模型响应超过 55 秒。可以直接重试；没有执行任何修改。'
     : error?.code === 'MODEL_OUTPUT_TRUNCATED'
-      ? 'DeepSeek 整理内容未生成完整，请重试；原文件未修改。'
+      ? route === 'quick-report'
+        ? '这次图册回答没有生成完整。你的问题已保留，可以直接重新解读；图册和数据没有改变。'
+        : 'DeepSeek 整理内容未生成完整，请重试；原文件未修改。'
     : error?.code === 'MODEL_TOOL_FORMAT'
-        ? 'DeepSeek 返回的整理格式不完整，请重试；原文件未修改。'
+        ? route === 'quick-report'
+          ? '这次没有读出有效的图册信息。你的问题已保留，可以直接重新解读；图册和数据没有改变。'
+          : 'DeepSeek 返回的整理格式不完整，请重试；原文件未修改。'
       : ['MODEL_TOOL_COUNT', 'MODEL_DECISION_REQUIRED'].includes(error?.code)
         ? 'DeepSeek 这次没有形成唯一可确认的文件判断，请重试；原文件未修改。'
     : safeStatus === 401
@@ -51,7 +60,11 @@ function safeProblem(error, aborted = false) {
   return {
     status: safeStatus,
     problem,
-    ...(typeof error?.code === 'string' ? { code: error.code } : {}),
+    ...(aborted
+      ? { code: 'UPSTREAM_TIMEOUT' }
+      : typeof error?.code === 'string'
+        ? { code: error.code }
+        : {}),
   };
 }
 
@@ -155,7 +168,7 @@ export function createAssistantCore({
       });
     } catch (error) {
       const publicQuota = reservedPublicQuota ? await quotaService.release(quotaSubject) : null;
-      const safe = safeProblem(error, signal?.aborted);
+      const safe = safeProblem(error, signal?.aborted, validated.context.scope.route);
       return response(safe.status, {
         problem: safe.problem,
         ...(safe.code ? { code: safe.code } : {}),
