@@ -660,6 +660,18 @@ test('PROCESS145 completed long answers are compacted while retaining their star
   expect(trimmed.at(-1)).toEqual({ role: 'user', content: '承接上问比较第 6 页' });
 });
 
+test('PROCESS145 default sliding context keeps only the five prior exchanges plus current question', () => {
+  const turns: AssistantWireTurn[] = [];
+  for (let index = 1; index <= 10; index += 1) {
+    turns.push({ role: 'user', content: `问题 ${index}` }, { role: 'assistant', content: `回答 ${index}` });
+  }
+  turns.push({ role: 'user', content: '当前问题' });
+  const trimmed = trimQuickReportTurns(turns);
+  expect(trimmed).toHaveLength(11);
+  expect(trimmed[0]).toEqual({ role: 'user', content: '问题 6' });
+  expect(trimmed.at(-1)).toEqual({ role: 'user', content: '当前问题' });
+});
+
 test('PROCESS135 report-reader returns a bounded, unit-explicit depth window without modifying source rows', () => {
   const workspace = createQuickPlotWorkspace('只读图册');
   workspace.rows = Array.from({ length: 201 }, (_, index) => ({

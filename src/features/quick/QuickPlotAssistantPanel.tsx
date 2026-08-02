@@ -96,19 +96,20 @@ const QUICK_REPORT_READ_TOOLS = new Set([
 ]);
 
 export const QUICK_REPORT_TOTAL_BUDGET_MS = 120_000;
-export const QUICK_REPORT_HISTORY_ANSWER_LIMIT = 1_800;
+export const QUICK_REPORT_HISTORY_ANSWER_LIMIT = 1_200;
+const QUICK_REPORT_OLDER_ANSWER_LIMIT = 700;
 
-function compactQuickReportHistoryAnswer(content: string) {
-  if (content.length <= QUICK_REPORT_HISTORY_ANSWER_LIMIT) return content;
+function compactQuickReportHistoryAnswer(content: string, limit: number) {
+  if (content.length <= limit) return content;
   const tailLength = 300;
   const marker = '\n…[历史回答已压缩]…\n';
-  const headLength = QUICK_REPORT_HISTORY_ANSWER_LIMIT - tailLength - marker.length;
+  const headLength = limit - tailLength - marker.length;
   return `${content.slice(0, headLength)}${marker}${content.slice(-tailLength)}`;
 }
 
 export function trimQuickReportTurns(
   turns: AssistantWireTurn[],
-  maxTurns = 24,
+  maxTurns = 12,
 ): AssistantWireTurn[] {
   const exchanges: AssistantWireTurn[][] = [];
   let current: AssistantWireTurn[] = [];
@@ -134,7 +135,12 @@ export function trimQuickReportTurns(
     return finalAnswer
       ? [exchange[0], {
           role: 'assistant' as const,
-          content: compactQuickReportHistoryAnswer(finalAnswer.content as string),
+          content: compactQuickReportHistoryAnswer(
+            finalAnswer.content as string,
+            index === exchanges.length - 2
+              ? QUICK_REPORT_HISTORY_ANSWER_LIMIT
+              : QUICK_REPORT_OLDER_ANSWER_LIMIT,
+          ),
         }]
       : exchange;
   });
