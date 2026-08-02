@@ -43,6 +43,14 @@ test('PROCESS145 report tools expose the exact generated Fuzzy, JTS and comparis
   const comparison = quickPlotAssistantPageEvidence(workspace, 9) as {
     classificationComparison: { jts: unknown[]; robertson2016: unknown[]; schneider2008: unknown[] };
   };
+  const sandParameters = quickPlotAssistantPageEvidence(workspace, 10) as {
+    applicableJtsLayers: Array<{ category: string }>;
+    parameterGroups: Array<{ title: string; validCount: number; applicability: string; formulas: string[] }>;
+  };
+  const clayParameters = quickPlotAssistantPageEvidence(workspace, 11) as {
+    applicableJtsLayers: Array<{ category: string }>;
+    parameterGroups: Array<{ title: string; validCount: number; applicability: string; formulas: string[] }>;
+  };
 
   expect(fuzzy.generatedFromSameRowsAsAtlas).toBe(true);
   expect(fuzzy.method).toContain('Fuzzy');
@@ -56,6 +64,12 @@ test('PROCESS145 report tools expose the exact generated Fuzzy, JTS and comparis
   expect(comparison.classificationComparison.jts).toEqual(jts.layers);
   expect(comparison.classificationComparison.robertson2016.length).toBeGreaterThan(0);
   expect(comparison.classificationComparison.schneider2008.length).toBeGreaterThan(0);
+  expect(sandParameters.applicableJtsLayers.length).toBeGreaterThan(0);
+  expect(sandParameters.applicableJtsLayers.every((layer) => Number(layer.category) >= 7)).toBe(true);
+  expect(sandParameters.parameterGroups.some((group) => group.title.includes('相对密实度') && group.validCount > 0)).toBe(true);
+  expect(clayParameters.applicableJtsLayers.length).toBeGreaterThan(0);
+  expect(clayParameters.applicableJtsLayers.every((layer) => Number(layer.category) <= 5)).toBe(true);
+  expect(clayParameters.parameterGroups.some((group) => group.title.includes('不排水强度') && group.formulas.length > 0)).toBe(true);
   expect(workspace).toEqual(before);
 });
 

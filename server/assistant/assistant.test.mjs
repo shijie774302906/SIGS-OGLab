@@ -650,6 +650,36 @@ test('PROCESS136 DeepSeek report turns keep automatic tool choice and preserve a
   assert.equal(response.content, 'SBT 是土体行为类型分类。');
 });
 
+test('PROCESS145 DeepSeek report synthesizes after one read batch instead of looping tools', async () => {
+  const response = await requestDeepSeekTurn({
+    apiKey: 'sk-test-deepseek-report-key-123456',
+    turns: [
+      { role: 'user', content: '请说明本页砂土参数。' },
+      {
+        role: 'assistant',
+        content: null,
+        toolCalls: [{ id: 'read-page-10', name: 'read_quick_plot_page', arguments: '{"pageNumber":10}' }],
+      },
+      { role: 'tool', toolCallId: 'read-page-10', content: '{"ok":true,"pageNumber":10}' },
+    ],
+    context: quickReportContext(),
+    config: {
+      deepseekModel: 'deepseek-v4-pro',
+      deepseekBaseUrl: 'https://api.deepseek.com',
+    },
+    fetchImpl: async (_url, init) => {
+      const request = JSON.parse(init.body);
+      assert.equal(request.tool_choice, 'none');
+      return new Response(JSON.stringify({
+        model: 'deepseek-v4-pro',
+        choices: [{ finish_reason: 'stop', message: { content: '已根据读取证据回答。' } }],
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    },
+  });
+  assert.equal(response.kind, 'message');
+  assert.match(response.content, /读取证据/);
+});
+
 test('mock quick provider uses the same versioned decision contract for headerless rows', async () => {
   const quickContext = {
     ...quickInputContext(),

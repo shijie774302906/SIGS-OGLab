@@ -89,7 +89,12 @@ export async function requestDeepSeekTurn({
       tools: availableTools,
       // DeepSeek thinking mode rejects tool_choice="required". The application
       // still enforces a single terminal decision below and rejects free text.
-      tool_choice: 'auto',
+      // DeepSeek decides whether the first request needs evidence. Once a
+      // quick-atlas read has returned, the next request must synthesize the
+      // answer instead of entering an unbounded read -> read loop.
+      tool_choice: context.scope.route === 'quick-report' && turns.at(-1)?.role === 'tool'
+        ? 'none'
+        : 'auto',
       temperature: 0.1,
       max_tokens: context.scope.route === 'quick-input'
         ? 3_000

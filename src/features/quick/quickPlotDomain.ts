@@ -970,6 +970,25 @@ export function quickPlotAssistantPageEvidence(workspace: QuickPlotWorkspaceV1, 
     14: [assistantStat(rows, 'qt', '修正锥尖阻力 qt', 'MPa', (row) => row.qtKpa / 1000), assistantStat(rows, 'qtn', '归一化锥尖阻力 Qtn', '-', (row) => row.robertsonQtn), assistantStat(rows, 'ic', '土体行为类型指数 Ic', '-', (row) => row.robertsonIc), assistantStat(rows, 'qtnCs', '等效洁净砂 Qtn,cs', '-', (row) => row.qtnCs), assistantStat(rows, 'residualStrengthRatio', '残余不排水强度比', '-', (row) => row.residualStrengthRatio)],
   };
   const pageStats = statsByPage[pageNumber] ?? [];
+  if (pageNumber === 10 || pageNumber === 11) {
+    const audit = quickPlotFormulaAudit(workspace.settings, rows);
+    const sandPage = pageNumber === 10;
+    const groupTitles = sandPage
+      ? new Set(['渗透系数 k (m/s)', '标准贯入击数 N', '压缩模量 Es（R05）(MPa)', '相对密实度 Dr (%)', '有效内摩擦角 φ′ (°)'])
+      : new Set(['压缩模量 Es（JTS 7.2.8）(MPa)', '剪切波速与小应变模量', '不排水强度与归一化强度', '超固结比与静止土压力']);
+    return {
+      ...base,
+      available: true,
+      statistics: pageStats,
+      classificationBasis: QUICK_PARAMETER_CLASSIFICATION_BASIS,
+      applicableJtsLayers: jtsLayers.filter((layer) => {
+        const zone = Number(layer.category);
+        return sandPage ? zone >= 7 && zone <= 9 : zone >= 1 && zone <= 5;
+      }),
+      parameterGroups: audit.groups.filter((group) => groupTitles.has(group.title)),
+      unavailableMeaning: '参数只在对应 JTS 土类和公式适用条件内生成；其他深度留空，不补零、不跨段连线。',
+    };
+  }
   if (pageNumber === 4) return { ...base, available: schneiderLayers.length > 0, method: 'Schneider 2008', layers: schneiderLayers, statistics: pageStats, unavailableReason: schneiderLayers.length ? null : '缺少可靠 u2 或归一化孔压证据，无法形成 Schneider 分类层。' };
   if (pageNumber === 5) return { ...base, available: fuzzyLayers.length > 0, method: 'Zhang–Tumay Fuzzy（1.0 m 连续深度窗口最高概率）', layers: fuzzyLayers, windowRadiusM: 0.5, unavailableReason: fuzzyLayers.length ? null : '没有形成有效 Fuzzy 概率层。' };
   if (pageNumber === 6) return { ...base, available: jtsLayers.length > 0, method: 'JTS/T 242—2020（1.0 m 深度窗口最高占比 Zone）', layers: jtsLayers, statistics: pageStats };
