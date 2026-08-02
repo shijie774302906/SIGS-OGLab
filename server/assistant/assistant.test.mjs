@@ -626,6 +626,7 @@ test('PROCESS136 DeepSeek report turns keep automatic tool choice and preserve a
     fetchImpl: async (_url, init) => {
       const request = JSON.parse(init.body);
       assert.equal(request.tool_choice, 'auto');
+      assert.equal(request.max_tokens, 3_000);
       assert.deepEqual(
         request.tools.map((tool) => tool.function.name),
         [

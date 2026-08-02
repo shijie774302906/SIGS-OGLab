@@ -91,7 +91,13 @@ export async function requestDeepSeekTurn({
       // still enforces a single terminal decision below and rejects free text.
       tool_choice: 'auto',
       temperature: 0.1,
-      max_tokens: context.scope.route === 'quick-input' ? 3_000 : importRoute ? 8_000 : 1_200,
+      max_tokens: context.scope.route === 'quick-input'
+        ? 3_000
+        : importRoute
+          ? 8_000
+          : context.scope.route === 'quick-report'
+            ? 3_000
+            : 1_200,
       stream: false,
     }),
     signal,
