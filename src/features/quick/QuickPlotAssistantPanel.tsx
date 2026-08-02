@@ -623,11 +623,19 @@ export function QuickPlotAssistantPanel({
           });
         } catch (error) {
           if (!(error instanceof AssistantRequestError) || error.code !== 'MODEL_TOOL_FORMAT') throw error;
+          const repairCall: AssistantToolCall = {
+            id: `repair-read-page-${requestReport.pageNumber}-${step}`,
+            name: 'read_quick_plot_page',
+            arguments: JSON.stringify({ pageNumber: requestReport.pageNumber }),
+          };
+          const repairResult = executeQuickReportReadTool(repairCall, context, workspace);
+          evidence.push({ toolName: repairCall.name, payload: repairResult.payload });
           response = await connection.requestTurn({
-            turns: trimQuickReportTurns([...activeTurns, {
-              role: 'user',
-              content: '上一轮只读工具参数不是有效 JSON。请保留原问题，重新选择合适的只读工具并严格按工具参数结构调用；不要猜测图册数据。',
-            }]),
+            turns: trimQuickReportTurns([
+              ...activeTurns,
+              { role: 'assistant', content: null, toolCalls: [repairCall] },
+              { role: 'tool', toolCallId: repairCall.id, content: JSON.stringify(repairResult.payload) },
+            ]),
             context,
             consentScope: 'engineering',
             signal: controller.signal,
