@@ -101,8 +101,6 @@ export function trimQuickReportTurns(
   turns: AssistantWireTurn[],
   maxTurns = 24,
 ): AssistantWireTurn[] {
-  if (turns.length <= maxTurns) return turns;
-
   const exchanges: AssistantWireTurn[][] = [];
   let current: AssistantWireTurn[] = [];
   for (const turn of turns) {
@@ -115,6 +113,19 @@ export function trimQuickReportTurns(
   }
   if (current.length) exchanges.push(current);
   if (!exchanges.length) return [];
+
+  const reducedExchanges = exchanges.map((exchange, index) => {
+    if (index === exchanges.length - 1) return exchange;
+    const finalAnswer = [...exchange].reverse().find((turn) =>
+      turn.role === 'assistant'
+      && !turn.toolCalls?.length
+      && typeof turn.content === 'string'
+      && turn.content.trim(),
+    );
+    return finalAnswer
+      ? [exchange[0], { role: 'assistant' as const, content: finalAnswer.content }]
+      : exchange;
+  });
 
   const compactExchange = (exchange: AssistantWireTurn[]) => {
     const userTurn = exchange[0];
@@ -155,8 +166,8 @@ export function trimQuickReportTurns(
 
   const kept: AssistantWireTurn[][] = [];
   let keptTurnCount = 0;
-  for (let index = exchanges.length - 1; index >= 0; index -= 1) {
-    const exchange = kept.length ? exchanges[index] : compactExchange(exchanges[index]);
+  for (let index = reducedExchanges.length - 1; index >= 0; index -= 1) {
+    const exchange = kept.length ? reducedExchanges[index] : compactExchange(reducedExchanges[index]);
     if (kept.length && keptTurnCount + exchange.length > maxTurns) break;
     kept.unshift(exchange);
     keptTurnCount += exchange.length;

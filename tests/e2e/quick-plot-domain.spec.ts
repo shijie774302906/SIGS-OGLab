@@ -571,7 +571,7 @@ test('PROCESS136 long report conversations keep complete recent exchanges withou
 
   const trimmed = trimQuickReportTurns(turns, 12);
   expect(trimmed).toHaveLength(12);
-  expect(trimmed[0]).toEqual({ role: 'user', content: '问题 6' });
+  expect(trimmed[0]).toEqual({ role: 'user', content: '问题 4' });
   expect(trimmed.at(-1)).toEqual({ role: 'assistant', content: '回答 8' });
   for (const [index, turn] of trimmed.entries()) {
     if (turn.role !== 'tool') continue;
@@ -609,6 +609,22 @@ test('PROCESS136 one question with five four-tool rounds stays bounded and retry
     expect(owner?.role).toBe('assistant');
     expect(owner?.role === 'assistant' ? owner.toolCalls?.some((call) => call.id === turn.toolCallId) : false).toBe(true);
   }
+});
+
+test('PROCESS145 completed exchanges keep their answers but drop old raw tool payloads before the next question', () => {
+  const turns: AssistantWireTurn[] = [
+    { role: 'user', content: '第一个问题' },
+    { role: 'assistant', content: null, toolCalls: [{ id: 'old-read', name: 'read_quick_plot_page', arguments: '{}' }] },
+    { role: 'tool', toolCallId: 'old-read', content: JSON.stringify({ rows: 'x'.repeat(50_000) }) },
+    { role: 'assistant', content: '第一个回答中的关键结论' },
+    { role: 'user', content: '承接上问的新问题' },
+  ];
+  const trimmed = trimQuickReportTurns(turns, 24);
+  expect(trimmed).toEqual([
+    { role: 'user', content: '第一个问题' },
+    { role: 'assistant', content: '第一个回答中的关键结论' },
+    { role: 'user', content: '承接上问的新问题' },
+  ]);
 });
 
 test('PROCESS135 report-reader returns a bounded, unit-explicit depth window without modifying source rows', () => {
