@@ -640,16 +640,33 @@ export function QuickPlotAssistantPanel({
     setProblem('');
     try {
       let activeTurns = nextTurns;
-      for (let step = 0; step < 5; step += 1) {
-        activeTurns = trimQuickReportTurns(activeTurns);
-        let response;
+      let transientRetryUsed = false;
+      const requestReportTurn = async (requestTurns: AssistantWireTurn[]) => {
         try {
-          response = await connection.requestTurn({
-            turns: activeTurns,
+          return await connection.requestTurn({
+            turns: requestTurns,
             context,
             consentScope: 'engineering',
             signal: controller.signal,
           });
+        } catch (error) {
+          const transient = error instanceof AssistantRequestError
+            && (error.code === 'CLIENT_TIMEOUT' || error.code === 'UPSTREAM_TIMEOUT');
+          if (!transient || transientRetryUsed || controller.signal.aborted) throw error;
+          transientRetryUsed = true;
+          return connection.requestTurn({
+            turns: requestTurns,
+            context,
+            consentScope: 'engineering',
+            signal: controller.signal,
+          });
+        }
+      };
+      for (let step = 0; step < 5; step += 1) {
+        activeTurns = trimQuickReportTurns(activeTurns);
+        let response;
+        try {
+          response = await requestReportTurn(activeTurns);
         } catch (error) {
           if (!(error instanceof AssistantRequestError) || error.code !== 'MODEL_TOOL_FORMAT') throw error;
           const repairCall: AssistantToolCall = {
@@ -659,16 +676,11 @@ export function QuickPlotAssistantPanel({
           };
           const repairResult = executeQuickReportReadTool(repairCall, context, workspace);
           evidence.push({ toolName: repairCall.name, payload: repairResult.payload });
-          response = await connection.requestTurn({
-            turns: trimQuickReportTurns([
+          response = await requestReportTurn(trimQuickReportTurns([
               ...activeTurns,
               { role: 'assistant', content: null, toolCalls: [repairCall] },
               { role: 'tool', toolCallId: repairCall.id, content: JSON.stringify(repairResult.payload) },
-            ]),
-            context,
-            consentScope: 'engineering',
-            signal: controller.signal,
-          });
+            ]));
         }
         if (response.kind === 'message') {
           const answer = buildQuickReportExplanation(
