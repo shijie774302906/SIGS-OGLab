@@ -96,6 +96,15 @@ const QUICK_REPORT_READ_TOOLS = new Set([
 ]);
 
 export const QUICK_REPORT_TOTAL_BUDGET_MS = 120_000;
+export const QUICK_REPORT_HISTORY_ANSWER_LIMIT = 1_800;
+
+function compactQuickReportHistoryAnswer(content: string) {
+  if (content.length <= QUICK_REPORT_HISTORY_ANSWER_LIMIT) return content;
+  const tailLength = 300;
+  const marker = '\n…[历史回答已压缩]…\n';
+  const headLength = QUICK_REPORT_HISTORY_ANSWER_LIMIT - tailLength - marker.length;
+  return `${content.slice(0, headLength)}${marker}${content.slice(-tailLength)}`;
+}
 
 export function trimQuickReportTurns(
   turns: AssistantWireTurn[],
@@ -123,7 +132,10 @@ export function trimQuickReportTurns(
       && turn.content.trim(),
     );
     return finalAnswer
-      ? [exchange[0], { role: 'assistant' as const, content: finalAnswer.content }]
+      ? [exchange[0], {
+          role: 'assistant' as const,
+          content: compactQuickReportHistoryAnswer(finalAnswer.content as string),
+        }]
       : exchange;
   });
 

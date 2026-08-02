@@ -4,7 +4,7 @@ import { createQuickPlotRevision, createQuickPlotWorkspace, deriveQuickPlotRows,
 import { classifyRobertson2016, classifySchneider2008, deriveRobertsonQtn, schneider2008Boundaries } from '../../src/features/quick/quickClassificationDomain';
 import { createQuickPlotXlsx } from '../../src/features/quick/quickPlotWorkbook';
 import { buildQuickPlotRowsFromProposal, QUICK_PLOT_IMPORT_PROTOCOL, quickPlotDecisionFromTool, quickPlotProposalFromTool, quickPlotQuestionOptionLabel } from '../../src/features/quick/quickPlotAssistantDomain';
-import { buildQuickReportExplanation, executeQuickReportReadTool, hasQuickReportEvidenceForQuestion, quickReportSourceDetail, trimQuickReportTurns } from '../../src/features/quick/QuickPlotAssistantPanel';
+import { buildQuickReportExplanation, executeQuickReportReadTool, hasQuickReportEvidenceForQuestion, QUICK_REPORT_HISTORY_ANSWER_LIMIT, quickReportSourceDetail, trimQuickReportTurns } from '../../src/features/quick/QuickPlotAssistantPanel';
 import type { AssistantContextSnapshot, AssistantWireTurn } from '../../src/features/assistant/assistantTypes';
 import type { ImportAssistantSource } from '../../src/features/import/importAssistantDomain';
 import {
@@ -643,6 +643,21 @@ test('PROCESS145 completed exchanges keep their answers but drop old raw tool pa
     { role: 'assistant', content: '第一个回答中的关键结论' },
     { role: 'user', content: '承接上问的新问题' },
   ]);
+});
+
+test('PROCESS145 completed long answers are compacted while retaining their start, end and follow-up', () => {
+  const longAnswer = `关键结论：第 5 页有 6 层。${'中间证据'.repeat(1_000)}来源：第 5 页。`;
+  const trimmed = trimQuickReportTurns([
+    { role: 'user', content: '先解释第 5 页' },
+    { role: 'assistant', content: longAnswer },
+    { role: 'user', content: '承接上问比较第 6 页' },
+  ], 24);
+  const compacted = trimmed[1];
+  expect(compacted.role).toBe('assistant');
+  expect(compacted.role === 'assistant' ? compacted.content?.length : 0).toBeLessThanOrEqual(QUICK_REPORT_HISTORY_ANSWER_LIMIT + 2);
+  expect(compacted.role === 'assistant' ? compacted.content : '').toContain('关键结论');
+  expect(compacted.role === 'assistant' ? compacted.content : '').toContain('来源：第 5 页');
+  expect(trimmed.at(-1)).toEqual({ role: 'user', content: '承接上问比较第 6 页' });
 });
 
 test('PROCESS135 report-reader returns a bounded, unit-explicit depth window without modifying source rows', () => {
