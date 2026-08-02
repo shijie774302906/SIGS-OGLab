@@ -53,6 +53,66 @@ test('PROCESS140 quick plot loads, cancels and confirms synthetic demo input wit
   }
 });
 
+test('PROCESS141 quick input owns vertical scrolling with long data and an open AI panel', async ({ page }) => {
+  await page.route('**/api/visits', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ status: 'ready', totals: { visitors: 1, visits: 1, coveredRegions: 1 }, regions: [{ key: 'UNKNOWN', label: '未知', visits: 1 }] }),
+  }));
+  await page.reload();
+  const browserErrors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(message.text()); });
+  page.on('pageerror', (error) => browserErrors.push(error.message));
+  await page.setViewportSize({ width: 1440, height: 700 });
+  await page.getByTestId('new-project-name').fill('快捷页面滚动');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await page.getByTestId('quick-use-demo-data').click();
+  await expect(page.getByText('121 行 · 系统生成演示数据')).toBeVisible();
+
+  const shell = page.getByTestId('quick-input-workspace');
+  const initialMetrics = await shell.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+    overflowY: getComputedStyle(element).overflowY,
+  }));
+  expect(initialMetrics.overflowY).toBe('auto');
+  expect(initialMetrics.scrollHeight).toBeGreaterThan(initialMetrics.clientHeight);
+  await shell.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
+  await expect(page.getByTestId('quick-generate-report')).toBeInViewport();
+  expect(await shell.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+
+  await page.getByTestId('quick-ai-toggle').click();
+  await expect(page.locator('.quick-assistant-drawer')).toBeVisible();
+  await shell.evaluate((element) => { element.scrollTop = 0; element.scrollTo({ top: element.scrollHeight }); });
+  await expect(page.getByTestId('quick-generate-report')).toBeInViewport();
+  const finalScrollTop = await shell.evaluate((element) => element.scrollTop);
+  expect(finalScrollTop).toBeGreaterThan(0);
+  expect(browserErrors).toEqual([]);
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    const evidenceDir = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process141-scroll-visitor-analytics');
+    mkdirSync(evidenceDir, { recursive: true });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await shell.evaluate((element) => { element.scrollTop = 0; });
+    await page.screenshot({ path: path.join(evidenceDir, 'quick-input-1440x900.png') });
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.screenshot({ path: path.join(evidenceDir, 'quick-input-1920x1080.png') });
+    await page.setViewportSize({ width: 1440, height: 700 });
+    await shell.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
+    await page.screenshot({ path: path.join(evidenceDir, 'quick-scroll-bottom-ai-open-1440x700.png') });
+    writeFileSync(path.join(evidenceDir, 'browser-check.json'), JSON.stringify({
+      process: 141,
+      deterministicRows: 121,
+      initialMetrics,
+      finalScrollTop,
+      aiPanelOpen: true,
+      generateActionInViewport: await page.getByTestId('quick-generate-report').isVisible(),
+      horizontalOverflow: await shell.evaluate((element) => Math.max(0, element.scrollWidth - element.clientWidth)),
+      browserErrors,
+    }, null, 2));
+  }
+});
+
 test('PROCESS117 quick project generates the 15-page mixed-orientation atlas with verified classification pages', async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   const browserErrors: string[] = [];

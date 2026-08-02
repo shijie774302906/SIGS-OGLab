@@ -2,6 +2,7 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { expect, test, type Page } from './fixtures/isolatedTest';
 import { confirmPendingStratificationLayers as confirmInlineStratificationLayers } from './stratification-guide-helpers';
 import { strFromU8, unzipSync } from 'fflate';
@@ -19,6 +20,11 @@ const workbooks = [
   { pointName: 'CPT19', fileName: 'CPT19数据.xlsx', rowCount: 4489, headerRow: 9, firstDepthM: 0.01, lastDepthM: 60.3, gapCount: 1, samples: [[10, 0.01, 770.0735, 774.998, 1.1, 19.698, 0.141935850157033], [2254, 30.9, 2447.115, 2560.92, 85.1, 455.22, 3.32302453805664], [4498, 60.3, 47213.205, 47351.34, 429.9, 552.54, 0.907894053262273]] },
   { pointName: 'SCPT1', fileName: 'SCPT1数据.xlsx', rowCount: 7832, headerRow: 9, firstDepthM: 0.01, lastDepthM: 100.3, gapCount: 6, samples: [[10, 0.01, 20.0735, 19.548, 0.3, -2.102, 1.53468385512584], [3926, 49.99, 36127.4265, 36260.302, 818.6, 531.502, 2.25756531205945], [7841, 100.3, 12347.205, 12555.965, 659.3, 835.04, 5.25089071210377]] },
 ] as const;
+
+test.skip(
+  !workbooks.every((workbook) => existsSync(path.join(sourceDirectory, workbook.fileName))),
+  '营口真实样本未获公开授权，干净发布环境按预期跳过。',
+);
 
 test.describe.configure({ mode: 'serial' });
 

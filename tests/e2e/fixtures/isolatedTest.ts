@@ -20,6 +20,12 @@ export async function resetWorkspaceAuthority(page: Page, options: { reload?: bo
         await database.deleteWorkspaceDatabase();
         window.localStorage.clear();
         window.sessionStorage.clear();
+        window.localStorage.setItem('sigs-oglab:project-hub-guide:v1', JSON.stringify({
+          version: 1,
+          method: 'complete',
+          dismissedAt: '2026-08-02T00:00:00.000Z',
+          source: 'playwright-fixture',
+        }));
       });
       lastProblem = null;
       break;

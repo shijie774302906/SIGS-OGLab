@@ -1,9 +1,11 @@
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { strFromU8, unzipSync } from 'fflate';
 import { expect, test } from './fixtures/isolatedTest';
 
 const sourceWorkbook = path.join(process.cwd(), 'sample_data', 'source', 'yingkou', 'CPT09数据.xlsx');
+test.skip(!existsSync(sourceWorkbook), '营口真实样本未获公开授权，干净发布环境按预期跳过。');
 const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process120-report-migration');
 const parameterBasisEvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process122-parameter-basis');
 const process137EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process137-a3-600dpi-pdf');

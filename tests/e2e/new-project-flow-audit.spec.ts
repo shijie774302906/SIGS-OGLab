@@ -1,10 +1,13 @@
 ﻿import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { expect, test, type Page } from './fixtures/isolatedTest';
 import { completePreparationGuide } from './fixtures/guidedPreparation';
 
 const sourceWorkbook = path.join(process.cwd(), 'sample_data', 'source', 'yingkou', 'CPT09数据.xlsx');
 const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'new-project-flow-audit');
+
+test.skip(!existsSync(sourceWorkbook), '营口真实样本未获公开授权，干净发布环境按预期跳过。');
 
 test('AUDIT-084 new project can check a renamed Yingkou workbook without persisting a placeholder point', async ({ page }, testInfo) => {
   test.setTimeout(45_000);

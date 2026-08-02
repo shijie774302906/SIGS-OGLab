@@ -72,11 +72,12 @@ export function scanTrackedSecrets(root, trackedFiles) {
   const findings = [];
   for (const trackedFile of trackedFiles) {
     const normalized = normalizePath(trackedFile);
-    if (SECRET_FILE_PATTERNS.some((pattern) => pattern.test(normalized))) {
+    const isEnvironmentExample = /(^|\/)\.env\.example$/i.test(normalized);
+    if (!isEnvironmentExample && SECRET_FILE_PATTERNS.some((pattern) => pattern.test(normalized))) {
       pushFinding(findings, 'error', 'tracked-secret-file', '发现不应提交的敏感文件。', { file: normalized });
       continue;
     }
-    if (!TEXT_EXTENSIONS.has(extname(normalized).toLowerCase())) continue;
+    if (!isEnvironmentExample && !TEXT_EXTENSIONS.has(extname(normalized).toLowerCase())) continue;
     const absolute = resolve(root, normalized);
     if (!existsSync(absolute) || statSync(absolute).size > 2_000_000) continue;
     const content = readFileSync(absolute, 'utf8');

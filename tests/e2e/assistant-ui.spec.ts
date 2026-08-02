@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
 });
 
-test('PROCESS140 public quota survives serverless instance rotation and disables input when exhausted', async ({ page }) => {
+test('PROCESS140 public quota shows remaining calls and disables public input when exhausted', async ({ page }) => {
   const browserErrors: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
   page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
@@ -45,7 +45,7 @@ test('PROCESS140 public quota survives serverless instance rotation and disables
         kind: 'message',
         model: 'deepseek-v4-pro',
         content: '当前项目尚未导入数据。',
-        serviceInstanceId: 'playwright-public-quota-turn-instance',
+        serviceInstanceId: 'playwright-public-quota',
         protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
         publicQuota: { status: 'exhausted', limit: 100, used: 100, remaining: 0, resetAt: '2026-08-01T16:00:00.000Z' },
       }),
@@ -818,4 +818,3 @@ async function browserStorageContainsSecret(page: Page, secrets: string[]) {
     return secretValues.some((secret) => corpus.includes(secret));
   }, secrets);
 }
-

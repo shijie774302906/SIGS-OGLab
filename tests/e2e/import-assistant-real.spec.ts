@@ -1,8 +1,10 @@
 ﻿import { mkdirSync } from 'node:fs';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { expect, test } from './fixtures/isolatedTest';
 
 const sourcePath = path.join(process.cwd(), 'sample_data', 'source', 'yingkou', 'CPT09数据.xlsx');
+test.skip(!existsSync(sourcePath), '营口真实样本未获公开授权，干净发布环境按预期跳过。');
 const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process128-import-assistant');
 const evidenceEnabled = process.env.PROCESS128_EVIDENCE === '1' || process.env.MILESTONE_EVIDENCE === '1';
 
@@ -111,5 +113,4 @@ test('Process128 keeps the real 4,282-row Yingkou workbook bounded and imports t
   void persisted;
   expect(browserErrors).toEqual([]);
 });
-
 

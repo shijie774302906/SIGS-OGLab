@@ -29,6 +29,15 @@ test('secret scanner rejects tracked environment and private-key files', () => {
   assert.deepEqual(findings.map((item) => item.id), ['tracked-secret-file', 'tracked-secret-file']);
 });
 
+test('secret scanner allows the documented environment example but still scans its content', () => {
+  const root = mkdtempSync(join(tmpdir(), 'release-audit-env-example-'));
+  writeFileSync(join(root, '.env.example'), 'DEEPSEEK_API_KEY=replace-me\n', 'utf8');
+  assert.deepEqual(scanTrackedSecrets(root, ['.env.example']), []);
+
+  writeFileSync(join(root, '.env.example'), `DEEPSEEK_API_KEY=sk-${'a'.repeat(40)}\n`, 'utf8');
+  assert.equal(scanTrackedSecrets(root, ['.env.example'])[0]?.id, 'deepseek-key');
+});
+
 test('source reachability follows static, re-export and dynamic relative imports', () => {
   const root = mkdtempSync(join(tmpdir(), 'release-audit-graph-'));
   mkdirSync(join(root, 'src', 'feature'), { recursive: true });

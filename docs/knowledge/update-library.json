@@ -569,6 +569,30 @@
       "status": "closed",
       "record": "process_logs/Process140.md",
       "problems": ["KPB-004", "KPB-005", "KPB-006", "KPB-011", "KPB-012", "KPB-030"]
+    },
+    {
+      "id": "Process141",
+      "date": "2026-08-01",
+      "title": "快捷页面滚动与匿名访问统计",
+      "status": "closed",
+      "record": "process_logs/Process141.md",
+      "problems": ["KPB-002", "KPB-004", "KPB-008", "KPB-011", "KPB-012", "KPB-013", "KPB-015", "KPB-019", "KPB-031", "KPB-032"]
+    },
+    {
+      "id": "Process142",
+      "date": "2026-08-01",
+      "title": "独立中文使用手册与线上帮助入口",
+      "status": "closed",
+      "record": "process_logs/Process142.md",
+      "problems": ["KPB-002", "KPB-004", "KPB-005", "KPB-011", "KPB-012", "KPB-015", "KPB-016", "KPB-019", "KPB-023"]
+    },
+    {
+      "id": "Process143",
+      "date": "2026-08-02",
+      "title": "桌面端首次使用三步指引",
+      "status": "closed",
+      "record": "process_logs/Process143.md",
+      "problems": ["KPB-002", "KPB-004", "KPB-006", "KPB-011", "KPB-012", "KPB-013", "KPB-016", "KPB-019"]
     }
   ]
 }

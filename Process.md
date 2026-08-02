@@ -4,7 +4,31 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process140 公共 AI 每日额度与合成演示数据
+## Current - Process143 桌面端首次使用指引
+
+- Date: 2026-08-02
+- Status: `closed / implemented / verified`
+- Result: 首次空工作区桌面访问提供“选模式、填项目名、开始使用”三步聚焦指引；完成或跳过后记住，已有项目和移动端不被打断，项目首页可手动重播。
+- Verification: build、domain-fast 263/263、ui-isolated 133/133、real-serial 32 passed（2 个可选外部样本跳过）、双分辨率证据和 Known Problem Gate 通过。
+- Detail: `process_logs/Process143.md`
+
+## Recent - Process142 独立中文使用手册与上下文帮助
+
+- Date: 2026-08-01
+- Status: `closed / implemented / verified / deployed`
+- Result: 独立中文手册、GoG 6 双路径说明、主站上下文帮助和生产恢复已上线；`docs.sigs-oglab.com` 已启用有效证书与强制 HTTPS。
+- Verification: closure 77 specs、目标测试 67/67、真实 GoG 6 2/2、文档 Playwright 9/9、线上首页/深链/帮助入口/HTTPS 和 Known Problem Gate 均通过。
+- Detail: `process_logs/Process142.md`
+
+## Recent - Process141 快捷页面滚动与匿名访问统计
+
+- Date: 2026-08-01
+- Status: `closed / implemented / verified / deployed`
+- Result: 快捷页恢复独立纵向滚动；全局左下角显示匿名累计访客、访问次数、覆盖地区和紧凑地区分布；原始 IP 与工程数据不保存，统计故障不影响产品。
+- Verification: build、assistant/analytics 36/36、domain-fast 262/262、ui-isolated 126/126、real-serial 32/32、双分辨率/在线滚动与生产统计接口、Known Problem Gate 通过。
+- Detail: `process_logs/Process141.md`
+
+## Recent - Process140 公共 AI 每日额度与合成演示数据
 
 - Date: 2026-08-01
 - Status: `closed / implemented / verified / deployed`

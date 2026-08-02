@@ -29,9 +29,11 @@ export function projectHelpLinks(pageLabel: string) {
 export function ProjectFeedbackLauncher({
   pageLabel,
   placement = 'floating',
+  onOpenOnboarding,
 }: {
   pageLabel: string;
   placement?: 'floating' | 'sidebar';
+  onOpenOnboarding?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'manual'>('idle');
@@ -176,6 +178,17 @@ export function ProjectFeedbackLauncher({
         <ExternalLink className="button-icon" />
         <span>查看本页说明</span>
       </a>
+      {onOpenOnboarding ? (
+        <button
+          type="button"
+          className={`${placement === 'floating' ? 'project-help-floating contextual' : 'sidebar-help-link contextual'} onboarding-replay`}
+          onClick={onOpenOnboarding}
+          data-testid="open-project-onboarding"
+        >
+          <BookOpenText className="button-icon" />
+          <span>新手指引</span>
+        </button>
+      ) : null}
       <button
         ref={triggerRef}
         type="button"

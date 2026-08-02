@@ -2,6 +2,7 @@
 import { expect, test } from './fixtures/isolatedTest';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { completeThinLayerGuide, confirmPendingStratificationLayers } from './stratification-guide-helpers';
 
 test('no-u2 JTS approximate classification becomes an editable, committed, and stale-aware scheme', async ({ page }, testInfo) => {
@@ -198,6 +199,7 @@ test('real Yingkou first-run guide visibly selects JTS and explains why generati
   test.setTimeout(90_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   const sourceWorkbook = path.join(process.cwd(), 'sample_data', 'source', 'yingkou', 'CPT09数据.xlsx');
+  test.skip(!existsSync(sourceWorkbook), '营口真实样本未获公开授权，干净发布环境按预期跳过。');
   const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process086-guided-generation');
   const process093EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process093-dense-stratification-view');
   const process102EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process102-shared-boundary-sbt');

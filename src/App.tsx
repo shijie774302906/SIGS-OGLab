@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { startTransition, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { ProjectFeedbackLauncher } from './components/ProjectFeedbackLauncher';
+import { ProjectHubFirstUseGuide } from './components/ProjectHubFirstUseGuide';
 import { FlowCaseBanner } from './components/workbench/FlowCaseBanner';
 import { MetricInline } from './components/workbench/MetricInline';
 import { PageDecisionBand } from './components/workbench/PageDecisionBand';
@@ -537,6 +538,7 @@ function ProjectHub({
   const [clearProjectsPending, setClearProjectsPending] = useState(false);
   const [clearProjectsRunning, setClearProjectsRunning] = useState(false);
   const [clearProjectsProblem, setClearProjectsProblem] = useState('');
+  const [onboardingReplayToken, setOnboardingReplayToken] = useState(0);
   const selectedProject = projects.find((project) => project.projectId === pendingDeleteId || project.projectId === renamingProjectId) ?? projects[0] ?? null;
   const checkableCount = projects.filter((project) => isImportDraftCheckable(project.importDraft)).length;
   const emptyCount = projects.filter((project) => project.importDraft.sourceMode === 'project-empty').length;
@@ -637,7 +639,7 @@ function ProjectHub({
                 <span>给这次工作起个名字，之后可以回来继续。</span>
               </div>
             </div>
-            <div className="project-mode-choice" role="radiogroup" aria-label="项目使用方式">
+            <div className="project-mode-choice" role="radiogroup" aria-label="项目使用方式" data-testid="project-mode-choice">
               <button type="button" role="radio" aria-checked={newProjectMode === 'quick'} className={newProjectMode === 'quick' ? 'selected' : ''} onClick={() => setNewProjectMode('quick')} data-testid="project-mode-quick"><strong>快捷出图（推荐）</strong><span>粘贴数据，直接出图</span></button>
               <button type="button" role="radio" aria-checked={newProjectMode === 'user'} className={newProjectMode === 'user' ? 'selected' : ''} onClick={() => setNewProjectMode('user')} data-testid="project-mode-professional"><strong>专业解译</strong><span>检查数据、调整分层和参数</span></button>
             </div>
@@ -867,7 +869,11 @@ function ProjectHub({
           </section>
         </RightPanelShell>
       </aside>
-      <ProjectFeedbackLauncher pageLabel="项目集合" />
+      <ProjectFeedbackLauncher
+        pageLabel="项目集合"
+        onOpenOnboarding={() => setOnboardingReplayToken((current) => current + 1)}
+      />
+      <ProjectHubFirstUseGuide hasProjects={projects.length > 0} replayToken={onboardingReplayToken} />
     </div>
   );
 }

@@ -1,8 +1,10 @@
 ﻿import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { expect, test } from './fixtures/isolatedTest';
 
 const sourcePath = path.join(process.cwd(), 'sample_data', 'source', 'yingkou', 'SCPT1数据.xlsx');
+test.skip(!existsSync(sourcePath), '营口真实样本未获公开授权，干净发布环境按预期跳过。');
 
 test('Process131 reproduces an empty-project AI import of the real 7,832-row SCPT1 workbook', async ({ page }) => {
   test.setTimeout(300_000);
@@ -382,5 +384,4 @@ test('Process131 reproduces an empty-project AI import of the real 7,832-row SCP
   expect(result.persistedReimport?.representativeRows).toEqual(result.pipeline?.representativeRows);
   expect(result.persistedReimport?.normalizedRows).toBe(7832);
 });
-
 
