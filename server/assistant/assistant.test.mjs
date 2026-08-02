@@ -671,7 +671,7 @@ test('PROCESS145 DeepSeek report synthesizes after one read batch instead of loo
       const request = JSON.parse(init.body);
       assert.equal(request.tool_choice, undefined);
       assert.equal(request.tools, undefined);
-      assert.equal(request.max_tokens, 3_000);
+      assert.equal(request.max_tokens, 1_600);
       return new Response(JSON.stringify({
         model: 'deepseek-v4-pro',
         choices: [{ finish_reason: 'stop', message: { content: '已根据读取证据回答。' } }],
