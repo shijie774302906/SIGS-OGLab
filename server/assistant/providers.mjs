@@ -174,6 +174,16 @@ export async function requestDeepSeekTurn({
   }
   const content = typeof message.content === 'string' ? message.content.trim().slice(0, 8_000) : '';
   if (!content) throw providerError(502);
+  if (
+    context.scope.route === 'quick-report'
+    && content.includes('DSML')
+    && /tool_calls|invoke\s+name=/i.test(content)
+  ) {
+    throw providerProtocolError(
+      'MODEL_TOOL_FORMAT',
+      'DeepSeek 返回了未完成的图册读取格式，请重试。',
+    );
+  }
   return {
     kind: 'message',
     content,

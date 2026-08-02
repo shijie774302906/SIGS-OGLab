@@ -680,6 +680,25 @@ test('PROCESS145 DeepSeek report synthesizes after one read batch instead of loo
   assert.match(response.content, /读取证据/);
 });
 
+test('PROCESS145 DeepSeek report rejects DSML tool markup returned as visible prose', async () => {
+  await assert.rejects(requestDeepSeekTurn({
+    apiKey: 'sk-test-deepseek-report-key-123456',
+    turns: [{ role: 'user', content: '请比较分类结果。' }],
+    context: quickReportContext(),
+    config: {
+      deepseekModel: 'deepseek-v4-pro',
+      deepseekBaseUrl: 'https://api.deepseek.com',
+    },
+    fetchImpl: async () => new Response(JSON.stringify({
+      model: 'deepseek-v4-pro',
+      choices: [{
+        finish_reason: 'stop',
+        message: { content: '<｜｜DSML｜｜tool_calls><｜｜DSML｜｜invoke name="read_quick_plot_page">' },
+      }],
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }),
+  }), (error) => error?.code === 'MODEL_TOOL_FORMAT');
+});
+
 test('mock quick provider uses the same versioned decision contract for headerless rows', async () => {
   const quickContext = {
     ...quickInputContext(),
