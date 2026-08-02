@@ -997,6 +997,7 @@ function buildContext(
         depthFromM: depths.length ? Math.min(...depths) : null,
         depthToM: depths.length ? Math.max(...depths) : null,
         sourceName: workspace.sourceName,
+        currentPageEvidenceJson: JSON.stringify(quickPlotAssistantPageEvidence(workspace, selectedPage + 1)),
         notices: [
           '当前页来自已冻结的快捷图册修订。',
           '参数按既有快捷方法包确定性计算。',

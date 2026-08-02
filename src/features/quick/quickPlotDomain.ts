@@ -1008,14 +1008,14 @@ export function quickPlotAssistantPageEvidence(workspace: QuickPlotWorkspaceV1, 
     },
     statistics: pageStats,
   };
-  if (pageNumber === 4) return { ...base, available: schneiderLayers.length > 0, method: 'Schneider 2008', inputs: ['Q = (qt - σv0) / σ′v0', 'Δu2 / σ′v0 = (u2 - u0) / σ′v0'], layers: schneiderLayers, statistics: pageStats, unavailableReason: schneiderLayers.length ? null : '缺少可靠 u2 或归一化孔压证据，无法形成 Schneider 分类层。' };
-  if (pageNumber === 5) return { ...base, available: fuzzyLayers.length > 0, method: 'Zhang–Tumay Fuzzy（1.0 m 连续深度窗口最高概率）', inputs: ['qc（MPa）', 'Rf = fs / qc × 100%'], outputClasses: ['黏土', '粉土/过渡土', '砂土'], layers: fuzzyLayers, windowRadiusM: 0.5, unavailableReason: fuzzyLayers.length ? null : '没有形成有效 Fuzzy 概率层。' };
-  if (pageNumber === 6) return { ...base, available: jtsLayers.length > 0, method: 'JTS/T 242—2020（1.0 m 深度窗口最高占比 Zone）', inputs: ['JTS 土体行为类型指数 Ic', '净锥尖阻力 qnet'], zoneSystem: 'JTS/T 242—2020 Zone 1–9；本孔仅显示实际命中的 Zone', layers: jtsLayers, statistics: pageStats };
+  if (pageNumber === 4) return { ...base, available: schneiderLayers.length > 0, method: 'Schneider 2008', inputs: ['Q = (qt - σv0) / σ′v0', 'Δu2 / σ′v0 = (u2 - u0) / σ′v0'], classificationSystem: (['1a', '1b', '1c', '2', '3'] as const).map((code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code]}`), classificationEvidenceValidCount: rows.filter((row) => row.schneider2008?.code).length, layers: schneiderLayers, statistics: pageStats, layerCoverageMeaning: '连续窗口层可跨过孤立无效点；不能据此声称每个源测点均有 Schneider 分类。', unavailableReason: schneiderLayers.length ? null : '缺少可靠 u2 或归一化孔压证据，无法形成 Schneider 分类层。' };
+  if (pageNumber === 5) return { ...base, available: fuzzyLayers.length > 0, method: 'Zhang–Tumay Fuzzy（1.0 m 总宽、半径 0.5 m 的连续深度窗口最高概率）', inputs: ['qc（MPa）', 'Rf = fs / qc × 100%'], outputClasses: ['黏土', '粉土/过渡土', '砂土'], layers: fuzzyLayers, windowWidthM: 1, windowRadiusM: 0.5, unavailableReason: fuzzyLayers.length ? null : '没有形成有效 Fuzzy 概率层。' };
+  if (pageNumber === 6) return { ...base, available: jtsLayers.length > 0, method: 'JTS/T 242—2020（1.0 m 总宽、半径 0.5 m 的深度窗口最高占比 Zone）', inputs: ['JTS 土体行为类型指数 Ic', '净锥尖阻力 qnet'], zoneSystem: 'JTS/T 242—2020 Zone 1–9；本孔仅显示实际命中的 Zone', classificationEvidenceValidCount: rows.filter((row) => row.zone !== null).length, layers: jtsLayers, windowWidthM: 1, windowRadiusM: 0.5, statistics: pageStats, layerCoverageMeaning: '连续窗口层可跨过孤立无效点；不能据此声称每个源测点均有 JTS 分类。' };
   if (pageNumber === 8) return { ...base, available: robertsonLayers.length > 0, method: 'Modified Robertson 2016', layers: robertsonLayers, statistics: pageStats, unavailableReason: robertsonLayers.length ? null : '缺少有效应力或归一化分类证据。' };
   if (pageNumber === 9) return { ...base, available: true, classificationComparison: { jts: jtsLayers, robertson2016: robertsonLayers, schneider2008: schneiderLayers }, statistics: pageStats };
   if (pageNumber === 15 || pageNumber === 16) {
     const audit = quickPlotFormulaAudit(workspace.settings, rows);
-    return { ...base, available: true, parameterClassificationBasis: QUICK_PARAMETER_CLASSIFICATION_BASIS, comparisonRole: QUICK_PARAMETER_COMPARISON_ROLE, settings: workspace.settings, formulaGroups: audit.groups, references: QUICK_PLOT_REFERENCES };
+    return { ...base, available: true, parameterClassificationBasis: QUICK_PARAMETER_CLASSIFICATION_BASIS, comparisonRole: QUICK_PARAMETER_COMPARISON_ROLE, settings: workspace.settings, calculationCounts: { qt: rows.filter((row) => Number.isFinite(row.qtKpa)).length, ic: rows.filter((row) => row.ic !== null && Number.isFinite(row.ic)).length }, formulaGroups: audit.groups, references: QUICK_PLOT_REFERENCES };
   }
   return {
     ...base,

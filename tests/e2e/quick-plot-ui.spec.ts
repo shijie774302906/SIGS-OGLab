@@ -841,16 +841,17 @@ test('PROCESS145 switching atlas pages keeps one conversation and uses the new p
   const browserErrors: string[] = [];
   page.on('pageerror', (error) => browserErrors.push(`page: ${error.message}`));
   page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
-  const reportRequests: Array<{ pageNumber?: number; userTurns: string[] }> = [];
+  const reportRequests: Array<{ pageNumber?: number; currentPageEvidenceJson?: string; userTurns: string[] }> = [];
   page.on('request', (request) => {
     if (!request.url().includes('/api/assistant/turn')) return;
     const body = request.postDataJSON() as {
       turns?: Array<{ role?: string; content?: string }>;
-      context?: { scope?: { route?: string }; quickPlotReport?: { pageNumber?: number } };
+      context?: { scope?: { route?: string }; quickPlotReport?: { pageNumber?: number; currentPageEvidenceJson?: string } };
     } | null;
     if (body?.context?.scope?.route !== 'quick-report') return;
     reportRequests.push({
       pageNumber: body.context.quickPlotReport?.pageNumber,
+      currentPageEvidenceJson: body.context.quickPlotReport?.currentPageEvidenceJson,
       userTurns: body.turns?.filter((turn) => turn.role === 'user').map((turn) => turn.content ?? '') ?? [],
     });
   });
@@ -876,6 +877,8 @@ test('PROCESS145 switching atlas pages keeps one conversation and uses the new p
   await expect(assistant.locator('.assistant-message.assistant').last()).toContainText('来源：提问时第 2 页');
   expect(reportRequests[0]).toMatchObject({ pageNumber: 1 });
   expect(reportRequests.at(-1)).toMatchObject({ pageNumber: 2 });
+  expect(JSON.parse(reportRequests[0]?.currentPageEvidenceJson ?? '{}')).toMatchObject({ pageNumber: 1, generatedFromSameRowsAsAtlas: true });
+  expect(JSON.parse(reportRequests.at(-1)?.currentPageEvidenceJson ?? '{}')).toMatchObject({ pageNumber: 2, generatedFromSameRowsAsAtlas: true });
   expect(reportRequests.at(-1)?.userTurns.some((turn) => turn.includes('第 1 页'))).toBe(true);
   expect(reportRequests.at(-1)?.userTurns.at(-1)).toContain('第 2 页');
   await expect(page.getByTestId('quick-ai-error')).toHaveCount(0);
