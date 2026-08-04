@@ -10,12 +10,12 @@
   "current_release": {
     "process_id": "Process153",
     "baseline_commit": "2f127929b38d76a6e1f296175510f4ac4c96ef4d",
-    "already_live_through": "Process152",
-    "deployment_status": "pending",
-    "deployment_commit": "",
+    "already_live_through": "Process153",
+    "deployment_status": "deployed",
+    "deployment_commit": "1890a86",
     "deployment_url": "https://sigs-oglab.com",
     "include_processes": ["Process153"],
-    "pending_processes": ["Process153"],
+    "pending_processes": [],
     "exclude_processes": [
       {
         "id": "Process149",

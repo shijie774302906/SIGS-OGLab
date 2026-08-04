@@ -1,7 +1,8 @@
-# Process153 私有数据与临时产物安全清理
+# Process153 - 私有数据与临时产物安全清理
 
-- Date: 2026-08-04
-- Status: implemented / verified / pending deployment
+Date: 2026-08-04
+
+Status: `closed / verified / deployed`
 - Goal: 从公开发布候选中移除私有工程数据、派生样例、密钥、本机临时产物和 Process149 临时页面，并建立持续拦截。
 
 ## Result
@@ -24,6 +25,7 @@
 - Real serial suite: 26 passed；2 项公开 GoG6 条件测试因本机未提供公开参考文件而 skipped；不再包含私有工程案例。
 - `git ls-files`、运行源码与 `dist` 私有名称/密钥扫描：passed；唯一保留的环境文件为 `.env.example`。
 - Release audit: 0 errors；剩余警告为 package private、未选择开源许可证和超大源文件，与本切片删除目标无关。
+- Production deployment: commit `1890a86`；Vercel production 已绑定 `https://sigs-oglab.com`；线上 HTML/JS 私有标记扫描通过，首页与访问统计接口返回 200。
 
 ## Git History Boundary
 

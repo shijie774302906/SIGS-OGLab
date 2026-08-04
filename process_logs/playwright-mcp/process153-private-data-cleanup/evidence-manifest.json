@@ -1,25 +1,119 @@
 {
-  "process": "Process153",
-  "created_at": "2026-08-04T00:00:00+08:00",
-  "workspace": "D:/CPT-UIQA-WebPrototype-Release152",
-  "status": "verified-pending-deployment",
-  "scope": "private-data-and-transient-artifact-cleanup",
-  "commands": [
-    {"name": "build", "command": "npm.cmd run build", "exit_code": 0},
-    {"name": "process-test", "command": "npm.cmd run process:test", "exit_code": 0, "result": "14/14"},
-    {"name": "release-audit-test", "command": "node --test scripts/release-readiness.test.mjs", "exit_code": 0, "result": "7/7"},
-    {"name": "assistant-server", "command": "npm.cmd run test:assistant-server", "exit_code": 0, "result": "41/41"},
-    {"name": "domain-fast", "command": "npm.cmd run test:domain-fast", "exit_code": 0, "result": "272/272"},
-    {"name": "ui-isolated", "command": "Playwright isolated UI suite on port 5193", "exit_code": 0, "result": "140 passed; one parallel timing case rerun 1/1 passed on port 5194"},
-    {"name": "real-serial", "command": "Playwright real-serial suite on port 5195", "exit_code": 0, "result": "26 passed; 2 public GoG6 conditional skips"}
+  "schemaVersion": 1,
+  "processId": "Process153",
+  "generatedAt": "2026-08-04T08:59:43.706Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process153-private-data-cleanup",
+  "context": {
+    "path": "process_logs/Process153.md",
+    "size": 2749,
+    "sha256": "ba59af0876c2738c73fdacea7ce0d38976e1575a9658bf685bbc2a4dbd5a9c1a"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "docs/process/release-index.json",
+        "size": 1300,
+        "sha256": "33445d472218a884076f1580dba42fca54524a6ca0b4992fc49fed1b50d79fa0"
+      },
+      {
+        "path": "process_logs/knowledge-reviews/Process153.json",
+        "size": 325,
+        "sha256": "4912c04640f17596f45059ac89051303b1dd47707d8e0948db659de16bda565f"
+      },
+      {
+        "path": "process_logs/release-audit-Process153.json",
+        "size": 1163,
+        "sha256": "35b111cd467503bba69301844349e6bc88b86c52669b77a85b58bbd19c048a3b"
+      },
+      {
+        "path": "scripts/release-readiness.mjs",
+        "size": 14240,
+        "sha256": "5ab0a9ce9a0c794a14e0bbcf51a457b90b3eda01302d1d287573385a32a6c488"
+      },
+      {
+        "path": "scripts/release-readiness.test.mjs",
+        "size": 5445,
+        "sha256": "88d69e0f6bc162f3d5ae9f416bc962baa99ce6096308fcfa0cfb9f7e7e134f01"
+      },
+      {
+        "path": "src/App.tsx",
+        "size": 809171,
+        "sha256": "ccd096681483ad7edc3b8ac951a9b2c017c83eac42fec5b51023ae1820f2b73a"
+      },
+      {
+        "path": "src/workflowData.ts",
+        "size": 27163,
+        "sha256": "95ae0193b5049deab8b652bbd243f383017225594a33d72a6d47ae4a4b81c12e"
+      },
+      {
+        "path": "tests/e2e/project-persistence.spec.ts",
+        "size": 18435,
+        "sha256": "6d1fea66f226f1dc9230f229f72749ce336ddb31a042913f80919f7ce14271bc"
+      },
+      {
+        "path": "tests/e2e/release-compatibility.spec.ts",
+        "size": 2652,
+        "sha256": "2d209577ba3afb0d920f076217e5411ec40a3ed90e6e10764a2598d2485ed2b3"
+      }
+    ],
+    "aggregateSha256": "e514e8797013bfe80952397fad8871d0abd58eccc5bf19e34ddd2cf65faf6b71"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process153-private-data-cleanup/browser-check.json",
+        "size": 664,
+        "sha256": "799ec35805775c3364e3ed2f137cad24657ca6cc6033aaa62a61c32b3e6ec75c"
+      }
+    ],
+    "aggregateSha256": "528deb9c99c0e456826641ac55958cb61de5b736395845b7e59fe4c671c42f22"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run process:test",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run release:audit:test",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:assistant-server",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:domain-fast",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:ui-isolated; parallel timing rerun passed",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:real-serial",
+      "exitCode": 0
+    },
+    {
+      "command": "npx.cmd vercel --prod --yes",
+      "exitCode": 0
+    }
   ],
-  "artifacts": [
-    "../../release-audit-Process153.json",
-    "../../knowledge-reviews/Process153.json",
-    "browser-check.json"
+  "seedOrSource": [
+    "fully synthetic CPTU workflow fixtures; public GoG6 optional; private engineering data excluded"
   ],
-  "notes": [
-    "Current tracked tree and dist are clear of private sample names and secret patterns.",
-    "Historical Git cleanup is intentionally excluded pending separate confirmation."
-  ]
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
 }

@@ -1,7 +1,7 @@
 {
   "process": "Process153",
-  "checked_at": "2026-08-04T00:00:00+08:00",
-  "source": "final local release candidate",
+  "checked_at": "2026-08-04T16:57:36+08:00",
+  "source": "final local release candidate and https://sigs-oglab.com",
   "checks": {
     "tracked_forbidden_names": "pass",
     "runtime_private_markers": "pass",
@@ -9,7 +9,10 @@
     "secret_patterns": "pass",
     "synthetic_workflow_fixture": "pass",
     "ui_isolated": "pass-with-isolated-rerun",
-    "real_serial_without_private_case": "pass"
+    "real_serial_without_private_case": "pass",
+    "production_home_status": 200,
+    "production_visits_status": 200,
+    "production_private_marker_scan": "pass"
   },
   "browser_errors": 0,
   "horizontal_overflow": false,
