@@ -145,7 +145,7 @@ function inspectClosedEvidence(root, processId, archivePath, archiveText, errors
       if (result.manifest.processId !== processId) continue
       if (result.manifest.context.path !== archivePath) errors.push(`证据 manifest 未绑定当前归档：${manifestPath}`)
       const inputPaths = result.manifest.inputs.files.map((item) => item.path)
-      if (!inputPaths.some((item) => item.startsWith('src/') || item.startsWith('scripts/'))) errors.push(`证据 manifest 未绑定实现文件：${manifestPath}`)
+      if (!inputPaths.some((item) => item.startsWith('src/') || item.startsWith('scripts/') || item.startsWith('public/'))) errors.push(`证据 manifest 未绑定实现文件：${manifestPath}`)
       if (!inputPaths.some((item) => item.startsWith('tests/') || item.endsWith('.test.mjs'))) errors.push(`证据 manifest 未绑定相关测试：${manifestPath}`)
       if (!result.manifest.verificationRuns.some((run) => /\bbuild\b/i.test(run.command))) errors.push(`证据 manifest 没有成功 build 记录：${manifestPath}`)
       if (!result.manifest.verificationRuns.some((run) => /test|playwright/i.test(run.command))) errors.push(`证据 manifest 没有成功测试记录：${manifestPath}`)

@@ -1,0 +1,337 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-04T07:22:18.091Z",
+  "context_files": [
+    "process_logs/Process148.md"
+  ],
+  "context_hash": "8920564bb03ce5bfa99c2bb850ae1024b694f75076bd268f4fcbde21e87884e7",
+  "library_hash": "b807971b755ee5f62cfedc050330fa0c3a6502236d8e54492c3c38f73f04a885",
+  "status": "reviewed",
+  "matches": [
+    {
+      "problem_id": "KPB-002",
+      "title": "点击动作没有及时反馈",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "选择",
+          "执行"
+        ]
+      ],
+      "related_updates": [
+        "Process086",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process095",
+        "Process104",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process111",
+        "Process113",
+        "Process114",
+        "Process116",
+        "Process117",
+        "Process123",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process136",
+        "Process138",
+        "Process139",
+        "Process141",
+        "Process142",
+        "Process143",
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖真实数据首次运行，不得预先生成结果。",
+        "断言 running、disabled、完成或失败恢复状态按顺序出现。"
+      ],
+      "disposition": "covered",
+      "note": "工作流保留明确当前层和下一动作",
+      "evidence": [
+        "tests/e2e/stratification-workflow-ui.spec.ts：当前层操作与进度可见断言通过"
+      ]
+    },
+    {
+      "problem_id": "KPB-006",
+      "title": "保存与清理没有作用于权威存储",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "保存失败"
+        ],
+        [
+          "indexeddb"
+        ]
+      ],
+      "related_updates": [
+        "Process083",
+        "Process085",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process115",
+        "Process121",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process131",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process138",
+        "Process140",
+        "Process143",
+        "Process146",
+        "Process147",
+        "Process148",
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖配额、不可用、多标签、临时失败和重试。",
+        "重置后验证全部 store、指针和刷新启动状态为空。"
+      ],
+      "disposition": "covered",
+      "note": "使用当前分层后状态可恢复",
+      "evidence": [
+        "tests/e2e/stratification-workflow-ui.spec.ts：刷新与持久化回归通过"
+      ]
+    },
+    {
+      "problem_id": "KPB-008",
+      "title": "一个工作流出现重复确认或竞争主操作",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "指南",
+          "流程"
+        ]
+      ],
+      "related_updates": [
+        "Process077",
+        "Process078",
+        "Process079",
+        "Process081",
+        "Process082",
+        "Process084",
+        "Process087",
+        "Process092",
+        "Process099",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process105",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process117",
+        "Process123",
+        "Process126",
+        "Process128",
+        "Process129",
+        "Process130",
+        "Process133",
+        "Process134",
+        "Process138",
+        "Process141",
+        "Process148"
+      ],
+      "required_checks": [
+        "覆盖开始、续做、取消、返回、完成、修改和脏状态离开。",
+        "断言所有退出路径只能到达同一个最终生成动作。"
+      ],
+      "disposition": "covered",
+      "note": "取消不推进，确认才进入下一步",
+      "evidence": [
+        "process_logs/playwright-mcp/process148-keep-current-layers/browser-check.json：单一使用当前分层动作及取消路径通过"
+      ]
+    },
+    {
+      "problem_id": "KPB-011",
+      "title": "问题没有回到责任页面处理并续接原任务",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "恢复",
+          "继续"
+        ]
+      ],
+      "related_updates": [
+        "Process071",
+        "Process072",
+        "Process074",
+        "Process075",
+        "Process082",
+        "Process086",
+        "Process087",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process113",
+        "Process114",
+        "Process116",
+        "Process120",
+        "Process121",
+        "Process122",
+        "Process123",
+        "Process124",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process130",
+        "Process131",
+        "Process133",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process138",
+        "Process139",
+        "Process140",
+        "Process141",
+        "Process142",
+        "Process143",
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖返回责任页、取消修复、修复失败、复检和自动续接。",
+        "断言原始测量不被静默改写。"
+      ],
+      "disposition": "not-applicable",
+      "note": "本切片不修复上游数据，也不新增责任页跳转，仅明确分层整理的当前结果确认语义",
+      "evidence": []
+    },
+    {
+      "problem_id": "KPB-015",
+      "title": "异步保存回写覆盖快速连续编辑",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "刷新",
+          "编辑",
+          "恢复"
+        ]
+      ],
+      "related_updates": [
+        "Process093",
+        "Process099",
+        "Process100",
+        "Process103",
+        "Process104",
+        "Process105",
+        "Process107",
+        "Process126",
+        "Process127",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process138",
+        "Process141",
+        "Process142",
+        "Process147",
+        "Process148",
+        "Process150"
+      ],
+      "required_checks": [
+        "快速连续输入后立即保存并刷新，断言最后一次值仍在。",
+        "覆盖取消、跨页、重复保存、失败重试和版本生命周期。"
+      ],
+      "disposition": "covered",
+      "note": "关键状态转换已覆盖",
+      "evidence": [
+        "tests/e2e/stratification-workflow-ui.spec.ts：取消、刷新、重载和返回路径通过"
+      ]
+    },
+    {
+      "problem_id": "KPB-022",
+      "title": "文献公式单位与内部 SI 存储单位未显式换算",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "公式",
+          "单位",
+          "换算"
+        ]
+      ],
+      "related_updates": [
+        "Process125",
+        "Process132",
+        "Process147"
+      ],
+      "required_checks": [
+        "用独立算例验证 Ch ×10^-4、kh ×10^-2 的 SI 换算及单位标签。",
+        "构造旧公式修订结果，断言当前参数页、PDF 和 Excel 均不会采用。"
+      ],
+      "disposition": "not-applicable",
+      "note": "本切片未修改工程公式、单位或数值算法",
+      "evidence": []
+    },
+    {
+      "problem_id": "KPB-034",
+      "title": "自动候选在建立撤销快照后改写来源导致回退保存失败",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "分层",
+          "返回上一步",
+          "保存失败"
+        ]
+      ],
+      "related_updates": [
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖自动候选零确认、部分确认、全部确认以及整理后返回，断言来源始终一致。",
+        "断言返回后的 IndexedDB 权威状态、刷新状态和页面文案一致，且没有保存错误。",
+        "注入保存失败，断言确认框不关闭、不会显示成功，并可从同一位置重试。"
+      ],
+      "disposition": "covered",
+      "note": "最终发布候选已验证来源与状态一致",
+      "evidence": [
+        "tests/e2e/jts-classification-ui.spec.ts 与 tests/e2e/stratification-workflow-ui.spec.ts：最终候选回归通过"
+      ]
+    }
+  ]
+}

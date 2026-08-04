@@ -45,7 +45,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
   const workspace = project.quickPlotWorkspace ?? createQuickPlotWorkspace(project.projectName);
   const [pages, setPages] = useState<QuickPlotPage[]>([]);
   const [selectedPage, setSelectedPage] = useState(0);
-  const [pageZoom, setPageZoom] = useState<0 | 100 | 150>(0);
+  const [pageZoom, setPageZoom] = useState<0 | 80 | 100 | 150>(0);
   const [view, setView] = useState<'input' | 'report'>(workspace.activeRevisionId ? 'report' : 'input');
   const [generating, setGenerating] = useState(false);
   const [generateFailed, setGenerateFailed] = useState(false);
@@ -60,6 +60,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
   const [pendingSheet, setPendingSheet] = useState<{ file: File; candidates: ExcelSheetProfileV1[] } | null>(null);
   const [demoReplacePending, setDemoReplacePending] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
   const pasteGridRef = useRef<HTMLDivElement>(null);
   const pdfExportControllerRef = useRef<AbortController | null>(null);
   const readiness = quickPlotReadiness(workspace.rows);
@@ -94,6 +95,12 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
   useEffect(() => {
     if (view !== 'report') pdfExportControllerRef.current?.abort();
   }, [view]);
+
+  useEffect(() => {
+    if (view !== 'report') return;
+    const frame = window.requestAnimationFrame(() => shellRef.current?.scrollTo({ top: 0, behavior: 'auto' }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeRevision?.revisionId, view]);
 
   useEffect(() => {
     if (stale) pdfExportControllerRef.current?.abort();
@@ -214,7 +221,6 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
       const revision = createQuickPlotRevision(workspace);
       updateQuick((current) => ({ ...current, revisions: [...current.revisions, revision], activeRevisionId: revision.revisionId }));
       setPages(nextPages); setSelectedPage(0); setView('report');
-      window.scrollTo({ top: 0, behavior: 'auto' });
     } catch {
       setGenerateFailed(true);
       setProblem('浏览器这次没有完成绘图。数据没有丢失，请点击“重试生成图册”。');
@@ -271,14 +277,14 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
   }
 
   if (view === 'report' && activeRevision && !stale) {
-    return <div className={`quick-shell quick-report-shell${assistantOpen ? ' ai-open' : ''}`} data-testid="quick-report-workspace" data-classification-evidence={JSON.stringify(classificationEvidence)} data-formula-evidence={JSON.stringify(formulaEvidence)}>
+    return <div ref={shellRef} className={`quick-shell quick-report-shell${assistantOpen ? ' ai-open' : ''}`} data-testid="quick-report-workspace" data-classification-evidence={JSON.stringify(classificationEvidence)} data-formula-evidence={JSON.stringify(formulaEvidence)}>
       <header className="quick-topbar"><div><button type="button" className="quick-back" onClick={onOpenProjectHub}><FolderOpen size={17} />项目</button><span>快捷出图</span></div><div className="quick-topbar-actions"><strong>{project.projectName}</strong><button type="button" className={`quick-assistant-toggle${assistantOpen ? ' active' : ''}`} onClick={() => setAssistantOpen((current) => !current)} data-testid="quick-ai-toggle"><Bot size={16} />图册解读</button></div></header>
       <main className="quick-report-main">
         <section className="quick-report-header">
           <div><span className="quick-eyebrow"><Check size={15} />图册已生成</span><h1>{workspace.settings.pointName} · CPT/CPTU 工程图册</h1><p>共 15 页 · {route === 'full_cptu' ? `u2 有效 ${u2Count}/${workspace.rows.length} 行` : route === 'partial_cptu' ? `u2 有效 ${u2Count}/${workspace.rows.length} 行，孔压方法仅逐行计算` : workspace.settings.u2Usage === 'raw_only' ? `u2 仅展示 ${u2Count}/${workspace.rows.length} 行` : 'CPT 近似（u2 不足）'}。网页为轻量预览；导出为 A3 · 600 DPI · 15 页。Excel 包含原始数据、分类、解译和方法设置。</p></div>
           <div className="quick-report-actions">
             <button type="button" className="quick-secondary" disabled={Boolean(exporting)} onClick={() => setView('input')}>修改输入</button>
-            <div className="quick-zoom-controls" aria-label="页面缩放"><button type="button" className={pageZoom === 0 ? 'active' : ''} onClick={() => setPageZoom(0)}>适合页面</button><button type="button" className={pageZoom === 100 ? 'active' : ''} onClick={() => setPageZoom(100)}>100%</button><button type="button" className={pageZoom === 150 ? 'active' : ''} onClick={() => setPageZoom(150)}>150%</button></div>
+            <div className="quick-zoom-controls" aria-label="页面缩放"><button type="button" className={pageZoom === 0 ? 'active' : ''} onClick={() => setPageZoom(0)}>适合页面</button><button type="button" data-testid="quick-zoom-80" className={pageZoom === 80 ? 'active' : ''} onClick={() => setPageZoom(80)}>80%</button><button type="button" className={pageZoom === 100 ? 'active' : ''} onClick={() => setPageZoom(100)}>100%</button><button type="button" className={pageZoom === 150 ? 'active' : ''} onClick={() => setPageZoom(150)}>150%</button></div>
             <div className="quick-report-export-actions" data-testid="quick-report-export-actions">
               <button type="button" className="quick-secondary" disabled={!pages.length || generating || Boolean(exporting)} onClick={() => void exportExcel()} data-testid="quick-export-excel"><FileSpreadsheet size={17} />{exporting === 'excel' ? '正在准备 Excel…' : '导出 Excel'}</button>
               <button type="button" className="quick-primary" disabled={!pages.length || generating || Boolean(exporting)} onClick={() => void exportPdf()} data-testid="quick-export-pdf"><FileText size={17} />{pdfButtonLabel}</button>
@@ -290,7 +296,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
         {successNote ? <p className="quick-note" role="status">{successNote}</p> : null}
         <section className="quick-report-viewer" data-testid="quick-report-viewer">
           <div className={`quick-page-stage${pageZoom ? ' is-zoomed' : ''}`} data-testid="quick-page-stage">
-            {pages[selectedPage] ? <img src={pages[selectedPage].previewUrl} alt={`第 ${selectedPage + 1} 页：${pages[selectedPage].title}`} data-orientation={pages[selectedPage].orientation} data-reference-page={pages[selectedPage].referencePage} style={pageZoom ? { width: `${pageZoom}%` } : undefined} /> : <div className="quick-page-loading">正在准备图册…</div>}
+            {pages[selectedPage] ? <img src={pages[selectedPage].previewUrl} alt={`第 ${selectedPage + 1} 页：${pages[selectedPage].title}`} data-orientation={pages[selectedPage].orientation} data-reference-page={pages[selectedPage].referencePage} style={pageZoom ? { width: `${(pages[selectedPage].orientation === 'landscape' ? 1920 : 1080) * pageZoom / 100}px` } : undefined} /> : <div className="quick-page-loading">正在准备图册…</div>}
             <button type="button" aria-label="上一页" disabled={selectedPage === 0} onClick={() => setSelectedPage((page) => Math.max(0, page - 1))}><ChevronLeft /></button>
             <button type="button" aria-label="下一页" disabled={selectedPage >= pages.length - 1} onClick={() => setSelectedPage((page) => Math.min(pages.length - 1, page + 1))}><ChevronRight /></button>
           </div>
@@ -305,7 +311,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
     </div>;
   }
 
-  return <div className={`quick-shell${assistantOpen ? ' ai-open' : ''}`} data-testid="quick-input-workspace">
+  return <div ref={shellRef} className={`quick-shell${assistantOpen ? ' ai-open' : ''}`} data-testid="quick-input-workspace">
     <header className="quick-topbar"><div><button type="button" className="quick-back" onClick={onOpenProjectHub}><FolderOpen size={17} />项目</button><span>快捷出图</span></div><div className="quick-topbar-actions"><strong>{project.projectName}</strong><button type="button" className={`quick-assistant-toggle${assistantOpen ? ' active' : ''}`} onClick={() => setAssistantOpen((current) => !current)} data-testid="quick-ai-toggle"><Bot size={16} />AI 整理数据</button></div></header>
     <main className="quick-input-main">
       <header className="quick-intro"><span className="quick-eyebrow">直接生成图册</span><h1>把数据粘贴进来</h1><p>深度、qc 必填；fs、u2 可空。缺少时，相关页面会标明未计算。</p></header>

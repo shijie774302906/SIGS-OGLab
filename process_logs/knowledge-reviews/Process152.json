@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-04T07:18:56.999Z",
+  "context_files": [
+    "plan.md"
+  ],
+  "context_hash": "9a126d30f045987807ff2f013886578f7f9c2511ea41fb59fadaceef7a6be4e1",
+  "library_hash": "b807971b755ee5f62cfedc050330fa0c3a6502236d8e54492c3c38f73f04a885",
+  "status": "pending",
+  "matches": [
+    {
+      "problem_id": "KPB-004",
+      "title": "错误提示没有原因、影响和恢复路径",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "失败",
+          "重试"
+        ],
+        [
+          "恢复",
+          "入口"
+        ]
+      ],
+      "related_updates": [
+        "Process072",
+        "Process073",
+        "Process074",
+        "Process075",
+        "Process083",
+        "Process086",
+        "Process087",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process094",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process103",
+        "Process104",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process114",
+        "Process119",
+        "Process120",
+        "Process121",
+        "Process122",
+        "Process123",
+        "Process124",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process130",
+        "Process131",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process137",
+        "Process138",
+        "Process139",
+        "Process140",
+        "Process141",
+        "Process142",
+        "Process143",
+        "Process146",
+        "Process147",
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖失败、取消、返回、重试、连续失败和恢复成功。",
+        "验证恢复入口能到达准确位置而非页面顶部。"
+      ],
+      "disposition": "pending",
+      "note": "",
+      "evidence": []
+    },
+    {
+      "problem_id": "KPB-034",
+      "title": "自动候选在建立撤销快照后改写来源导致回退保存失败",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "候选",
+          "来源",
+          "回退"
+        ]
+      ],
+      "related_updates": [
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖自动候选零确认、部分确认、全部确认以及整理后返回，断言来源始终一致。",
+        "断言返回后的 IndexedDB 权威状态、刷新状态和页面文案一致，且没有保存错误。",
+        "注入保存失败，断言确认框不关闭、不会显示成功，并可从同一位置重试。"
+      ],
+      "disposition": "pending",
+      "note": "",
+      "evidence": []
+    }
+  ]
+}

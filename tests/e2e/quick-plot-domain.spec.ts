@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
-import { createQuickPlotRevision, createQuickPlotWorkspace, deriveQuickPlotRows, parseQuickPlotClipboard, QUICK_BQ_REFERENCE_POLYGONS, QUICK_PARAMETER_CLASSIFICATION_BASIS, QUICK_PARAMETER_COMPARISON_ROLE, QUICK_PDF_A3_PIXELS, QUICK_PDF_DPI, QUICK_REPORT_AXIS_LABELS, QUICK_REPORT_PAGE_SPECS, QUICK_REPORT_STYLE, QUICK_REPORT_ZONE_COLORS, QUICK_SOIL_COLORS, quickCrossCorrelation, quickFuzzyMembership, quickFuzzyMembershipFromU, quickPermeabilityFromIc, quickPlotAssistantPageEvidence, quickPlotClassificationEvidence, quickPlotFormulaAudit, quickPlotInputHash, quickPlotPdfAuthority, quickPlotReadiness, quickPlotRoute, quickRelativeDensityPercent, quickRobertson2010SbtZone, quickRobertsonSbtnZone, quickRobustDisplayRange, quickRowsFromTable, quickSandStateParameter, quickSaturatedPhysicalIndices } from '../../src/features/quick/quickPlotDomain';
+import { createQuickPlotRevision, createQuickPlotWorkspace, deriveQuickPlotRows, parseQuickPlotClipboard, QUICK_BQ_REFERENCE_POLYGONS, QUICK_PARAMETER_CLASSIFICATION_BASIS, QUICK_PARAMETER_COMPARISON_ROLE, QUICK_PDF_A3_PIXELS, QUICK_PDF_DPI, QUICK_REPORT_AXIS_LABELS, QUICK_REPORT_FONT_PT_FLOORS, QUICK_REPORT_PAGE_SPECS, QUICK_REPORT_STYLE, QUICK_REPORT_ZONE_COLORS, QUICK_SOIL_COLORS, quickCrossCorrelation, quickFuzzyMembership, quickFuzzyMembershipFromU, quickPermeabilityFromIc, quickPlotAssistantPageEvidence, quickPlotClassificationEvidence, quickPlotFormulaAudit, quickPlotInputHash, quickPlotPdfAuthority, quickPlotReadiness, quickPlotRoute, quickRelativeDensityPercent, quickReportLogicalPixelsForPoints, quickReportResolvedFontSize, quickRobertson2010SbtZone, quickRobertsonSbtnZone, quickRobustDisplayRange, quickRowsFromTable, quickSandStateParameter, quickSaturatedPhysicalIndices } from '../../src/features/quick/quickPlotDomain';
 import { classifyRobertson2016, classifySchneider2008, deriveRobertsonQtn, schneider2008Boundaries } from '../../src/features/quick/quickClassificationDomain';
 import { createQuickPlotXlsx } from '../../src/features/quick/quickPlotWorkbook';
 import { buildQuickPlotRowsFromProposal, QUICK_PLOT_IMPORT_PROTOCOL, quickPlotDecisionFromTool, quickPlotProposalFromTool, quickPlotQuestionOptionLabel } from '../../src/features/quick/quickPlotAssistantDomain';
@@ -1195,6 +1195,21 @@ test('PROCESS137 PDF export owns exact A3 600 DPI raster dimensions', () => {
     portrait: { width: 7016, height: 9921 },
     landscape: { width: 9921, height: 7016 },
   });
+});
+
+test('PROCESS147 atlas type floors preserve A3 physical readability at 80% preview', () => {
+  expect(QUICK_REPORT_FONT_PT_FLOORS).toEqual({ source: 8, legend: 9, body: 10, title: 12 });
+  expect(quickReportLogicalPixelsForPoints('landscape', 9)).toBe(15);
+  expect(quickReportLogicalPixelsForPoints('landscape', 10)).toBe(17);
+  expect(quickReportLogicalPixelsForPoints('landscape', 12)).toBe(20);
+  expect(quickReportLogicalPixelsForPoints('portrait', 9)).toBe(12);
+  expect(quickReportLogicalPixelsForPoints('portrait', 10)).toBe(13);
+  expect(quickReportLogicalPixelsForPoints('portrait', 12)).toBe(16);
+  expect(quickReportResolvedFontSize('landscape', 9)).toBe(15);
+  expect(quickReportResolvedFontSize('landscape', 16)).toBe(17);
+  expect(quickReportResolvedFontSize('portrait', 20)).toBe(20);
+  expect(quickReportResolvedFontSize('portrait', 8, 'body')).toBe(quickReportLogicalPixelsForPoints('portrait', 10));
+  expect(quickReportResolvedFontSize('portrait', 8, 'source')).toBe(quickReportLogicalPixelsForPoints('portrait', 8));
 });
 
 test('PROCESS137 PDF export authority changes when current rows or settings change', () => {

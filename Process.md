@@ -4,14 +4,52 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process146 快捷出图输入与图册首次使用指引
+## Current - Process152 已验证更新安全生产发布
+
+- Date: 2026-08-04
+- Status: `active / confirmed`
+- Goal: 发布 Process147、148、150、151；明确排除 Process149 临时领导展示页、私有数据、密钥和本机产物，并以机器可读上线索引约束发布包。
+- Detail: `plan.md`
+
+## Recent - Process151 专业成果物理字号统一
+
+- Date: 2026-08-04
+- Status: `closed / implemented / verified`
+- Result: 专业成果 A3/A4 与快捷图册采用一致的物理字号下限；A4 紧凑标题和图例避免放大后的重叠与截断。
+- Verification: build、专业成果相关回归、A3/A4 Canvas 字号、双分辨率和 Known Problem Gate 通过。
+- Detail: `process_logs/Process151.md`
+
+## Recent - Process150 分层来源一致性与安全回退
+
+- Date: 2026-08-03
+- Status: `closed / implemented / verified`
+- Result: JTS 候选从第一条编辑快照起冻结同一分类来源；向导回退不再误用普通撤销，零整理直接返回也能安全保存；来源冲突显示专项原因。
+- Verification: build、相关回归 33 passed / 1 conditional skipped、双分辨率、IndexedDB 权威状态、零保存/浏览器错误和 Known Problem Gate 通过。
+- Detail: `process_logs/Process150.md`
+
+## Recent - Process148 使用当前分层
+
+- Date: 2026-08-03
+- Status: `closed / implemented / verified`
+- Result: 地层整理方法增加“使用当前分层”；层和边界保持原样并进入逐层确认，取消不推进，返回可撤销，刷新可恢复。
+- Verification: build、相关回归 35 passed / 1 private-sample skipped、双分辨率、Known Problem Gate 和工程结构不变断言通过。
+- Detail: `process_logs/Process148.md`
+
+## Recent - Process147 图册可读性与专业向导安全回退
+
+- Date: 2026-08-03
+- Status: `closed / implemented / verified / independently reviewed`
+- Result: 15 页图册按 A3 物理点值统一排版并支持真实 80% 页面缩放；专业地层分层与参数向导可确认式回退、失效下游结果并安全恢复。
+- Verification: build、相关回归 96/96、全量 Chromium 435 passed / 11 external-or-private-sample skipped、600 DPI、双分辨率、Known Problem Gate 和三类 Agent 复查均通过。
+- Detail: `process_logs/Process147.md`
+
+## Recent - Process146 快捷出图输入与图册首次使用指引
 
 - Date: 2026-08-02
 - Status: `closed / implemented / verified / deployed`
 - Result: 快捷输入页和图册页各提供一次性的三步聚焦指引；桌面贴近目标，移动端底部卡自动滚动，独立记录且可按当前页重播。
 - Verification: build、专项 3/3、相关回归 41/41、三种分辨率、线上输入/图册双指引、Known Problem Gate、evidence manifest 和 process doctor 均通过。
 - Detail: `process_logs/Process146.md`
-- Plan: `plan.md`（无活动切片）
 
 ## Recent - Process145 图册解读持续会话与精确证据
 

@@ -108,6 +108,25 @@ test('passes a complete closed process with current context and final evidence',
   assert.equal(result.readyForClosure, true)
 })
 
+test('accepts a standalone public page as a bound implementation input', () => {
+  const fixture = createClosedFixture()
+  fs.mkdirSync(path.join(fixture.root, 'public', 'standalone'), { recursive: true })
+  fs.writeFileSync(path.join(fixture.root, 'public', 'standalone', 'index.html'), '<!doctype html><title>standalone</title>\n', 'utf8')
+  createEvidenceManifest({
+    root: fixture.root,
+    processId: '094',
+    evidenceDirectory: fixture.evidenceDirectory,
+    contextPath: fixture.archivePath,
+    inputs: ['public/standalone/index.html', 'tests/tool.test.mjs', fixture.reportPath],
+    commands: ['npm.cmd run build', 'node --test tests/tool.test.mjs'],
+    exitCodes: ['0', '0'],
+    seeds: ['standalone-public-page'],
+    finalClosure: true
+  })
+  const result = diagnoseProcess({ root: fixture.root, processId: '094' })
+  assert.equal(result.ok, true, result.errors.join('\n'))
+})
+
 test('passes a historical closed process when the index has advanced and retains its row', () => {
   const fixture = createClosedFixture()
   fs.writeFileSync(path.join(fixture.root, 'Process.md'), '## Current - Process095 Later\n\n- Status: `closed / verified`\n\n| Process | Detail |\n| --- | --- |\n| 094 | `process_logs/Process094.md` |\n', 'utf8')

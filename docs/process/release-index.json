@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-04",
+  "production": {
+    "repository": "shijie774302906/SIGS-OGLab",
+    "branch": "main",
+    "vercel_project": "sigs-oglab-web",
+    "site": "https://sigs-oglab.com"
+  },
+  "current_release": {
+    "process_id": "Process152",
+    "baseline_commit": "2f127929b38d76a6e1f296175510f4ac4c96ef4d",
+    "already_live_through": "Process146",
+    "include_processes": ["Process147", "Process148", "Process150", "Process151"],
+    "exclude_processes": [
+      {
+        "id": "Process149",
+        "reason": "临时领导展示页与主产品无关，用户已要求暂停且不进入正式站点。"
+      }
+    ]
+  },
+  "forbidden_tracked_files": [
+    "mishi.md",
+    ".env",
+    ".env.local",
+    "tests/e2e/leadership-platform.spec.ts",
+    "process_logs/Process149.md"
+  ],
+  "forbidden_tracked_prefixes": [
+    "public/leadership/",
+    "sample_data/source/yingkou/",
+    "process_logs/playwright-mcp/process149-"
+  ]
+}

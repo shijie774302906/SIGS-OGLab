@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-04T07:22:17.629Z",
+  "context_files": [
+    "process_logs/Process147.md"
+  ],
+  "context_hash": "2c69e985f01be9770f129eb6c1cd61f25ffa55c45d17f64a9091f109ad63d122",
+  "library_hash": "b807971b755ee5f62cfedc050330fa0c3a6502236d8e54492c3c38f73f04a885",
+  "status": "reviewed",
+  "matches": [
+    {
+      "problem_id": "KPB-004",
+      "title": "错误提示没有原因、影响和恢复路径",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "失败",
+          "重试"
+        ]
+      ],
+      "related_updates": [
+        "Process072",
+        "Process073",
+        "Process074",
+        "Process075",
+        "Process083",
+        "Process086",
+        "Process087",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process094",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process103",
+        "Process104",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process114",
+        "Process119",
+        "Process120",
+        "Process121",
+        "Process122",
+        "Process123",
+        "Process124",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process130",
+        "Process131",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process137",
+        "Process138",
+        "Process139",
+        "Process140",
+        "Process141",
+        "Process142",
+        "Process143",
+        "Process146",
+        "Process147",
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖失败、取消、返回、重试、连续失败和恢复成功。",
+        "验证恢复入口能到达准确位置而非页面顶部。"
+      ],
+      "disposition": "covered",
+      "note": "最终候选在独立端口全量 UI 回归通过。",
+      "evidence": [
+        "tests/e2e/parameter-guided-workflow-ui.spec.ts 与 stratification-workflow-ui.spec.ts：取消、返回、失败、重试和恢复通过"
+      ]
+    },
+    {
+      "problem_id": "KPB-006",
+      "title": "保存与清理没有作用于权威存储",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "保存失败"
+        ],
+        [
+          "indexeddb"
+        ]
+      ],
+      "related_updates": [
+        "Process083",
+        "Process085",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process115",
+        "Process121",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process131",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process138",
+        "Process140",
+        "Process143",
+        "Process146",
+        "Process147",
+        "Process148",
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖配额、不可用、多标签、临时失败和重试。",
+        "重置后验证全部 store、指针和刷新启动状态为空。"
+      ],
+      "disposition": "covered",
+      "note": "回退持久化和失败恢复由权威存储覆盖。",
+      "evidence": [
+        "tests/e2e/workspace-storage-recovery.spec.ts 与全量 UI 回归通过"
+      ]
+    },
+    {
+      "problem_id": "KPB-015",
+      "title": "异步保存回写覆盖快速连续编辑",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "刷新",
+          "编辑",
+          "恢复"
+        ]
+      ],
+      "related_updates": [
+        "Process093",
+        "Process099",
+        "Process100",
+        "Process103",
+        "Process104",
+        "Process105",
+        "Process107",
+        "Process126",
+        "Process127",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process138",
+        "Process141",
+        "Process142",
+        "Process147",
+        "Process148",
+        "Process150"
+      ],
+      "required_checks": [
+        "快速连续输入后立即保存并刷新，断言最后一次值仍在。",
+        "覆盖取消、跨页、重复保存、失败重试和版本生命周期。"
+      ],
+      "disposition": "covered",
+      "note": "参数和分层回退覆盖取消、刷新、失败重试与最终持久化。",
+      "evidence": [
+        "tests/e2e/parameter-guided-workflow-ui.spec.ts；tests/e2e/stratification-workflow-ui.spec.ts"
+      ]
+    },
+    {
+      "problem_id": "KPB-021",
+      "title": "栅格 PDF 表格把长工程说明截断",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "PDF",
+          "截断"
+        ]
+      ],
+      "related_updates": [
+        "Process125",
+        "Process138",
+        "Process147",
+        "Process151"
+      ],
+      "required_checks": [
+        "构造包含源行、失败原因、未满足条件和确认时间的长说明，断言全文片段均被绘制。",
+        "增加足够记录触发新页，并验证 A3/A4 共用同一换行分页实现。"
+      ],
+      "disposition": "not-applicable",
+      "note": "Process147 调整快捷图册字号与引用换行，不修改专业 A3/A4 长说明分页器。",
+      "evidence": []
+    },
+    {
+      "problem_id": "KPB-022",
+      "title": "文献公式单位与内部 SI 存储单位未显式换算",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "公式",
+          "单位",
+          "换算"
+        ]
+      ],
+      "related_updates": [
+        "Process125",
+        "Process132",
+        "Process147"
+      ],
+      "required_checks": [
+        "用独立算例验证 Ch ×10^-4、kh ×10^-2 的 SI 换算及单位标签。",
+        "构造旧公式修订结果，断言当前参数页、PDF 和 Excel 均不会采用。"
+      ],
+      "disposition": "not-applicable",
+      "note": "Process147 未修改公式、系数、单位或 SI 换算。",
+      "evidence": []
+    },
+    {
+      "problem_id": "KPB-034",
+      "title": "自动候选在建立撤销快照后改写来源导致回退保存失败",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "候选",
+          "来源",
+          "回退"
+        ]
+      ],
+      "related_updates": [
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖自动候选零确认、部分确认、全部确认以及整理后返回，断言来源始终一致。",
+        "断言返回后的 IndexedDB 权威状态、刷新状态和页面文案一致，且没有保存错误。",
+        "注入保存失败，断言确认框不关闭、不会显示成功，并可从同一位置重试。"
+      ],
+      "disposition": "covered",
+      "note": "最终候选包含 Process150 来源冻结修复并完成全量回归。",
+      "evidence": [
+        "tests/e2e/jts-classification-stratification.spec.ts；tests/e2e/jts-classification-ui.spec.ts；tests/e2e/workspace-storage-recovery.spec.ts"
+      ]
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import { expect, test, type Page } from './fixtures/isolatedTest';
 const inputKey = 'sigs-oglab:quick-input-guide:v1';
 const reportKey = 'sigs-oglab:quick-report-guide:v1';
 const evidenceDir = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process146-quick-onboarding');
+const evidenceEnabled = process.env.PROCESS146_EVIDENCE === '1' || process.env.MILESTONE_EVIDENCE === '1';
 
 async function clearQuickGuideRecords(page: Page) {
   await page.evaluate(([input, report]) => {
@@ -58,7 +59,7 @@ function expectGuideWithinViewport(layout: Awaited<ReturnType<typeof readGuideLa
 
 test('PROCESS146 desktop input and report guides are independent, contextual and replayable', async ({ page }) => {
   test.setTimeout(90_000);
-  mkdirSync(evidenceDir, { recursive: true });
+  if (evidenceEnabled) mkdirSync(evidenceDir, { recursive: true });
   const browserErrors: string[] = [];
   page.on('pageerror', (error) => browserErrors.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(message.text()); });
@@ -75,7 +76,7 @@ test('PROCESS146 desktop input and report guides are independent, contextual and
   await expect(page.getByTestId('quick-onboarding-next')).toBeFocused();
   expectGuideWithinViewport(await readGuideLayout(page));
   await page.waitForTimeout(220);
-  await page.screenshot({ path: path.join(evidenceDir, 'input-step1-1440x900.png') });
+  if (evidenceEnabled) await page.screenshot({ path: path.join(evidenceDir, 'input-step1-1440x900.png') });
 
   await page.getByTestId('quick-onboarding-next').click();
   await expect(card).toHaveAttribute('data-target', 'quick-settings-card');
@@ -127,27 +128,29 @@ test('PROCESS146 desktop input and report guides are independent, contextual and
     return layout.spotlight?.right ?? 0;
   }).toBeGreaterThan(1800);
   expectGuideWithinViewport(await readGuideLayout(page));
-  await page.screenshot({ path: path.join(evidenceDir, 'report-step3-1920x1080.png') });
+  if (evidenceEnabled) await page.screenshot({ path: path.join(evidenceDir, 'report-step3-1920x1080.png') });
   await page.getByTestId('quick-onboarding-next').click();
   await expect(reportGuide).toHaveCount(0);
   await expect.poll(() => page.evaluate((key) => window.localStorage.getItem(key), reportKey)).toContain('complete');
   await expect(page.getByLabel('图册页面').locator('button')).toHaveCount(15);
   expect(browserErrors).toEqual([]);
 
-  writeFileSync(path.join(evidenceDir, 'desktop-check.json'), JSON.stringify({
-    processId: 'Process146',
-    inputSteps: 3,
-    reportSteps: 3,
-    inputAndReportRecordsIndependent: true,
-    rowsAfterGuide: 121,
-    atlasPagesAfterGuide: 15,
-    browserErrors,
-  }, null, 2));
+  if (evidenceEnabled) {
+    writeFileSync(path.join(evidenceDir, 'desktop-check.json'), JSON.stringify({
+      processId: 'Process146',
+      inputSteps: 3,
+      reportSteps: 3,
+      inputAndReportRecordsIndependent: true,
+      rowsAfterGuide: 121,
+      atlasPagesAfterGuide: 15,
+      browserErrors,
+    }, null, 2));
+  }
 });
 
 test('PROCESS146 mobile guides use a bottom card, scroll targets into view and do not overflow', async ({ page }) => {
   test.setTimeout(90_000);
-  mkdirSync(evidenceDir, { recursive: true });
+  if (evidenceEnabled) mkdirSync(evidenceDir, { recursive: true });
   const browserErrors: string[] = [];
   page.on('pageerror', (error) => browserErrors.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(message.text()); });
@@ -164,7 +167,7 @@ test('PROCESS146 mobile guides use a bottom card, scroll targets into view and d
   expect(inputLayout.placement).toBe('mobile');
   expect(inputLayout.targetId).toBe('quick-ready-bar');
   expectGuideWithinViewport(inputLayout);
-  await page.screenshot({ path: path.join(evidenceDir, 'input-step3-390x844.png') });
+  if (evidenceEnabled) await page.screenshot({ path: path.join(evidenceDir, 'input-step3-390x844.png') });
   await page.getByTestId('quick-onboarding-next').click();
 
   await page.getByTestId('quick-use-demo-data').click();
@@ -177,18 +180,20 @@ test('PROCESS146 mobile guides use a bottom card, scroll targets into view and d
   expect(reportLayout.placement).toBe('mobile');
   expect(reportLayout.targetId).toBe('quick-report-export-actions');
   expectGuideWithinViewport(reportLayout);
-  await page.screenshot({ path: path.join(evidenceDir, 'report-step2-390x844.png') });
+  if (evidenceEnabled) await page.screenshot({ path: path.join(evidenceDir, 'report-step2-390x844.png') });
   await page.getByTestId('quick-onboarding-skip').click();
   await expect(page.getByTestId('quick-report-onboarding')).toHaveCount(0);
   expect(browserErrors).toEqual([]);
 
-  writeFileSync(path.join(evidenceDir, 'mobile-check.json'), JSON.stringify({
-    processId: 'Process146',
-    viewport: { width: 390, height: 844 },
-    inputStep3: inputLayout,
-    reportStep2: reportLayout,
-    browserErrors,
-  }, null, 2));
+  if (evidenceEnabled) {
+    writeFileSync(path.join(evidenceDir, 'mobile-check.json'), JSON.stringify({
+      processId: 'Process146',
+      viewport: { width: 390, height: 844 },
+      inputStep3: inputLayout,
+      reportStep2: reportLayout,
+      browserErrors,
+    }, null, 2));
+  }
 });
 
 test('PROCESS146 no-u2 copy stays minimal and storage failure falls back to the current session', async ({ page }) => {

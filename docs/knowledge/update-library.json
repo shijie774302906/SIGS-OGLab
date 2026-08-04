@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-01",
+  "updated_at": "2026-08-04",
   "updates": [
     {
       "id": "Process070",
@@ -617,6 +617,38 @@
       "status": "closed",
       "record": "process_logs/Process146.md",
       "problems": ["KPB-004", "KPB-006", "KPB-009", "KPB-012", "KPB-013", "KPB-019", "KPB-023"]
+    },
+    {
+      "id": "Process147",
+      "date": "2026-08-03",
+      "title": "图册可读性与专业向导安全回退",
+      "status": "closed",
+      "record": "process_logs/Process147.md",
+      "problems": ["KPB-001", "KPB-003", "KPB-004", "KPB-006", "KPB-012", "KPB-013", "KPB-015", "KPB-021", "KPB-022"]
+    },
+    {
+      "id": "Process148",
+      "date": "2026-08-03",
+      "title": "使用当前分层",
+      "status": "closed",
+      "record": "process_logs/Process148.md",
+      "problems": ["KPB-006", "KPB-008", "KPB-012", "KPB-013", "KPB-015", "KPB-016"]
+    },
+    {
+      "id": "Process150",
+      "date": "2026-08-03",
+      "title": "分层来源一致性与安全回退",
+      "status": "closed",
+      "record": "process_logs/Process150.md",
+      "problems": ["KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-010", "KPB-011", "KPB-015", "KPB-020", "KPB-034"]
+    },
+    {
+      "id": "Process151",
+      "date": "2026-08-04",
+      "title": "专业成果物理字号统一",
+      "status": "closed",
+      "record": "process_logs/Process151.md",
+      "problems": ["KPB-012", "KPB-021", "KPB-035"]
     }
   ]
 }

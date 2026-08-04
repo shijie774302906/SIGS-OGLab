@@ -35,6 +35,26 @@ test('PROCESS107 parameter problems explain why, open the exact recovery and reu
   await page.getByTestId('explorer-parameters').click();
   await page.getByTestId('parameter-guide-next').click();
   await expect(page.getByTestId('parameter-guide-config-gamma-sat')).toBeVisible();
+  const guideBeforeRollback = await readGuideState(page);
+  await page.getByTestId('parameter-guide-back').click();
+  await expect(page.getByTestId('parameter-rollback-confirmation')).toContainText('清除从该步骤起已保存的设置');
+  if (process.env.PROCESS147_EVIDENCE === '1') {
+    const process147EvidenceDir = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process147-atlas-rollback');
+    mkdirSync(process147EvidenceDir, { recursive: true });
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+      await page.setViewportSize(viewport);
+      await page.screenshot({ path: path.join(process147EvidenceDir, `parameter-rollback-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
+    }
+  }
+  await page.getByTestId('parameter-rollback-cancel').click();
+  await expect(page.getByTestId('parameter-guide-config-gamma-sat')).toBeVisible();
+  expect(await readGuideState(page)).toEqual(guideBeforeRollback);
+  await page.getByTestId('parameter-guide-back').click();
+  await page.getByTestId('parameter-rollback-confirm').click();
+  await expect(page.getByTestId('parameter-guide-selection')).toBeVisible();
+  await expect.poll(async () => (await readGuideState(page))?.stage).toBe('select');
+  await page.getByTestId('parameter-guide-next').click();
+  await expect(page.getByTestId('parameter-guide-config-gamma-sat')).toBeVisible();
   await page.getByRole('button', { name: '退出向导，打开独立高级设置' }).click();
   await expect(page.getByTestId('parameter-guide-dialog')).toBeHidden();
   await page.getByTestId('run-jts-parameter-package').click();
@@ -581,11 +601,14 @@ test('parameter guide leads the engineer through defaults, resume, skip and run'
   }
   await page.getByTestId('parameter-guide-review-compression-modulus').click();
   await page.getByTestId('parameter-guide-dialog').getByRole('button', { name: /选择参数/ }).click();
+  await page.getByTestId('parameter-rollback-confirm').click();
   await page.getByTestId('parameter-guide-select-compression-modulus').uncheck();
   await page.getByTestId('parameter-guide-next').click();
+  for (let index = 0; index < 12 && await page.getByTestId('parameter-guide-final-step').isDisabled(); index += 1) {
+    await page.getByTestId('parameter-guide-next').click();
+  }
   await expect(page.getByTestId('parameter-guide-final-step')).toBeEnabled();
-  await page.getByTestId('parameter-guide-next').click();
-  await page.getByTestId('parameter-guide-final-step').click();
+  await expect(page.getByTestId('parameter-guide-review')).toBeVisible();
   await expect(page.getByTestId('parameter-guide-next')).toBeEnabled();
   await expect(page.getByTestId('parameter-guide-review-compression-modulus')).toContainText('本次未选择');
   await page.getByTestId('parameter-guide-review-compression-modulus').click();
@@ -707,6 +730,30 @@ test('parameter guide leads the engineer through defaults, resume, skip and run'
   await expect(page.getByTestId('parameter-guide-dialog')).toContainText('已回填当前运行；确认后将生成新的参数运行。');
   await expect(page.getByTestId('parameter-guide-next')).toContainText('保存修改并重新运行');
   await expect(page.getByTestId('parameter-guide-review-compression-modulus')).toContainText('由其他试验提供');
+  for (let index = 0; index < 10 && await page.getByTestId('parameter-guide-selection').count() === 0; index += 1) {
+    await page.getByTestId('parameter-guide-back').click();
+    await expect(page.getByTestId('parameter-rollback-confirmation')).toBeVisible();
+    await page.getByTestId('parameter-rollback-confirm').click();
+  }
+  await expect(page.getByTestId('parameter-guide-selection')).toBeVisible();
+  await page.getByTestId('parameter-guide-close').click();
+  await page.getByTestId('explorer-output').click();
+  await expect(page.getByTestId('generate-output')).toBeDisabled();
+  await page.getByTestId('explorer-parameters').click();
+  await expect(page.getByTestId('parameter-guide-selection')).toBeVisible();
+  await page.reload();
+  await expect(page.getByTestId('parameter-guide-selection')).toBeVisible();
+  await page.getByTestId('parameter-guide-next').click();
+  for (let index = 0; index < 12 && await page.getByTestId('parameter-guide-review').count() === 0; index += 1) {
+    await page.getByTestId('parameter-guide-next').click();
+  }
+  await expect(page.getByTestId('parameter-guide-review')).toBeVisible();
+  await page.getByTestId('parameter-guide-next').click();
+  await expect(page.getByTestId('parameter-guide-dialog')).toBeHidden();
+  await expect(page.getByTestId('parameter-confirm-scope')).toBeVisible();
+
+  await page.getByTestId('parameter-primary-action').click();
+  await expect(page.getByTestId('parameter-guide-review')).toBeVisible();
   if (process.env.MILESTONE_EVIDENCE === '1') {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.waitForTimeout(300);
@@ -722,10 +769,10 @@ test('parameter guide leads the engineer through defaults, resume, skip and run'
   await expect(page.getByTestId('parameter-guide-dialog')).toBeHidden();
   await expect(page.getByTestId('parameter-first-look')).toContainText('确认当前参数范围');
   await expect.poll(() => readPackageState(page)).toMatchObject({
-    runCount: 3,
+    runCount: 4,
     eligible: true,
     nktValue: 13,
-    skippedCompressionModulus: true,
+    skippedCompressionModulus: false,
     draft: null,
   });
   await page.reload();
@@ -747,8 +794,7 @@ test('parameter guide leads the engineer through defaults, resume, skip and run'
   const xlsxPath = testInfo.outputPath(xlsx.suggestedFilename());
   await xlsx.saveAs(xlsxPath);
   const workbook = await readXlsxFile(xlsxPath);
-  expect(workbook.map((sheet) => sheet.sheet)).toContain('参数排除');
-  expect(workbook.find((sheet) => sheet.sheet === '参数排除')?.data.flat().join(' ')).toContain('由其他试验提供');
+  expect(workbook.map((sheet) => sheet.sheet)).not.toContain('参数排除');
   await page.getByTestId('output-kind').selectOption('a4-report-pdf');
   const pdfDownload = page.waitForEvent('download');
   await page.getByTestId('generate-output').click();

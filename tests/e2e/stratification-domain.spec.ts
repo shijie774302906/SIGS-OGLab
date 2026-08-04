@@ -29,6 +29,34 @@ const input: StratificationInputDependencyV2 = {
   revisions: { source: 1, mapping: 2, unit: 3, normalization: 4, pointPlan: 5 },
 };
 
+test('keeping the current layer structure records an explicit review without changing engineering geometry', () => {
+  const created = createBaseStratificationScheme(emptyStratificationWorkspace(), input, 0.5, 12.5, '保留当前结构', '2026-08-03T08:00:00.000Z', 'scheme-keep');
+  expect(created.ok).toBe(true);
+  if (!created.ok) return;
+  const split = applyStratificationCommand(created.workspace, { kind: 'add-boundary', depthM: 4.2 }, '2026-08-03T08:00:01.000Z');
+  expect(split.ok).toBe(true);
+  if (!split.ok) return;
+  const before = getActiveStratificationScheme(split.workspace)!;
+  const geometry = { layers: structuredClone(before.layers), boundaries: structuredClone(before.boundaries) };
+
+  const kept = applyStratificationCommand(split.workspace, { kind: 'confirm-current-layer-structure' }, '2026-08-03T08:00:02.000Z');
+  expect(kept.ok).toBe(true);
+  if (!kept.ok) return;
+  expect(kept.scheme.layers).toEqual(geometry.layers);
+  expect(kept.scheme.boundaries).toEqual(geometry.boundaries);
+  expect(kept.scheme.layerStructureReviewHistory).toEqual([expect.objectContaining({ decision: 'keep-current', layerCount: 2, boundaryCount: 1, reviewedAt: '2026-08-03T08:00:02.000Z' })]);
+  expect(kept.scheme.thinLayerCleanupHistory).toBeUndefined();
+  expect(kept.scheme.layerSimplificationHistory).toBeUndefined();
+
+  const undone = undoStratificationCommand(kept.workspace);
+  expect(undone.ok).toBe(true);
+  if (!undone.ok) return;
+  const restored = getActiveStratificationScheme(undone.workspace)!;
+  expect(restored.layerStructureReviewHistory).toBeUndefined();
+  expect(restored.layers).toEqual(geometry.layers);
+  expect(restored.boundaries).toEqual(geometry.boundaries);
+});
+
 test('scheme, layer, boundary, edit-session, and handoff lifecycles remain coherent', () => {
   const created = createBaseStratificationScheme(
     emptyStratificationWorkspace(),

@@ -50,6 +50,20 @@ export async function resetWorkspaceAuthority(page: Page, options: { reload?: bo
 
 export const test = base.extend<IsolationFixtures>({
   workspaceIsolation: [async ({ page }, use) => {
+    await page.route('**/api/assistant/capabilities', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          serviceAvailable: false,
+          provider: 'deepseek',
+          model: null,
+          requiresApiKey: true,
+          publicAccess: false,
+          reason: 'Playwright 隔离环境未连接外部 AI 服务。',
+        }),
+      });
+    });
     await resetWorkspaceAuthority(page);
     await use();
   }, { auto: true }],

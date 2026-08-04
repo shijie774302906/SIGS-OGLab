@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-04T07:22:18.564Z",
+  "context_files": [
+    "process_logs/Process150.md"
+  ],
+  "context_hash": "58a9d9b7e246977013ca22e2cdaffc0d7db0d448ac01c87a1101e22c3721d388",
+  "library_hash": "b807971b755ee5f62cfedc050330fa0c3a6502236d8e54492c3c38f73f04a885",
+  "status": "reviewed",
+  "matches": [
+    {
+      "problem_id": "KPB-006",
+      "title": "保存与清理没有作用于权威存储",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "保存失败"
+        ],
+        [
+          "indexeddb"
+        ],
+        [
+          "存储",
+          "恢复"
+        ]
+      ],
+      "related_updates": [
+        "Process083",
+        "Process085",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process115",
+        "Process121",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process131",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process138",
+        "Process140",
+        "Process143",
+        "Process146",
+        "Process147",
+        "Process148",
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖配额、不可用、多标签、临时失败和重试。",
+        "重置后验证全部 store、指针和刷新启动状态为空。"
+      ],
+      "disposition": "covered",
+      "note": "保存失败不会写入半份结果，恢复路径明确",
+      "evidence": [
+        "tests/e2e/workspace-storage-recovery.spec.ts：IndexedDB 保存失败恢复与重试通过"
+      ]
+    },
+    {
+      "problem_id": "KPB-015",
+      "title": "异步保存回写覆盖快速连续编辑",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "保存",
+          "覆盖",
+          "编辑"
+        ]
+      ],
+      "related_updates": [
+        "Process093",
+        "Process099",
+        "Process100",
+        "Process103",
+        "Process104",
+        "Process105",
+        "Process107",
+        "Process126",
+        "Process127",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process138",
+        "Process141",
+        "Process142",
+        "Process147",
+        "Process148",
+        "Process150"
+      ],
+      "required_checks": [
+        "快速连续输入后立即保存并刷新，断言最后一次值仍在。",
+        "覆盖取消、跨页、重复保存、失败重试和版本生命周期。"
+      ],
+      "disposition": "covered",
+      "note": "状态机负向路径已覆盖",
+      "evidence": [
+        "tests/e2e/stratification-workflow-ui.spec.ts：回退、保存失败、重试路径通过"
+      ]
+    },
+    {
+      "problem_id": "KPB-020",
+      "title": "多分类方法界面与成果泄漏错误来源语义",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "JTS",
+          "Fuzzy",
+          "成果"
+        ],
+        [
+          "分类",
+          "权威",
+          "不一致"
+        ]
+      ],
+      "related_updates": [
+        "Process125",
+        "Process135",
+        "Process138",
+        "Process150"
+      ],
+      "required_checks": [
+        "逐一选择四种方法，断言只运行当前方法且不出现其他方法专属文案。",
+        "断言参数、PDF 和 Excel 的分类来源、工程大类、方案修订和哈希完全一致。"
+      ],
+      "disposition": "not-applicable",
+      "note": "本切片只修正 JTS 候选分层 scheme origin 回退，不改多方法参数、PDF 或 Excel 口径",
+      "evidence": []
+    },
+    {
+      "problem_id": "KPB-034",
+      "title": "自动候选在建立撤销快照后改写来源导致回退保存失败",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "分层",
+          "返回上一步",
+          "保存失败"
+        ],
+        [
+          "scheme origin",
+          "undo"
+        ],
+        [
+          "候选",
+          "来源",
+          "回退"
+        ],
+        [
+          "changed its scheme origin"
+        ]
+      ],
+      "related_updates": [
+        "Process150"
+      ],
+      "required_checks": [
+        "覆盖自动候选零确认、部分确认、全部确认以及整理后返回，断言来源始终一致。",
+        "断言返回后的 IndexedDB 权威状态、刷新状态和页面文案一致，且没有保存错误。",
+        "注入保存失败，断言确认框不关闭、不会显示成功，并可从同一位置重试。"
+      ],
+      "disposition": "covered",
+      "note": "scheme origin 与当前分层方案恢复一致",
+      "evidence": [
+        "tests/e2e/jts-classification-stratification.spec.ts、jts-classification-ui.spec.ts、workspace-storage-recovery.spec.ts：目标回归通过"
+      ]
+    }
+  ]
+}

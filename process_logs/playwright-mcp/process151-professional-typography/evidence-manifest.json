@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "processId": "Process151",
+  "generatedAt": "2026-08-04T07:19:12.657Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process151-professional-typography",
+  "context": {
+    "path": "process_logs/Process151.md",
+    "size": 1718,
+    "sha256": "441c7ae3c4cf287ee69e29ad8be5f2910a73ce35f5512df59f6001442a1523db"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "process_logs/knowledge-reviews/Process151.json",
+        "size": 3390,
+        "sha256": "3027709a7ad6314d603eb7595bd36b811c92ef2deb2fa4e8c8a839b39d3d1e12"
+      },
+      {
+        "path": "src/features/output/jtsOutputDomain.ts",
+        "size": 46797,
+        "sha256": "7c3d64a17e491f73f7d830f33e71162d267f070f66fa0c8b3df68c7f2198d4b4"
+      },
+      {
+        "path": "src/features/output/reportTypography.ts",
+        "size": 1971,
+        "sha256": "46eb8ad5e5128dbbb7f2b0d584b40a2461fdecec287b1df0a6c25a5894f9b588"
+      },
+      {
+        "path": "tests/e2e/report-rendering-ui.spec.ts",
+        "size": 6306,
+        "sha256": "f2ce6a5143a404918f32bc62fdfb85e2488e9828567ae78b7dd7b1be916d1cdb"
+      },
+      {
+        "path": "tests/e2e/report-typography.spec.ts",
+        "size": 2195,
+        "sha256": "e391c25fc13bdbdab1fd29e10a7aa61205179c3e9c3b6ad2dfa8063f8c7dcd11"
+      }
+    ],
+    "aggregateSha256": "339a54b4fbb2eb71261337e6d3c0018337bf34e806494c272124f0fe653eb9ea"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process151-professional-typography/professional-a3-depth-page.png",
+        "size": 278860,
+        "sha256": "a1c53d3360a7f8e96aa5159b11aa4a84c1c0304d9777163e1fbc1833a0253f5f"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process151-professional-typography/professional-a3-parameter-page.png",
+        "size": 226449,
+        "sha256": "05f088dfbe48a0d61aa54f498e94a8d5a7e222a55a5f107b93fe64d28d5b54ab"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process151-professional-typography/professional-a4-evidence-page.png",
+        "size": 275171,
+        "sha256": "75c3e693763c278b5c2737497607b51382a1663219a539c754f055eecfb65263"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process151-professional-typography/professional-font-check.json",
+        "size": 179,
+        "sha256": "6319e0a01dec040ebd9f198cf875d357dbcc72466f5ba0109f93a4f91f713893"
+      }
+    ],
+    "aggregateSha256": "2aebc37d2cd1259b710df4dc26cee294f81046e31206fdd1bb158b2564e3197f"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:domain-fast",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:ui-isolated -- --workers=3",
+      "exitCode": 0
+    }
+  ],
+  "seedOrSource": [
+    "deterministic generated CPT/CPTU; no private Yingkou data"
+  ],
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
+}

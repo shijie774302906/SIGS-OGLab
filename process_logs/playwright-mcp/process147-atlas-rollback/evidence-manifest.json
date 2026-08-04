@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "processId": "Process147",
+  "generatedAt": "2026-08-04T07:25:48.642Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process147-atlas-rollback",
+  "context": {
+    "path": "process_logs/Process147.md",
+    "size": 3761,
+    "sha256": "1657e0f975d33ba9235708af6b8cc471a7d62962745a2e9e484d058bcc63a5ee"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "process_logs/knowledge-reviews/Process147.json",
+        "size": 7559,
+        "sha256": "75b4e28ac0ef84e4621d3f7e755536f110f50ffdd0a07dcbb0132e78a4a5a334"
+      },
+      {
+        "path": "src/App.tsx",
+        "size": 809159,
+        "sha256": "5ede08c26d3f3d3f567ff45e80f9476bfed22185902ad4d27654c7adc5d878a2"
+      },
+      {
+        "path": "src/features/parameters/ParameterGuidedWizard.tsx",
+        "size": 39709,
+        "sha256": "bac004772138989fc9f2a9f4aeb2f389c5f4fb88d9cec344ea89abe30a4266ad"
+      },
+      {
+        "path": "src/features/quick/quickPlotDomain.ts",
+        "size": 131111,
+        "sha256": "e87ed232bfa439e4c642076dfc94e76635a645b864d9730d51f98c772e5de165"
+      },
+      {
+        "path": "src/features/quick/QuickPlotWorkspace.tsx",
+        "size": 29218,
+        "sha256": "f5823e023d948852e43fd3af9afecf41b6e9d842c15ca309a15aa8fa18ace07c"
+      },
+      {
+        "path": "src/styles.css",
+        "size": 268820,
+        "sha256": "ec7916284f5745704da1ce97d9d20d4ed03f3ce91bcd9101c3ad4a79974a7b07"
+      },
+      {
+        "path": "tests/e2e/parameter-guided-workflow-ui.spec.ts",
+        "size": 60879,
+        "sha256": "7c431cb0cd5539892bc5bc6d20c619bafad4ee8d100b2c367f206478edd32573"
+      },
+      {
+        "path": "tests/e2e/quick-onboarding.spec.ts",
+        "size": 12372,
+        "sha256": "98b0f9b555ae242f399f870b6e826bec2b1facb234773057b13931bd1ca85058"
+      },
+      {
+        "path": "tests/e2e/quick-plot-domain.spec.ts",
+        "size": 64262,
+        "sha256": "3ace403e36551cd544b2670c122a40453dd7901cf4df118faa0df165545421be"
+      },
+      {
+        "path": "tests/e2e/quick-plot-ui.spec.ts",
+        "size": 81369,
+        "sha256": "09cd46cebb97fd37bba0c9e92fc2596a6edd89d9728d24b8d01236ef837ad1bd"
+      },
+      {
+        "path": "tests/e2e/stratification-workflow-ui.spec.ts",
+        "size": 143004,
+        "sha256": "c93bfdc249bb98149aa773276c437e099813bc4f893591a17c9a67b84a29c17d"
+      }
+    ],
+    "aggregateSha256": "6fe2f541e6b6c90cd744138c80ff4d3b15ce3a72a18d0f2c6b7bae3ebc58ae31"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-80-percent-1440x900.png",
+        "size": 258163,
+        "sha256": "938ef64d59a315e70346e2c6ba61dbca69f7366321bff387c423458221ac927b"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-80-percent-1920x1080.png",
+        "size": 372265,
+        "sha256": "9b74e3d450e6bdf8dc6d43437dc26353ee18b18f515542cced0b4411391ebe94"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-browser-check.json",
+        "size": 2102,
+        "sha256": "dbf9fa5629300a44955ad8cf93e830ba669c6e50e2eae1f777c455117ab0a548"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-01.jpg",
+        "size": 147813,
+        "sha256": "cc1079c0365aac37c156fa5885add7deab8d8c5acf8e2b4e6f5c8182a4e55dff"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-02.jpg",
+        "size": 244895,
+        "sha256": "f0e50c3e28024a7438b586eba1de0ae67754ab76fb4c9d324537127bdd34f46f"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-03.jpg",
+        "size": 243974,
+        "sha256": "7cc93f5d7f51237d7c5c3551df67e012843f35426829bf42e14e46a07eba4221"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-04.jpg",
+        "size": 154516,
+        "sha256": "3ebdb6253a04d3f192f43960bd483e15db526b69bfbad8ec2e72a9e6c3768a0f"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-05.jpg",
+        "size": 150534,
+        "sha256": "12ae9dc482bf815ea45cd8183c436e4cc2f2ab6dd0f39d9f1f06bee64a795356"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-06.jpg",
+        "size": 187984,
+        "sha256": "3eb6994c671f4f904f11d4e3bc7d7dab876889be44653dfab9c9559397b92eb7"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-07.jpg",
+        "size": 159343,
+        "sha256": "a2959e1448c3c111927fc608f603d9dd63ae3d6b9a031f4c7c3ecb55014512ad"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-08.jpg",
+        "size": 178628,
+        "sha256": "a7ca4da45dca2575893aeb5841fb5ff3afd4661da75487a0114200481b67c4c7"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-09.jpg",
+        "size": 204994,
+        "sha256": "a2757ea8221fc7dd8654c74e6a4a9481e5a65e63034e470c263f8cfa1d288e4c"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-10.jpg",
+        "size": 167600,
+        "sha256": "757883c9325f9118969f672313f4906d40b6864b11790db2f3d71b90bd1f82b2"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-11.jpg",
+        "size": 160778,
+        "sha256": "94b108b28701da9d1083334d2b35f57aa8540c17472ba74fd465220e9b7a8505"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-12.jpg",
+        "size": 160396,
+        "sha256": "18afe5d77fd921abc017bfdda9be363b183166adf2d5262041d6535cdb886623"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-13.jpg",
+        "size": 176832,
+        "sha256": "9ba4fe63e5faf62523e0a489a3a38385dd09db0901a4f2ec64f08192611cb51f"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-14.jpg",
+        "size": 161615,
+        "sha256": "801416026447642966df63fd839fcb803f6ea127b6c7e64c1a70ec7e373ce185"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/atlas-page-15.jpg",
+        "size": 342136,
+        "sha256": "1bed628ac610f0737ff25650049a4fa8b4308fa978c1e4f892514d4007fa28a9"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/parameter-rollback-1440x900.png",
+        "size": 143973,
+        "sha256": "fe3a8d5c2e1f9a2d718f804e654955cc87006155c41171450f3a6bf0cf567a15"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/parameter-rollback-1920x1080.png",
+        "size": 172406,
+        "sha256": "a56f7b940fc8b23bf7be50acfbf65be78ac244cdcda446b68c53d93cc3679dec"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/stratification-rollback-1440x900.png",
+        "size": 173789,
+        "sha256": "944369223fe2faf83788474cc9fcd18bdefe7c4a7f9f72d91ac097f539e60bdc"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process147-atlas-rollback/stratification-rollback-1920x1080.png",
+        "size": 199776,
+        "sha256": "f318f95afc2837ab137b25d3c2c2a624a18354c347001f81ff039666b5bae12c"
+      }
+    ],
+    "aggregateSha256": "5e6687202c099a2acabd292c0b18c529f3f2d09e32fbe4785712add9b6a195a2"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:domain-fast",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:ui-isolated -- --workers=3",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:real-serial",
+      "exitCode": 0
+    }
+  ],
+  "seedOrSource": [
+    "generated CPT/CPTU; private Yingkou excluded"
+  ],
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
+}

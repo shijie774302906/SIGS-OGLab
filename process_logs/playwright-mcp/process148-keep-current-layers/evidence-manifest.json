@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "processId": "Process148",
+  "generatedAt": "2026-08-04T07:25:50.148Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process148-keep-current-layers",
+  "context": {
+    "path": "process_logs/Process148.md",
+    "size": 2914,
+    "sha256": "22b89b1bc68777d81d5afdf0a932b7ced679f7270d7b07b0c67549e95e588eb9"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "process_logs/knowledge-reviews/Process148.json",
+        "size": 9160,
+        "sha256": "32b6e82759493013d1160aa057cde10c11b3fbdb89cbe04c3ea05453ad483548"
+      },
+      {
+        "path": "src/App.tsx",
+        "size": 809159,
+        "sha256": "5ede08c26d3f3d3f567ff45e80f9476bfed22185902ad4d27654c7adc5d878a2"
+      },
+      {
+        "path": "src/features/stratification/stratificationDomain.ts",
+        "size": 79424,
+        "sha256": "ed03a2a66c9c0c3814fa6f40fecb24aedf2964d02465250a7a85d4d3b53de5c1"
+      },
+      {
+        "path": "src/features/workspace/workspaceV2.ts",
+        "size": 34827,
+        "sha256": "f6f61e19861feb2bc0f00f1a45dfb2fcef382dc66ed17419040d5a5c99016b4a"
+      },
+      {
+        "path": "tests/e2e/jts-classification-ui.spec.ts",
+        "size": 64581,
+        "sha256": "c29e5382b8161c62193c02230c7e8a5c32b403b8599bae9d3008709ebf46f0ca"
+      },
+      {
+        "path": "tests/e2e/stratification-domain.spec.ts",
+        "size": 36832,
+        "sha256": "4492b55a8cfdf027273dc3ac80f6aeb9e6aa8ea10a79bffdaaaa92a5853b96e8"
+      },
+      {
+        "path": "tests/e2e/stratification-workflow-ui.spec.ts",
+        "size": 143004,
+        "sha256": "c93bfdc249bb98149aa773276c437e099813bc4f893591a17c9a67b84a29c17d"
+      }
+    ],
+    "aggregateSha256": "f6cfe259f94894b6a81a13d2b59ef1ad7ed3610bf97120d14cfd1ec0d0075cd0"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process148-keep-current-layers/browser-check.json",
+        "size": 1528,
+        "sha256": "7c85a269ca73b7eec85000c06de52400fa0113965c4acd62402bb4e19c0931cd"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process148-keep-current-layers/current-layers-confirmed-1440x900.png",
+        "size": 151048,
+        "sha256": "ff70fe4a709c3a15190e38453bc8e4ed79bd4d0227a73492b333f4ed90369ddf"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process148-keep-current-layers/current-layers-confirmed-1920x1080.png",
+        "size": 174772,
+        "sha256": "7b59929e6a7c28d1ad5b6de0bb2d0c8e0a5ace7f88ed3bf8c55fca73224cadc4"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process148-keep-current-layers/method-choice-1440x900.png",
+        "size": 157267,
+        "sha256": "a66956d28064298bafa6314f832ff3a82977105bc0cc37c9a17df9a06d1edc0f"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process148-keep-current-layers/method-choice-1920x1080.png",
+        "size": 204734,
+        "sha256": "d670e0474ac72154fb577db6203d5a2077a7752301dee5a96047a45e499a48f8"
+      }
+    ],
+    "aggregateSha256": "422f2ee2e1fb2c011d584f9980d97dadf972ba55994e9b06dc4190d13338b513"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:domain-fast",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:ui-isolated -- --workers=3",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:real-serial",
+      "exitCode": 0
+    }
+  ],
+  "seedOrSource": [
+    "generated CPT/CPTU; private Yingkou excluded"
+  ],
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
+}

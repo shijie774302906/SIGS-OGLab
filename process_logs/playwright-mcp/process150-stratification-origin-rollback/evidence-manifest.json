@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "processId": "Process150",
+  "generatedAt": "2026-08-04T07:25:51.569Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process150-stratification-origin-rollback",
+  "context": {
+    "path": "process_logs/Process150.md",
+    "size": 2818,
+    "sha256": "4c601ad1acb21a64886e3ece5b741d218b44bfc869853c0213dab5f800bf40c3"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "process_logs/knowledge-reviews/Process150.json",
+        "size": 5236,
+        "sha256": "9f948bbb3e5064895561d4b3f907cc5d2cf2f2f4c5bf95031646ed60d95a8231"
+      },
+      {
+        "path": "src/App.tsx",
+        "size": 809159,
+        "sha256": "5ede08c26d3f3d3f567ff45e80f9476bfed22185902ad4d27654c7adc5d878a2"
+      },
+      {
+        "path": "src/features/stratification/jtsClassificationDomain.ts",
+        "size": 33578,
+        "sha256": "99f0419a2171e2fb730bd0456e33baf2b1797b29be5ad433874a6337c341c45f"
+      },
+      {
+        "path": "src/features/workspace/workspaceStorageRecovery.ts",
+        "size": 8164,
+        "sha256": "e2ede8e4067c11c7403f3090b5435a0cbf9629f8015a1a67f0c1513e71af0f01"
+      },
+      {
+        "path": "tests/e2e/jts-classification-stratification.spec.ts",
+        "size": 21528,
+        "sha256": "3122860e3506e40dbc4a7fcf8271aa9ab9c6974d79b2a42acff88689b2db9ac7"
+      },
+      {
+        "path": "tests/e2e/jts-classification-ui.spec.ts",
+        "size": 64581,
+        "sha256": "c29e5382b8161c62193c02230c7e8a5c32b403b8599bae9d3008709ebf46f0ca"
+      },
+      {
+        "path": "tests/e2e/stratification-workflow-ui.spec.ts",
+        "size": 143004,
+        "sha256": "c93bfdc249bb98149aa773276c437e099813bc4f893591a17c9a67b84a29c17d"
+      },
+      {
+        "path": "tests/e2e/workspace-storage-recovery.spec.ts",
+        "size": 3671,
+        "sha256": "fb0ed5271cd8222274ba860a8d1764782469847fcc8e1fbe8eda3bf4b41d21c7"
+      }
+    ],
+    "aggregateSha256": "a0665f43f991a20250e50137560acd8dd881d3ad817af45766ea474f3dd9bdf2"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process150-stratification-origin-rollback/browser-check.json",
+        "size": 1199,
+        "sha256": "3103d208dfef13e2a8e7e1c86870c3cbae0688ce9e618351bd9e8167f3407aeb"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process150-stratification-origin-rollback/return-without-review-1440x900.png",
+        "size": 162849,
+        "sha256": "724c7d2c0e18018bf19f67c735731310755fdce05d8ccdac170bf15fa4bcd022"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process150-stratification-origin-rollback/return-without-review-1920x1080.png",
+        "size": 192164,
+        "sha256": "c729322f53c4e10339feaa62a9e5cc4ab77ed847afa8e67b796084670f3f3535"
+      }
+    ],
+    "aggregateSha256": "7d73961dfdc47e017bd287205ed25f587639d185bb5715620d810b2a1be5b08a"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:domain-fast",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:ui-isolated -- --workers=3",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:real-serial",
+      "exitCode": 0
+    }
+  ],
+  "seedOrSource": [
+    "generated CPT/CPTU; private Yingkou excluded"
+  ],
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
+}

@@ -293,15 +293,7 @@ export function createSchemeFromJtsClassification(
     schemeId,
   );
   if (!created.ok) return created;
-  let next = created.workspace;
-  for (const candidate of boundaryCandidates) {
-    const applied = applyStratificationCommand(next, { kind: 'add-boundary', depthM: candidate.depthM }, now);
-    if (!applied.ok) return { ok: false as const, problem: applied.problem };
-    next = applied.workspace;
-  }
-  const session = next.editSession;
-  if (!session) return { ok: false as const, problem: '候选方案没有建立编辑会话。' };
-  session.working.origin = {
+  const candidateOrigin: NonNullable<StratificationSchemeV2['origin']> = {
     kind: 'jts-classification',
     classificationRunId: run.runId,
     ...(options ? {
@@ -323,7 +315,20 @@ export function createSchemeFromJtsClassification(
       },
     } : {}),
   };
-  session.baseline.origin = structuredClone(session.working.origin);
+  const initialSession = created.workspace.editSession;
+  if (!initialSession) return { ok: false as const, problem: '候选方案没有建立编辑会话。' };
+  initialSession.working.origin = structuredClone(candidateOrigin);
+  initialSession.baseline.origin = structuredClone(candidateOrigin);
+  const initialStored = created.workspace.schemes.find((scheme) => scheme.schemeId === initialSession.schemeId);
+  if (initialStored) initialStored.origin = structuredClone(candidateOrigin);
+  let next = created.workspace;
+  for (const candidate of boundaryCandidates) {
+    const applied = applyStratificationCommand(next, { kind: 'add-boundary', depthM: candidate.depthM }, now);
+    if (!applied.ok) return { ok: false as const, problem: applied.problem };
+    next = applied.workspace;
+  }
+  const session = next.editSession;
+  if (!session) return { ok: false as const, problem: '候选方案没有建立编辑会话。' };
   session.working.boundaries.forEach((boundary, index) => {
     const ruleCandidate = selectedRuleCandidates[index];
     const candidate = selectedCandidates[index];

@@ -1,0 +1,48 @@
+{
+  "flow": "PROCESS150",
+  "layouts": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "dialogFits": true,
+      "documentOverflowX": 0
+    },
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "dialogFits": true,
+      "documentOverflowX": 0
+    }
+  ],
+  "persistedAfterReturn": {
+    "draftCount": 1,
+    "channelState": "absent",
+    "probeConfirmed": true,
+    "waterConfirmed": true,
+    "classificationRunCount": 1,
+    "activeClassificationMethod": "jts-t242-2020",
+    "activeClassificationRoute": "approximate_cpt",
+    "activeClassificationStatus": "completed",
+    "latestClassificationStatus": "completed",
+    "poreClassCount": 0,
+    "sameClassificationCount": 0,
+    "schemeCount": 0,
+    "workingLayerStructureReviewCount": 0,
+    "workingLayerCount": 0,
+    "workingBoundaryCount": 0,
+    "workingOrigin": null,
+    "baselineOrigin": null,
+    "undoOrigins": [],
+    "currentSchemeOrigin": null,
+    "currentSchemeStatus": null,
+    "currentSchemeBoundaryEvidenceCount": 0,
+    "currentSchemeCandidateMode": null,
+    "currentSchemeSelectionPolicy": null
+  },
+  "saveAlertCount": 0,
+  "browserErrors": []
+}

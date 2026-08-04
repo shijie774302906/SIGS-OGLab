@@ -36,6 +36,20 @@ test('deleted-point identity conflicts are explained without blaming CPT values'
   expect(diagnosis.technicalDetail).toContain('invalid deleted-point record');
 });
 
+test('stratification origin conflicts name the failed return without blaming measurements', () => {
+  const diagnosis = diagnoseWorkspaceStorageFailure({
+    reason: 'invalid-bundle',
+    detail: 'Point point-1 stratification edit session changed its scheme origin.',
+  });
+  expect(diagnosis).toMatchObject({
+    code: 'invalid-data',
+    title: '分层来源没有对上，尚未保存',
+    canRetry: false,
+  });
+  expect(diagnosis.summary).toContain('返回的分层快照');
+  expect(diagnosis.summary).toContain('不是 qc、fs、u2');
+});
+
 test('near-full browser estimate upgrades an opaque write failure to a quota diagnosis', () => {
   const diagnosis = diagnoseWorkspaceStorageFailure(
     { reason: 'write-failed', detail: 'AbortError' },

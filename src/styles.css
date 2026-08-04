@@ -6604,11 +6604,15 @@ p {
   border-top: 1px solid var(--line);
 }
 
-.workflow-current-action > div { display: grid; grid-template-columns: auto minmax(0, auto); align-items: baseline; gap: 1px 8px; min-width: 0; }
+.workflow-current-copy { display: grid; grid-template-columns: auto minmax(0, auto); align-items: baseline; gap: 1px 8px; min-width: 0; }
 .workflow-current-action span { color: #6f5abb; font-size: 9px; font-weight: 750; }
 .workflow-current-action strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .workflow-current-action p { grid-column: 2; overflow: hidden; margin: 0; color: var(--text-secondary); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .workflow-current-action button { flex: 0 0 auto; }
+.workflow-current-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+
+.parameter-rollback-backdrop { z-index: 160; }
+.stratification-rollback-backdrop { z-index: 70; }
 
 .stratification-scheme-toolbar {
   display: flex;

@@ -1,0 +1,60 @@
+{
+  "flow": "PROCESS148",
+  "layouts": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "dialogFits": true,
+      "keepCurrentVisible": true,
+      "documentOverflowX": 0
+    },
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "dialogFits": true,
+      "keepCurrentVisible": true,
+      "documentOverflowX": 0
+    }
+  ],
+  "beforeLayerLabels": [
+    "L11.00–1.25 m流泥",
+    "L21.25–1.75 m淤泥",
+    "L31.75–2.25 m淤泥质土",
+    "L42.25–2.75 m粉土",
+    "L52.75–3.00 m中砂～粗砂"
+  ],
+  "afterLayerLabels": [
+    "L11.00–1.25 m流泥",
+    "L21.25–1.75 m淤泥",
+    "L31.75–2.25 m淤泥质土",
+    "L42.25–2.75 m粉土",
+    "L52.75–3.00 m中砂～粗砂"
+  ],
+  "state": {
+    "draftCount": 1,
+    "channelState": "absent",
+    "probeConfirmed": true,
+    "waterConfirmed": true,
+    "classificationRunCount": 1,
+    "activeClassificationMethod": "jts-t242-2020",
+    "activeClassificationRoute": "approximate_cpt",
+    "activeClassificationStatus": "completed",
+    "latestClassificationStatus": "completed",
+    "poreClassCount": 0,
+    "sameClassificationCount": 0,
+    "schemeCount": 1,
+    "workingLayerStructureReviewCount": 1,
+    "workingLayerCount": 5,
+    "workingBoundaryCount": 4,
+    "currentSchemeOrigin": null,
+    "currentSchemeStatus": null,
+    "currentSchemeBoundaryEvidenceCount": 0,
+    "currentSchemeCandidateMode": null,
+    "currentSchemeSelectionPolicy": null
+  },
+  "browserErrors": []
+}

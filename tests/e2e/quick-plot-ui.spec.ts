@@ -237,6 +237,58 @@ test('PROCESS117 quick route accepts CPT without u2 and explains unavailable CPT
   await expect(page.getByTestId('quick-page-stage').locator('img')).toHaveAttribute('alt', /Schneider 2008/);
 });
 
+test('PROCESS147 all atlas pages keep readable A3 typography at true 80% page zoom', async ({ page }) => {
+  const browserErrors: string[] = [];
+  page.on('pageerror', (error) => browserErrors.push(error.message));
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(message.text()); });
+  await page.getByTestId('new-project-name').fill('图册字号验收');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await page.getByTestId('quick-use-demo-data').click();
+  await page.getByTestId('quick-pressure-basis-confirm').check();
+  await page.getByTestId('quick-input-workspace').evaluate((node) => { node.scrollTop = node.scrollHeight; });
+  await page.getByTestId('quick-generate-report').click();
+  await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
+  await expect.poll(() => page.getByTestId('quick-report-workspace').evaluate((node) => node.scrollTop)).toBe(0);
+  const reportTop = await page.evaluate(() => {
+    const topbar = document.querySelector('.quick-topbar')!.getBoundingClientRect();
+    const header = document.querySelector('.quick-report-header')!.getBoundingClientRect();
+    return { topbarBottom: topbar.bottom, headerTop: header.top };
+  });
+  expect(reportTop.headerTop).toBeGreaterThanOrEqual(reportTop.topbarBottom);
+  await expect(page.getByLabel('图册页面').locator('button')).toHaveCount(15);
+  const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process147-atlas-rollback');
+  if (process.env.PROCESS147_EVIDENCE === '1') mkdirSync(evidenceDirectory, { recursive: true });
+  const pages: Array<{ index: number; width: number; height: number; alt: string }> = [];
+  for (let index = 1; index <= 15; index += 1) {
+    await page.getByTestId(`quick-page-${index}`).click();
+    const image = page.getByTestId('quick-page-stage').locator('img');
+    await expect(image).toHaveAttribute('src', /^data:image\/jpeg/);
+    const info = await image.evaluate((node: HTMLImageElement) => ({ width: node.naturalWidth, height: node.naturalHeight, alt: node.alt, src: node.src }));
+    pages.push({ index, width: info.width, height: info.height, alt: info.alt });
+    expect([[1080, 1528], [1920, 1080]]).toContainEqual([info.width, info.height]);
+    if (process.env.PROCESS147_EVIDENCE === '1') writeFileSync(path.join(evidenceDirectory, `atlas-page-${String(index).padStart(2, '0')}.jpg`), Buffer.from(info.src.split(',')[1], 'base64'));
+  }
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+    await page.setViewportSize(viewport);
+    await page.getByTestId('quick-page-6').click();
+    await page.getByTestId('quick-zoom-80').click();
+    const layout = await page.evaluate(() => {
+      const stage = document.querySelector<HTMLElement>('[data-testid="quick-page-stage"]')!;
+      const image = stage.querySelector<HTMLImageElement>('img')!;
+      return { overflowX: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth), imageWidth: image.getBoundingClientRect().width, stageScrollWidth: stage.scrollWidth, stageClientWidth: stage.clientWidth, zoomActive: document.querySelector('[data-testid="quick-zoom-80"]')?.classList.contains('active') };
+    });
+    expect(layout.overflowX).toBeLessThanOrEqual(1);
+    expect(layout.imageWidth).toBeCloseTo(1536, 0);
+    expect(layout.stageScrollWidth).toBeGreaterThan(layout.stageClientWidth);
+    expect(layout.zoomActive).toBe(true);
+    if (process.env.PROCESS147_EVIDENCE === '1') await page.screenshot({ path: path.join(evidenceDirectory, `atlas-80-percent-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
+  }
+  expect(pages).toHaveLength(15);
+  expect(browserErrors).toEqual([]);
+  if (process.env.PROCESS147_EVIDENCE === '1') writeFileSync(path.join(evidenceDirectory, 'atlas-browser-check.json'), JSON.stringify({ process: 147, pages, physicalPointFloors: { source: 8, legend: 9, body: 10, title: 12 }, zoom: '80%', browserErrors }, null, 2));
+});
+
 test('PROCESS120 uncertain pore pressure can stay raw-only without stopping the atlas', async ({ page }) => {
   await page.getByTestId('new-project-name').fill('孔压仅展示');
   await page.getByTestId('project-mode-quick').click();

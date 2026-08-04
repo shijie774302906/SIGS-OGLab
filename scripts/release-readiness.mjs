@@ -162,6 +162,49 @@ function trackedFilesFromGit(root) {
   return output.split('\0').filter(Boolean);
 }
 
+export function auditReleaseIndex(root, trackedFiles) {
+  const findings = [];
+  const indexPath = resolve(root, 'docs/process/release-index.json');
+  if (!existsSync(indexPath)) {
+    pushFinding(findings, 'error', 'release-index-missing', '缺少机器可读上线索引 docs/process/release-index.json。');
+    return findings;
+  }
+  let index;
+  try {
+    index = JSON.parse(readFileSync(indexPath, 'utf8'));
+  } catch {
+    pushFinding(findings, 'error', 'release-index-invalid', '上线索引不是有效 JSON。');
+    return findings;
+  }
+  const include = index.current_release?.include_processes;
+  const exclude = index.current_release?.exclude_processes;
+  if (index.schema_version !== 1 || !index.current_release?.process_id || !Array.isArray(include) || !Array.isArray(exclude)) {
+    pushFinding(findings, 'error', 'release-index-invalid', '上线索引缺少版本、当前发布、上线 Process 或排除 Process。');
+    return findings;
+  }
+  const excludedIds = new Set(exclude.map((item) => item?.id).filter(Boolean));
+  for (const processId of include) {
+    if (excludedIds.has(processId)) {
+      pushFinding(findings, 'error', 'release-index-conflict', `${processId} 同时出现在上线和排除列表。`);
+    }
+    if (!existsSync(resolve(root, `process_logs/${processId}.md`))) {
+      pushFinding(findings, 'error', 'release-record-missing', `${processId} 缺少关闭归档。`);
+    }
+  }
+  const tracked = new Set(trackedFiles.map(normalizePath));
+  for (const file of index.forbidden_tracked_files ?? []) {
+    const normalized = normalizePath(file);
+    if (tracked.has(normalized)) pushFinding(findings, 'error', 'release-forbidden-file', '禁止上线的文件进入了 Git 发布候选。', { file: normalized });
+  }
+  for (const prefix of index.forbidden_tracked_prefixes ?? []) {
+    const normalized = normalizePath(prefix);
+    for (const file of tracked) {
+      if (file.startsWith(normalized)) pushFinding(findings, 'error', 'release-forbidden-prefix', '禁止上线的路径进入了 Git 发布候选。', { file, prefix: normalized });
+    }
+  }
+  return findings;
+}
+
 function checkPublicMetadata(root, mode, findings) {
   const packageJson = readJson(root, 'package.json');
   for (const script of REQUIRED_SCRIPTS) {
@@ -220,6 +263,7 @@ function checkLargeFiles(root, findings) {
 export function auditWorkspace(root, { mode = 'local', trackedFiles } = {}) {
   const findings = [];
   const resolvedTrackedFiles = trackedFiles ?? trackedFilesFromGit(root);
+  findings.push(...auditReleaseIndex(root, resolvedTrackedFiles));
   findings.push(...scanTrackedSecrets(root, resolvedTrackedFiles));
   checkPublicMetadata(root, mode, findings);
   checkLargeFiles(root, findings);

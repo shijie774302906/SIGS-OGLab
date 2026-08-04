@@ -2,6 +2,7 @@ import type { JtsOutputRevisionV7, JtsOutputSnapshotV7 } from '../workspace/work
 import { sha256HexSync, stableStringify } from '../workspace/stableHash';
 import { JTS_SBT_ZONE_COLORS, JTS_SOIL_CLASSES } from '../jts/jtsT242Domain';
 import { createJtsOutputWorkbook, splitOutputTrackSegments } from './jtsOutputWorkbook';
+import { reportCanvasLogicalSize, reportOrientationForSize, reportResolvedFontSize, type ReportTextRole } from './reportTypography';
 
 export function createJtsOutputRevision(snapshot: JtsOutputSnapshotV7, kind: JtsOutputRevisionV7['kind'], revisionId = createId('jts-output')): JtsOutputRevisionV7 {
   const extension = kind === 'excel-workbook' ? 'xlsx' : 'pdf';
@@ -186,7 +187,7 @@ export function renderJtsOutputPreviewDataUrls(snapshot: JtsOutputSnapshotV7, ki
 
 function renderA4Pages(snapshot: JtsOutputSnapshotV7) {
   const outcomeRows = outputOutcomeRows(snapshot);
-  const outcomeLayouts = layoutOutputOutcomePages(outcomeRows, 656, 18, 1200);
+  const outcomeLayouts = layoutOutputOutcomePages(outcomeRows, 656, 24, 1200);
   const outcomePageCount = outcomeLayouts.length;
   const totalPages = 2 + outcomePageCount;
   const first = pageCanvas(1400, 1980);
@@ -205,10 +206,10 @@ function renderA4Pages(snapshot: JtsOutputSnapshotV7) {
   const ctx2 = second.getContext('2d')!;
   pageBase(ctx2, second.width, second.height, '测量、分类与消散证据', snapshot, 'A4 报告 · 证据页');
   sectionTitle(ctx2, 100, 330, `4  深度曲线与 ${snapshot.classificationMethod?.label ?? '分类'} 证据`);
-  drawDepthPlot(ctx2, 100, 400, 1200, 900, snapshot);
-  sectionTitle(ctx2, 100, 1390, '5  孔压消散');
-  if (snapshot.dissipation) textRows(ctx2, 100, 1450, [['t50', `${formatNumber(snapshot.dissipation.t50Seconds)} s · ${snapshot.dissipation.t50Origin}`], ['Ch', `${snapshot.dissipation.chM2PerSecond.toExponential(5)} m²/s`], ['kh', `${snapshot.dissipation.khMPerSecond.toExponential(5)} m/s`]], 1200);
-  else drawText(ctx2, '当前点位未配置消散结果。', 100, 1480, 32, '#6c7d89');
+  drawDepthPlot(ctx2, 100, 430, 1200, 830, snapshot);
+  sectionTitle(ctx2, 100, 1425, '5  孔压消散');
+  if (snapshot.dissipation) textRows(ctx2, 100, 1490, [['t50', `${formatNumber(snapshot.dissipation.t50Seconds)} s · ${snapshot.dissipation.t50Origin}`], ['Ch', `${snapshot.dissipation.chM2PerSecond.toExponential(5)} m²/s`], ['kh', `${snapshot.dissipation.khMPerSecond.toExponential(5)} m/s`]], 1200);
+  else drawText(ctx2, '当前点位未配置消散结果。', 100, 1515, 32, '#6c7d89', '500', 'left', 'body');
   footer(ctx2, second.width, second.height, 2, totalPages);
   const outcomePages = Array.from({ length: outcomePageCount }, (_, pageIndex) => {
     const canvas = pageCanvas(1400, 1980);
@@ -229,7 +230,7 @@ function renderA3AtlasPages(snapshot: JtsOutputSnapshotV7) {
   const depthPageCount = Math.max(1, Math.ceil((maxDepth - minDepth || 1) / 20));
   const parameterGroups = [...new Set(snapshot.parameterValues.map((item) => item.methodId))];
   const outcomeRows = outputOutcomeRows(snapshot);
-  const outcomeLayouts = layoutOutputOutcomePages(outcomeRows, 1296, 18, 970);
+  const outcomeLayouts = layoutOutputOutcomePages(outcomeRows, 1296, 21, 970);
   const outcomePageCount = outcomeLayouts.length;
   const totalPages = 1 + depthPageCount + parameterGroups.length + 1 + outcomePageCount;
   const pages: HTMLCanvasElement[] = [];
@@ -348,12 +349,14 @@ function layoutOutputOutcomePages(rows: string[][], descriptionWidth: number, fo
 function drawOutcomeTable(ctx: CanvasRenderingContext2D, x: number, y: number, rows: OutputOutcomeLayout[], widths: number[]) {
   const headers = ['类型', '项目', '说明'];
   const totalWidth = widths.reduce((sum, value) => sum + value, 0);
+  const bodySize = outputResolvedFontSize(ctx, 18, 'body');
+  const bodyLineHeight = bodySize + 8;
   let px = x;
   headers.forEach((header, index) => {
     ctx.fillStyle = '#edf1f2';
     ctx.fillRect(px, y - 42, widths[index], 56);
     ctx.strokeStyle = '#20282d'; ctx.lineWidth = 1.5; ctx.strokeRect(px, y - 42, widths[index], 56);
-    drawText(ctx, header, px + widths[index] / 2, y - 4, 21, '#172b33', '700', 'center');
+    drawText(ctx, header, px + widths[index] / 2, y - 4, 21, '#172b33', '700', 'center', 'body');
     px += widths[index];
   });
   let rowTop = y + 14;
@@ -363,9 +366,9 @@ function drawOutcomeTable(ctx: CanvasRenderingContext2D, x: number, y: number, r
       ctx.fillStyle = '#ffffff'; ctx.fillRect(cellX, rowTop, widths[index], row.height);
       ctx.strokeStyle = '#20282d'; ctx.lineWidth = 1; ctx.strokeRect(cellX, rowTop, widths[index], row.height);
       if (index < 2) {
-        drawText(ctx, cell, cellX + widths[index] / 2, rowTop + Math.min(row.height / 2 + 6, 30), 18, '#243640', '500', 'center');
+        drawText(ctx, cell, cellX + widths[index] / 2, rowTop + Math.min(row.height / 2 + bodySize / 3, bodySize + 12), 18, '#243640', '500', 'center', 'body');
       } else {
-        row.lines.forEach((line, lineIndex) => drawText(ctx, line, cellX + 12, rowTop + 27 + lineIndex * 26, 18, '#243640', '500'));
+        row.lines.forEach((line, lineIndex) => drawText(ctx, line, cellX + 12, rowTop + bodySize + 8 + lineIndex * bodyLineHeight, 18, '#243640', '500', 'left', 'body'));
       }
       cellX += widths[index];
     });
@@ -402,19 +405,42 @@ function pageBase(ctx: CanvasRenderingContext2D, width: number, _height: number,
   ctx.moveTo(74, 92); ctx.lineTo(91, 82); ctx.lineTo(109, 88);
   ctx.moveTo(74, 105); ctx.lineTo(91, 96); ctx.lineTo(109, 101);
   ctx.strokeStyle = '#4f8390'; ctx.lineWidth = 5; ctx.stroke();
-  drawText(ctx, 'SIGS-OGLab', 142, 83, 30, '#17313b', '700');
-  drawText(ctx, 'support', 142, 111, 18, '#71828a', '500');
-  drawText(ctx, title, 90, 202, 44, '#172b33', '700');
-  drawText(ctx, `${snapshot.projectName} · ${snapshot.pointName}`, width - 90, 74, 24, '#172b33', '700', 'right');
-  drawText(ctx, subtitle, width - 90, 112, 20, '#71828a', '500', 'right');
-  drawText(ctx, `${snapshot.classificationMethod?.label ?? '历史分类'} · ${snapshot.reportSource?.schemeName ?? '当前确认分层'}`, width - 90, 149, 18, '#71828a', '500', 'right');
-  drawText(ctx, '原型成果 · 非设计值', width - 90, 210, 18, '#a04452', '700', 'right');
+  drawText(ctx, 'SIGS-OGLab', 142, 83, 30, '#17313b', '700', 'left', 'title');
+  drawText(ctx, 'support', 142, 111, 18, '#71828a', '500', 'left', 'source');
+  drawText(ctx, title, 90, 202, 44, '#172b33', '700', 'left', 'title');
+  drawText(ctx, `${snapshot.projectName} · ${snapshot.pointName}`, width - 90, 74, 24, '#172b33', '700', 'right', 'body');
+  drawText(ctx, subtitle, width - 90, 112, 20, '#71828a', '500', 'right', 'body');
+  drawText(ctx, `${snapshot.classificationMethod?.label ?? '历史分类'} · ${snapshot.reportSource?.schemeName ?? '当前确认分层'}`, width - 90, 149, 18, '#71828a', '500', 'right', 'source');
+  drawText(ctx, '原型成果 · 非设计值', width - 90, 210, 18, '#a04452', '700', 'right', 'source');
   ctx.fillStyle = '#d6dfe3';
   ctx.fillRect(90, 242, width - 180, 2);
 }
-function sectionTitle(ctx: CanvasRenderingContext2D, x: number, y: number, value: string) { drawText(ctx, value, x, y, 28, '#172b33', '700'); ctx.fillStyle = '#d6dfe3'; ctx.fillRect(x, y + 16, Math.min(2160, ctx.canvas.width - x * 2), 2); }
-function drawText(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, size: number, color: string, weight = '400', align: CanvasTextAlign = 'left') { ctx.font = `${weight} ${size}px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif`; ctx.fillStyle = color; ctx.textAlign = align; ctx.fillText(value, x, y); }
-function textRows(ctx: CanvasRenderingContext2D, x: number, y: number, rows: string[][], width: number) { rows.forEach((row, index) => { const rowY = y + index * 62; ctx.fillStyle = index % 2 ? '#f7f9fa' : '#ffffff'; ctx.fillRect(x, rowY - 38, width, 54); drawText(ctx, row[0], x + 18, rowY, 24, '#647580'); drawText(ctx, row[1], x + 330, rowY, 24, '#14212b', '600'); }); }
+function sectionTitle(ctx: CanvasRenderingContext2D, x: number, y: number, value: string) { drawText(ctx, value, x, y, 28, '#172b33', '700', 'left', 'title'); ctx.fillStyle = '#d6dfe3'; ctx.fillRect(x, y + 16, Math.min(2160, ctx.canvas.width - x * 2), 2); }
+function outputPhysicalWidthPt(ctx: CanvasRenderingContext2D) {
+  return ctx.canvas.width <= 1500 ? 595.28 : 1190.55;
+}
+
+function outputResolvedFontSize(ctx: CanvasRenderingContext2D, requestedSize: number, role?: ReportTextRole) {
+  return reportResolvedFontSize(
+    reportOrientationForSize(ctx.canvas.width, ctx.canvas.height),
+    ctx.canvas.width,
+    requestedSize,
+    role,
+    outputPhysicalWidthPt(ctx),
+  );
+}
+
+function setOutputFont(ctx: CanvasRenderingContext2D, weight: string, size: number) {
+  ctx.font = `${weight} ${size}px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif`;
+}
+
+function drawText(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, size: number, color: string, weight = '400', align: CanvasTextAlign = 'left', role?: ReportTextRole) {
+  setOutputFont(ctx, weight, outputResolvedFontSize(ctx, size, role));
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.fillText(value, x, y);
+}
+function textRows(ctx: CanvasRenderingContext2D, x: number, y: number, rows: string[][], width: number) { rows.forEach((row, index) => { const rowY = y + index * 62; ctx.fillStyle = index % 2 ? '#f7f9fa' : '#ffffff'; ctx.fillRect(x, rowY - 38, width, 54); drawText(ctx, row[0], x + 18, rowY, 24, '#647580', '400', 'left', 'body'); drawText(ctx, row[1], x + 330, rowY, 24, '#14212b', '600', 'left', 'body'); }); }
 function drawTable(ctx: CanvasRenderingContext2D, x: number, y: number, headers: string[], rows: string[][], widths: number[]) {
   const totalWidth = widths.reduce((sum, value) => sum + value, 0);
   const rowHeight = 54;
@@ -423,7 +449,7 @@ function drawTable(ctx: CanvasRenderingContext2D, x: number, y: number, headers:
     ctx.fillStyle = '#edf1f2';
     ctx.fillRect(px, y - 42, widths[index], 56);
     ctx.strokeStyle = '#20282d'; ctx.lineWidth = 1.5; ctx.strokeRect(px, y - 42, widths[index], 56);
-    drawText(ctx, header, px + widths[index] / 2, y - 4, 21, '#172b33', '700', 'center');
+    drawText(ctx, header, px + widths[index] / 2, y - 4, 21, '#172b33', '700', 'center', 'body');
     px += widths[index];
   });
   rows.forEach((row, rowIndex) => {
@@ -432,7 +458,8 @@ function drawTable(ctx: CanvasRenderingContext2D, x: number, y: number, headers:
     row.forEach((cell, index) => {
       ctx.fillStyle = '#ffffff'; ctx.fillRect(cx, rowY - 40, widths[index], rowHeight);
       ctx.strokeStyle = '#20282d'; ctx.lineWidth = 1; ctx.strokeRect(cx, rowY - 40, widths[index], rowHeight);
-      drawText(ctx, truncateCanvasText(ctx, cell, widths[index] - 20), cx + widths[index] / 2, rowY - 5, 18, '#243640', '500', 'center');
+      setOutputFont(ctx, '500', outputResolvedFontSize(ctx, 18, 'body'));
+      drawText(ctx, truncateCanvasText(ctx, cell, widths[index] - 20), cx + widths[index] / 2, rowY - 5, 18, '#243640', '500', 'center', 'body');
       cx += widths[index];
     });
   });
@@ -475,7 +502,7 @@ function drawDepthPlot(ctx: CanvasRenderingContext2D, x: number, y: number, widt
       ctx.fillStyle = '#efb75d';
       ctx.fillRect(classificationX, top, 4, bandHeight);
     }
-    if (bandHeight >= 28) drawText(ctx, `${band.classCode}${band.approximate ? '*' : ''}`, classificationX + classificationWidth / 2, top + bandHeight / 2 + 7, 18, '#ffffff', '700', 'center');
+    if (bandHeight >= 28) drawText(ctx, `${band.classCode}${band.approximate ? '*' : ''}`, classificationX + classificationWidth / 2, top + bandHeight / 2 + 7, 18, '#ffffff', '700', 'center', 'legend');
   });
   ctx.strokeStyle = '#20282d';
   ctx.lineWidth = 1.5;
@@ -492,14 +519,25 @@ function drawDepthPlot(ctx: CanvasRenderingContext2D, x: number, y: number, widt
     ctx.strokeStyle = '#20282d'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(layerX, top); ctx.lineTo(layerX + layerWidth, top); ctx.stroke();
     const layerHeight = bottom - top;
-    if (layerHeight >= 30) drawText(ctx, `L${snapshot.layers.indexOf(layer) + 1} ${layer.name}`, layerX + 14, top + Math.min(24, layerHeight / 2 + 6), 17, colors.ink, '700');
-    if (layerHeight >= 54) drawText(ctx, `${layer.depthFromM.toFixed(2)}–${layer.depthToM.toFixed(2)} m`, layerX + 14, top + 47, 15, colors.ink, '500');
+    if (layerHeight >= 30) drawText(ctx, `L${snapshot.layers.indexOf(layer) + 1} ${layer.name}`, layerX + 14, top + Math.min(24, layerHeight / 2 + 6), 17, colors.ink, '700', 'left', 'body');
+    if (layerHeight >= 54) drawText(ctx, `${layer.depthFromM.toFixed(2)}–${layer.depthToM.toFixed(2)} m`, layerX + 14, top + 49, 15, colors.ink, '500', 'left', 'legend');
   });
 
-  drawText(ctx, snapshot.classificationMethod?.label ?? '分类证据', classificationX + classificationWidth / 2, y - 30, 18, '#172b33', '700', 'center');
-  drawText(ctx, '工程师确认的最终分层', layerX + layerWidth / 2, y - 30, 18, '#172b33', '700', 'center');
-  drawText(ctx, `${from.toFixed(2)} m`, x - 10, y + 10, 19, '#647580', '400', 'right');
-  drawText(ctx, `${to.toFixed(2)} m`, x - 10, y + height, 19, '#647580', '400', 'right');
+  const compactPage = reportCanvasLogicalSize(ctx).width <= 1500;
+  drawOutputPanelHeading(
+    ctx,
+    compactPage ? ['JTS SBT', '分类带'] : [snapshot.classificationMethod?.label ?? '分类证据'],
+    classificationX + classificationWidth / 2,
+    y,
+  );
+  drawOutputPanelHeading(
+    ctx,
+    compactPage ? ['工程师确认', '最终分层'] : ['工程师确认的最终分层'],
+    layerX + layerWidth / 2,
+    y,
+  );
+  drawText(ctx, `${from.toFixed(2)} m`, x - 10, y + 10, 19, '#647580', '400', 'right', 'legend');
+  drawText(ctx, `${to.toFixed(2)} m`, x - 10, y + height, 19, '#647580', '400', 'right', 'legend');
   drawClassificationLegend(ctx, x + 10, y + height + 46, width - 20, bands, bands.some((band) => band.approximate));
 }
 
@@ -534,21 +572,42 @@ function drawOutputCurveTrack(
     ctx.strokeStyle = track.color; ctx.lineWidth = 3; ctx.stroke();
   });
   ctx.restore();
-  drawText(ctx, track.title, x + width / 2, y - 30, 18, '#172b33', '700', 'center');
-  drawText(ctx, `${compactNumber(minimum)}–${compactNumber(maximum)} ${track.unit}`, x + width / 2, y + height + 24, 14, '#647580', '500', 'center');
+  drawOutputPanelHeading(ctx, [track.title], x + width / 2, y);
+  drawText(ctx, `${compactNumber(minimum)}–${compactNumber(maximum)} ${track.unit}`, x + width / 2, y + height + 24, 14, '#647580', '500', 'center', 'legend');
+}
+
+function drawOutputPanelHeading(ctx: CanvasRenderingContext2D, lines: string[], centerX: number, plotTop: number) {
+  const compactPage = reportCanvasLogicalSize(ctx).width <= 1500;
+  const fontSize = outputResolvedFontSize(ctx, 18, 'title');
+  const lineHeight = fontSize + 2;
+  const lastBaseline = compactPage ? plotTop - 15 : plotTop - 30;
+  const firstBaseline = lastBaseline - (lines.length - 1) * lineHeight;
+  lines.forEach((line, index) => drawText(ctx, line, centerX, firstBaseline + index * lineHeight, 18, '#172b33', '700', 'center', 'title'));
 }
 
 function drawClassificationLegend(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, bands: JtsOutputClassificationBand[], hasApproximate: boolean) {
   const unique = [...new Map(bands.map((band) => [band.classCode, band])).values()];
-  const itemWidth = width / Math.max(1, unique.length);
   const fontSize = Math.max(13, Math.min(18, width / 100));
+  const compactPage = reportCanvasLogicalSize(ctx).width <= 1500;
+  const itemsPerRow = compactPage ? Math.min(5, Math.max(1, unique.length)) : Math.max(1, unique.length);
+  const rowCount = Math.ceil(unique.length / itemsPerRow);
+  const lineHeight = outputResolvedFontSize(ctx, fontSize, 'legend') + 9;
   unique.forEach((band, index) => {
-    const itemX = x + index * itemWidth;
+    const row = Math.floor(index / itemsPerRow);
+    const column = index % itemsPerRow;
+    const rowItems = Math.min(itemsPerRow, unique.length - row * itemsPerRow);
+    const prefixWidth = row === 0 ? (compactPage ? 118 : 138) : 0;
+    const itemWidth = (width - prefixWidth) / Math.max(1, rowItems);
+    const itemX = x + prefixWidth + column * itemWidth;
+    const itemY = y + row * lineHeight;
     ctx.fillStyle = band.color;
-    ctx.fillRect(itemX, y - 14, 12, 12);
-    drawText(ctx, `${band.classCode} ${band.label}`, itemX + 18, y - 3, fontSize, '#566771', '600');
+    ctx.fillRect(itemX, itemY - 14, 12, 12);
+    setOutputFont(ctx, '600', outputResolvedFontSize(ctx, fontSize, 'legend'));
+    const label = truncateCanvasText(ctx, `${band.classCode} ${band.label}`, itemWidth - 22);
+    drawText(ctx, label, itemX + 18, itemY - 3, fontSize, '#566771', '600', 'left', 'legend');
   });
-  if (hasApproximate) drawText(ctx, '* 近似 CPT 分类（仅使用 Ic）', x + width, y + 25, fontSize - 1, '#9a6518', '500', 'right');
+  drawText(ctx, '分类图例：', x, y - 3, fontSize, '#33464e', '700', 'left', 'legend');
+  if (hasApproximate) drawText(ctx, '* 近似 CPT 分类（仅使用 Ic）', x + width, y + rowCount * lineHeight + 3, fontSize - 1, '#9a6518', '500', 'right', 'legend');
 }
 
 function drawParameterPage(
@@ -587,13 +646,13 @@ function drawParameterPage(
       const ratio = tick / depthTickCount;
       const py = plotY + ratio * plotHeight;
       ctx.beginPath(); ctx.moveTo(axisLeft, py); ctx.lineTo(axisRight, py); ctx.stroke();
-      drawText(ctx, (minDepth + ratio * depthSpan).toFixed(2), axisLeft - 14, py + 6, 16, '#647580', '500', 'right');
+      drawText(ctx, (minDepth + ratio * depthSpan).toFixed(2), axisLeft - 14, py + 6, 16, '#647580', '500', 'right', 'legend');
     }
     for (let tick = 0; tick <= 4; tick += 1) {
       const ratio = tick / 4;
       const px = axisLeft + ratio * axisWidth;
       ctx.beginPath(); ctx.moveTo(px, plotY); ctx.lineTo(px, plotY + plotHeight); ctx.stroke();
-      drawText(ctx, parameterAxisNumber(minimum + ratio * (maximum - minimum), maximum - minimum), px, plotY + plotHeight + 26, 15, '#647580', '500', 'center');
+      drawText(ctx, parameterAxisNumber(minimum + ratio * (maximum - minimum), maximum - minimum), px, plotY + plotHeight + 26, 15, '#647580', '500', 'center', 'legend');
     }
     ctx.translate(plotX + 28, plotY + plotHeight / 2);
     ctx.rotate(-Math.PI / 2);
@@ -627,7 +686,7 @@ function drawParameterPage(
   }
 }
 
-function footer(ctx: CanvasRenderingContext2D, width: number, height: number, page: number, total: number, snapshot?: JtsOutputSnapshotV7) { ctx.fillStyle = '#dce5ea'; ctx.fillRect(90, height - 100, width - 180, 2); drawText(ctx, `SIGS-OGLab · ${snapshot?.classificationMethod?.label ?? 'CPT/CPTU 专业解译'} · ${page}/${total}`, 90, height - 52, 20, '#6a7c87'); }
+function footer(ctx: CanvasRenderingContext2D, width: number, height: number, page: number, total: number, snapshot?: JtsOutputSnapshotV7) { ctx.fillStyle = '#dce5ea'; ctx.fillRect(90, height - 100, width - 180, 2); drawText(ctx, `SIGS-OGLab · ${snapshot?.classificationMethod?.label ?? 'CPT/CPTU 专业解译'} · ${page}/${total}`, 90, height - 52, 20, '#6a7c87', '400', 'left', 'source'); }
 
 function buildPdf(pages: Array<{ jpeg: Uint8Array; pixelWidth: number; pixelHeight: number }>, media: { width: number; height: number }, snapshot: JtsOutputSnapshotV7) {
   const objects: Uint8Array[] = [];

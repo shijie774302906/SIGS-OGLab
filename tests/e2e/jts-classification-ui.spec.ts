@@ -5,6 +5,11 @@ import path from 'node:path';
 import { existsSync } from 'node:fs';
 import { completeThinLayerGuide, confirmPendingStratificationLayers } from './stratification-guide-helpers';
 
+const process148EvidenceEnabled = process.env.PROCESS148_EVIDENCE === '1';
+const process148EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process148-keep-current-layers');
+const process150EvidenceEnabled = process.env.PROCESS150_EVIDENCE === '1';
+const process150EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process150-stratification-origin-rollback');
+
 test('no-u2 JTS approximate classification becomes an editable, committed, and stale-aware scheme', async ({ page }, testInfo) => {
   test.setTimeout(60_000);
   const inputPath = testInfo.outputPath('jts-approx-classification.csv');
@@ -67,7 +72,103 @@ test('no-u2 JTS approximate classification becomes an editable, committed, and s
   await page.getByTestId('guided-use-jts').click();
   await expect(page.getByTestId('guided-use-jts')).toHaveAttribute('aria-pressed', 'true');
   await page.getByTestId('guided-generation-confirm').click();
+  await expect(page.getByTestId('layer-cleanup-method-dialog')).toBeVisible();
+  await expect(page.getByTestId('layer-cleanup-method-dialog')).toContainText('使用当前分层');
+  const process148Layouts: Array<Record<string, unknown>> = [];
+  if (process148EvidenceEnabled) {
+    mkdirSync(process148EvidenceDirectory, { recursive: true });
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+      await page.setViewportSize(viewport);
+      const layout = await page.getByTestId('layer-cleanup-method-dialog').evaluate((dialog) => {
+        const rect = dialog.getBoundingClientRect();
+        const keep = dialog.querySelector<HTMLElement>('[data-testid="layer-cleanup-keep-current"]')?.getBoundingClientRect();
+        return {
+          viewport: { width: innerWidth, height: innerHeight },
+          dialogFits: rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight,
+          keepCurrentVisible: Boolean(keep && keep.left >= rect.left && keep.right <= rect.right && keep.top >= rect.top && keep.bottom <= rect.bottom),
+          documentOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        };
+      });
+      process148Layouts.push(layout);
+      await page.screenshot({ path: path.join(process148EvidenceDirectory, `method-choice-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+  }
+  const layerStructureBefore = await page.getByTestId('stratification-layer-table').locator('button').allTextContents();
+  await page.getByRole('button', { name: '关闭整理分层' }).click();
+  await expect(page.getByTestId('stratification-first-look')).toContainText('先整理分层');
+  await expect.poll(() => readState(page)).toMatchObject({ workingOrigin: 'jts-classification', baselineOrigin: 'jts-classification' });
+  await expect.poll(async () => {
+    const origins = (await readState(page)).undoOrigins;
+    return Array.isArray(origins) && origins.length > 0 && origins.every((origin) => origin === 'jts-classification');
+  }).toBe(true);
+  await page.getByTestId('stratification-guide-back').click();
+  await expect(page.getByTestId('stratification-rollback-confirmation')).toContainText('放弃本次候选并返回生成方式');
+  const process150Layouts: Array<Record<string, unknown>> = [];
+  if (process150EvidenceEnabled) {
+    mkdirSync(process150EvidenceDirectory, { recursive: true });
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+      await page.setViewportSize(viewport);
+      process150Layouts.push(await page.getByTestId('stratification-rollback-confirmation').evaluate((dialog) => {
+        const rect = dialog.getBoundingClientRect();
+        return {
+          viewport: { width: innerWidth, height: innerHeight },
+          dialogFits: rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight,
+          documentOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        };
+      }));
+      await page.screenshot({ path: path.join(process150EvidenceDirectory, `return-without-review-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+  }
+  await page.getByTestId('stratification-rollback-confirm').click();
+  await expect(page.getByTestId('stratification-rollback-confirmation')).toHaveCount(0);
+  await expect(page.getByTestId('project-storage-workspace-notice')).toHaveCount(0);
+  await expect.poll(() => readState(page)).toMatchObject({ schemeCount: 0 });
+  if (process150EvidenceEnabled) {
+    writeFileSync(path.join(process150EvidenceDirectory, 'browser-check.json'), JSON.stringify({
+      flow: 'PROCESS150',
+      layouts: process150Layouts,
+      persistedAfterReturn: await readState(page),
+      saveAlertCount: await page.getByTestId('project-storage-workspace-notice').count(),
+      browserErrors: errors,
+    }, null, 2));
+  }
+  await page.getByTestId('stratification-primary-action').click();
+  await page.getByTestId('guided-use-jts').click();
+  await page.getByTestId('guided-generation-confirm').click();
+  await expect(page.getByTestId('layer-cleanup-method-dialog')).toBeVisible();
+  await page.getByTestId('layer-cleanup-keep-current').click();
+  await expect(page.getByTestId('layer-cleanup-method-dialog')).toHaveCount(0);
+  await expect(page.getByTestId('stratification-first-look')).toContainText('逐层确认');
   await expect(page.getByTestId('stratification-layer-table').locator('button')).toHaveCount(5);
+  const layerStructureAfter = await page.getByTestId('stratification-layer-table').locator('button').allTextContents();
+  expect(layerStructureAfter).toEqual(layerStructureBefore);
+  await expect.poll(() => readState(page)).toMatchObject({ workingLayerStructureReviewCount: 1, workingLayerCount: 5, workingBoundaryCount: 4 });
+  if (process148EvidenceEnabled) {
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+      await page.setViewportSize(viewport);
+      await page.screenshot({ path: path.join(process148EvidenceDirectory, `current-layers-confirmed-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
+    }
+    await page.setViewportSize({ width: 1440, height: 900 });
+    writeFileSync(path.join(process148EvidenceDirectory, 'browser-check.json'), JSON.stringify({
+      flow: 'PROCESS148',
+      layouts: process148Layouts,
+      beforeLayerLabels: layerStructureBefore,
+      afterLayerLabels: layerStructureAfter,
+      state: await readState(page),
+      browserErrors: errors,
+    }, null, 2));
+  }
+  await page.reload();
+  await expect(page.getByTestId('layer-cleanup-method-dialog')).toHaveCount(0);
+  await expect.poll(() => readState(page)).toMatchObject({ workingLayerStructureReviewCount: 1, workingLayerCount: 5, workingBoundaryCount: 4 });
+  await page.getByTestId('stratification-guide-back').click();
+  await page.getByTestId('stratification-rollback-confirm').click();
+  await expect(page.getByTestId('stratification-first-look')).toContainText('先整理分层');
+  await expect.poll(() => readState(page)).toMatchObject({ workingLayerStructureReviewCount: 0, workingLayerCount: 5, workingBoundaryCount: 4 });
+  await page.getByTestId('stratification-primary-action').click();
+  await page.getByTestId('layer-cleanup-keep-current').click();
   await expect(page.getByTestId('stratification-layer-decision-panel')).toBeVisible();
   await confirmAllCandidateLayers(page);
   await page.getByTestId('stratification-save').click();
@@ -840,6 +941,12 @@ async function readState(page: import('@playwright/test').Page) {
       poreClassCount: activeRun?.rows.filter((row) => row.poreClass).length ?? 0,
       sameClassificationCount: activeRun?.summary.sameCount ?? 0,
       schemeCount: workspace?.schemes.length ?? 0,
+      workingLayerStructureReviewCount: workspace?.editSession?.working.layerStructureReviewHistory?.length ?? 0,
+      workingLayerCount: workspace?.editSession?.working.layers.length ?? 0,
+      workingBoundaryCount: workspace?.editSession?.working.boundaries.length ?? 0,
+      workingOrigin: workspace?.editSession?.working.origin?.kind ?? null,
+      baselineOrigin: workspace?.editSession?.baseline.origin?.kind ?? null,
+      undoOrigins: workspace?.editSession?.undoStack.map((snapshot) => snapshot.origin?.kind ?? null) ?? [],
       currentSchemeOrigin: currentScheme?.origin?.kind ?? null,
       currentSchemeStatus: currentScheme?.status ?? null,
       currentSchemeBoundaryEvidenceCount: currentScheme?.boundaries.filter((boundary) => boundary.jtsCandidateRef).length ?? 0,

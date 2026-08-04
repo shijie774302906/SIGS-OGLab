@@ -1227,20 +1227,20 @@ export function quickPlotFormulaAudit(_settings: QuickPlotSettingsV1, rows: Quic
 
 function drawReferencesPage(ctx: CanvasRenderingContext2D, box: PlotBox, settings: QuickPlotSettingsV1, rows: QuickDerived[]) {
   const audit = quickPlotFormulaAudit(settings, rows); const groups = audit.groups;
-  fitCenteredText(ctx, '本次产生有效结果的方法、适用条件与公式', box.x + box.width / 2, box.y + 18, box.width, 20, '#111719', '700', 16);
-  fitCenteredText(ctx, QUICK_PARAMETER_CLASSIFICATION_BASIS, box.x + box.width / 2, box.y + 42, box.width, 12, '#132a35', '700', 10);
-  fitCenteredText(ctx, QUICK_PARAMETER_COMPARISON_ROLE, box.x + box.width / 2, box.y + 58, box.width, 11, '#596b72', '500', 9);
+  fitCenteredText(ctx, '本次产生有效结果的方法、适用条件与公式', box.x + box.width / 2, box.y + 18, box.width, 20, '#111719', '700', 16, 'title');
+  fitCenteredText(ctx, QUICK_PARAMETER_CLASSIFICATION_BASIS, box.x + box.width / 2, box.y + 42, box.width, 12, '#132a35', '700', 10, 'body');
+  fitCenteredText(ctx, QUICK_PARAMETER_COMPARISON_ROLE, box.x + box.width / 2, box.y + 58, box.width, 11, '#596b72', '500', 9, 'body');
   const totalPorePressure = settings.u2Usage === 'total' || (!settings.u2Usage && settings.pressureBasisConfirmed);
   const coefficients = [['有效面积比', `a = ${settings.effectiveAreaRatio.toFixed(2)}`], ['水深 / u2 基准', `${settings.waterDepthM.toFixed(2)} m · ${totalPorePressure ? '总孔压' : '未用于计算'}`], ['参考压力', 'pa = 100 kPa'], ['水重度', 'γw = 10.00 kN/m³'], ['土粒比重', 'Gs = 2.65'], ['不排水强度系数', 'Nkt = 15.5'], ['灵敏度系数', 'Ns = 6.3'], ['超固结系数', 'kOCR = 0.16'], ['K0 黏土预设', 'φ′ = 30°']];
   const coefficientBox = { x: box.x, y: box.y + 78, width: box.width, height: 114 }; const cellWidth = coefficientBox.width / 3; const cellHeight = coefficientBox.height / 3;
-  coefficients.forEach(([label, value], index) => { const column = index % 3, row = Math.floor(index / 3), x = coefficientBox.x + column * cellWidth, y = coefficientBox.y + row * cellHeight; ctx.fillStyle = row ? '#f6f7f7' : '#fff'; ctx.fillRect(x, y, cellWidth, cellHeight); reportFrame(ctx, { x, y, width: cellWidth, height: cellHeight }); text(ctx, label, x + 10, y + 18, 10, '#526168'); text(ctx, value, x + cellWidth - 10, y + 31, 11, '#26343a', '700', 'right'); });
+  coefficients.forEach(([label, value], index) => { const column = index % 3, row = Math.floor(index / 3), x = coefficientBox.x + column * cellWidth, y = coefficientBox.y + row * cellHeight; ctx.fillStyle = row ? '#f6f7f7' : '#fff'; ctx.fillRect(x, y, cellWidth, cellHeight); reportFrame(ctx, { x, y, width: cellWidth, height: cellHeight }); text(ctx, label, x + 10, y + 18, 10, '#526168', '400', 'left', 'body'); text(ctx, value, x + cellWidth - 10, y + 31, 11, '#26343a', '700', 'right', 'body'); });
   const formulaBox = { x: box.x, y: coefficientBox.y + coefficientBox.height + 18, width: box.width, height: 744 }; const columnGap = 18; const columnWidth = (formulaBox.width - columnGap) / 2; const columns = [groups.slice(0, 8), groups.slice(8)];
-  columns.forEach((columnGroups, columnIndex) => { const left = formulaBox.x + columnIndex * (columnWidth + columnGap); const rowHeight = formulaBox.height / Math.max(1, columnGroups.length); columnGroups.forEach((group, index) => { const y = formulaBox.y + index * rowHeight; ctx.fillStyle = index % 2 ? '#f8f9f9' : '#fff'; ctx.fillRect(left, y, columnWidth, rowHeight - 2); ctx.fillStyle = '#9d6c45'; ctx.fillRect(left, y, 4, rowHeight - 2); reportFrame(ctx, { x: left, y, width: columnWidth, height: rowHeight - 2 }); fitLeftText(ctx, group.title, left + 12, y + 17, columnWidth - 120, 11, '#111719', '700', 9); text(ctx, `${group.validCount.toLocaleString('zh-CN')} 个值`, left + columnWidth - 10, y + 17, 9, '#65747b', '500', 'right'); fitLeftText(ctx, `适用：${group.applicability}`, left + 12, y + 32, columnWidth - 24, 8, '#6a777c', '500', 7); group.formulas.forEach((formula, formulaIndex) => fitLeftText(ctx, formula, left + 12, y + 49 + formulaIndex * 14, columnWidth - 24, 8, '#26343a', '500', 6.2)); }); });
+  columns.forEach((columnGroups, columnIndex) => { const left = formulaBox.x + columnIndex * (columnWidth + columnGap); const rowHeight = formulaBox.height / Math.max(1, columnGroups.length); columnGroups.forEach((group, index) => { const y = formulaBox.y + index * rowHeight; ctx.fillStyle = index % 2 ? '#f8f9f9' : '#fff'; ctx.fillRect(left, y, columnWidth, rowHeight - 2); ctx.fillStyle = '#9d6c45'; ctx.fillRect(left, y, 4, rowHeight - 2); reportFrame(ctx, { x: left, y, width: columnWidth, height: rowHeight - 2 }); fitLeftText(ctx, group.title, left + 12, y + 17, columnWidth - 120, 11, '#111719', '700', 9, 'body'); text(ctx, `${group.validCount.toLocaleString('zh-CN')} 个值`, left + columnWidth - 10, y + 17, 9, '#65747b', '500', 'right', 'body'); fitLeftText(ctx, `适用：${group.applicability}`, left + 12, y + 32, columnWidth - 24, 8, '#6a777c', '500', 7, 'body'); group.formulas.forEach((formula, formulaIndex) => fitLeftText(ctx, formula, left + 12, y + 49 + formulaIndex * 14, columnWidth - 24, 8, '#26343a', '500', 6.2, 'body')); }); });
   const usedIds = audit.formulaIds;
   const referenceMap = new Map<string, string>(QUICK_PLOT_REFERENCES as unknown as Array<readonly [string, string]>); referenceMap.set('A02', '快捷方法包实现约定：未使用或缺失 u2 的行取 qt=qc；Su(rem)=Su/St；K0 的黏性土 φ′ 缺失时采用 30° 预设。');
   const referenceY = formulaBox.y + formulaBox.height + 26; text(ctx, '参考来源', box.x, referenceY, 13, '#111719', '700'); reportLine(ctx, box.x, referenceY + 10, box.x + box.width, referenceY + 10, 'axis');
   const refColumns = [usedIds.filter((_, index) => index % 2 === 0), usedIds.filter((_, index) => index % 2 === 1)];
-  refColumns.forEach((ids, columnIndex) => ids.forEach((id, index) => { const left = box.x + columnIndex * (box.width / 2 + 9); const top = referenceY + 30 + index * 50; text(ctx, id, left, top, 10, '#9d6c45', '700'); drawWrappedLines(ctx, referenceMap.get(id) ?? '来源条目缺失', left + 34, top, box.width / 2 - 48, 9, 12, '#33464e', 3); }));
+  refColumns.forEach((ids, columnIndex) => ids.forEach((id, index) => { const left = box.x + columnIndex * (box.width / 2 + 9); const top = referenceY + 30 + index * 62; text(ctx, id, left, top, 10, '#9d6c45', '700', 'left', 'source'); drawWrappedLines(ctx, referenceMap.get(id) ?? '来源条目缺失', left + 34, top, box.width / 2 - 48, 9, 12, '#33464e', 4, 'source'); }));
   drawPageNote(ctx, box, '公式、系数和来源来自当前快捷方法包；未选择、未计算或没有有效结果的方法不占用本页。');
 }
 
@@ -1415,9 +1415,69 @@ function panelTitle(ctx: CanvasRenderingContext2D, x: number, y: number, width: 
 function majorColor(major: QuickDerived['major']) { return QUICK_SOIL_COLORS[major]; }
 function depthColor(depth: number, rows: QuickPlotRowV1[]) { const values = rows.map((r) => r.depthM); const min = Math.min(...values), max = Math.max(...values); const t = max > min ? (depth - min) / (max - min) : 0; return `hsl(${205 - t * 165} 58% ${42 + t * 8}%)`; }
 function formatAxis(value: number) { const abs = Math.abs(value); return abs >= 1000 ? `${(value / 1000).toFixed(1)}k` : abs > 0 && abs < .01 ? value.toExponential(1) : value.toFixed(abs < 10 ? 2 : 0); }
-function text(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, size: number, color: string, weight = '400', align: CanvasTextAlign = 'left') { ctx.font = `${weight} ${size}px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif`; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'alphabetic'; ctx.fillText(value, x, y); }
-function fitCenteredText(ctx: CanvasRenderingContext2D, value: string, centerX: number, y: number, maxWidth: number, preferredSize: number, color: string, weight = '700', minimumSize = 11) { let size = preferredSize; while (size > minimumSize) { ctx.font = `${weight} ${size}px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif`; if (ctx.measureText(value).width <= maxWidth) break; size -= 1; } text(ctx, value, centerX, y, size, color, weight, 'center'); }
-function fitLeftText(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, maxWidth: number, preferredSize: number, color: string, weight = '400', minimumSize = 11) { let size = preferredSize; while (size > minimumSize) { ctx.font = `${weight} ${size}px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif`; if (ctx.measureText(value).width <= maxWidth) break; size -= 1; } text(ctx, value, x, y, size, color, weight); }
+export const QUICK_REPORT_FONT_PT_FLOORS = Object.freeze({
+  source: 8,
+  legend: 9,
+  body: 10,
+  title: 12,
+});
+
+const A3_PHYSICAL_WIDTH_PT = Object.freeze({ portrait: 841.89, landscape: 1190.55 });
+const QUICK_REPORT_LOGICAL_WIDTH = Object.freeze({ portrait: 1080, landscape: 1920 });
+
+export function quickReportLogicalPixelsForPoints(orientation: 'portrait' | 'landscape', points: number) {
+  return Math.ceil(points * QUICK_REPORT_LOGICAL_WIDTH[orientation] / A3_PHYSICAL_WIDTH_PT[orientation]);
+}
+
+export type QuickReportTextRole = keyof typeof QUICK_REPORT_FONT_PT_FLOORS;
+
+export function quickReportResolvedFontSize(orientation: 'portrait' | 'landscape', requestedSize: number, role?: QuickReportTextRole) {
+  const floorPt = role ? QUICK_REPORT_FONT_PT_FLOORS[role] : requestedSize <= 13
+      ? QUICK_REPORT_FONT_PT_FLOORS.legend
+      : requestedSize <= 17
+        ? QUICK_REPORT_FONT_PT_FLOORS.body
+        : QUICK_REPORT_FONT_PT_FLOORS.title;
+  return Math.max(requestedSize, quickReportLogicalPixelsForPoints(orientation, floorPt));
+}
+
+function reportOrientation(ctx: CanvasRenderingContext2D): 'portrait' | 'landscape' {
+  const transform = ctx.getTransform();
+  const logicalWidth = transform.a ? ctx.canvas.width / transform.a : ctx.canvas.width;
+  const logicalHeight = transform.d ? ctx.canvas.height / transform.d : ctx.canvas.height;
+  return logicalWidth > logicalHeight ? 'landscape' : 'portrait';
+}
+
+function resolvedReportFontSize(ctx: CanvasRenderingContext2D, requestedSize: number, role?: QuickReportTextRole) {
+  return quickReportResolvedFontSize(reportOrientation(ctx), requestedSize, role);
+}
+
+function setReportFont(ctx: CanvasRenderingContext2D, weight: string, size: number) {
+  ctx.font = `${weight} ${size}px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif`;
+}
+
+function drawReportText(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, size: number, color: string, weight: string, align: CanvasTextAlign) {
+  setReportFont(ctx, weight, size);
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(value, x, y);
+}
+
+function text(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, size: number, color: string, weight = '400', align: CanvasTextAlign = 'left', role?: QuickReportTextRole) {
+  drawReportText(ctx, value, x, y, resolvedReportFontSize(ctx, size, role), color, weight, align);
+}
+function fitCenteredText(ctx: CanvasRenderingContext2D, value: string, centerX: number, y: number, maxWidth: number, preferredSize: number, color: string, weight = '700', minimumSize = 11, role?: QuickReportTextRole) {
+  let size = resolvedReportFontSize(ctx, preferredSize, role);
+  const floor = resolvedReportFontSize(ctx, minimumSize, role);
+  while (size > floor) { setReportFont(ctx, weight, size); if (ctx.measureText(value).width <= maxWidth) break; size -= 1; }
+  drawReportText(ctx, value, centerX, y, size, color, weight, 'center');
+}
+function fitLeftText(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, maxWidth: number, preferredSize: number, color: string, weight = '400', minimumSize = 11, role?: QuickReportTextRole) {
+  let size = resolvedReportFontSize(ctx, preferredSize, role);
+  const floor = resolvedReportFontSize(ctx, minimumSize, role);
+  while (size > floor) { setReportFont(ctx, weight, size); if (ctx.measureText(value).width <= maxWidth) break; size -= 1; }
+  drawReportText(ctx, value, x, y, size, color, weight, 'left');
+}
 function drawPageNote(ctx: CanvasRenderingContext2D, box: PlotBox, value: string) { fitCenteredText(ctx, value, box.x + box.width / 2, box.y + box.height + 18, box.width, 13, '#596b72', '500', 11); }
 function drawParameterBasisNote(ctx: CanvasRenderingContext2D, box: PlotBox, emptyValue: string) {
   fitLeftText(ctx, QUICK_PARAMETER_CLASSIFICATION_BASIS, box.x, box.y + box.height + 1, box.width, 15, '#132a35', '700', 12);
@@ -1425,7 +1485,39 @@ function drawParameterBasisNote(ctx: CanvasRenderingContext2D, box: PlotBox, emp
 }
 function reportLine(ctx: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, kind: 'axis' | 'grid' | 'light') { ctx.save(); ctx.strokeStyle = kind === 'axis' ? QUICK_REPORT_STYLE.axis : kind === 'grid' ? QUICK_REPORT_STYLE.grid : QUICK_REPORT_STYLE.gridLight; ctx.lineWidth = kind === 'axis' ? QUICK_REPORT_STYLE.axisWidth : kind === 'grid' ? QUICK_REPORT_STYLE.gridWidth : 0.8; ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore(); }
 function reportFrame(ctx: CanvasRenderingContext2D, box: PlotBox) { ctx.save(); ctx.strokeStyle = QUICK_REPORT_STYLE.ink; ctx.lineWidth = QUICK_REPORT_STYLE.frameWidth; ctx.setLineDash([]); ctx.strokeRect(box.x, box.y, box.width, box.height); ctx.restore(); }
-function drawWrappedLines(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, width: number, size: number, lineHeight: number, color: string, maxLines: number) { ctx.font=`400 ${size}px "Microsoft YaHei", "Noto Sans CJK SC", sans-serif`;ctx.fillStyle=color;ctx.textAlign='left';ctx.textBaseline='alphabetic';const tokens=value.split(/(?<=\s)|(?=[，；：。])/);const lines:string[]=[];let line='';for(const token of tokens){const next=line+token;if(ctx.measureText(next).width>width&&line){lines.push(line.trim());line=token.trimStart();if(lines.length===maxLines-1)break;}else line=next;}if(line&&lines.length<maxLines)lines.push(line.trim());lines.forEach((item,index)=>{let display=item;if(index===maxLines-1&&ctx.measureText(display).width>width){while(display.length>1&&ctx.measureText(`${display}…`).width>width)display=display.slice(0,-1);display=`${display}…`;}ctx.fillText(display,x,y+index*lineHeight);});}
+function drawWrappedLines(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, width: number, size: number, lineHeight: number, color: string, maxLines: number, role?: QuickReportTextRole) {
+  const resolvedSize = resolvedReportFontSize(ctx, size, role);
+  const resolvedLineHeight = Math.max(lineHeight, Math.ceil(lineHeight * resolvedSize / size));
+  setReportFont(ctx, '400', resolvedSize);
+  ctx.fillStyle = color;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const tokens = value.split(/(?<=\s)|(?=[,;:，；：。])/);
+  const lines: string[] = [];
+  let line = '';
+  let consumedTokens = 0;
+  for (const token of tokens) {
+    const next = line + token;
+    if (ctx.measureText(next).width > width && line) {
+      lines.push(line.trim());
+      if (lines.length >= maxLines) break;
+      line = token.trimStart();
+    } else {
+      line = next;
+    }
+    consumedTokens += 1;
+  }
+  if (line && lines.length < maxLines) lines.push(line.trim());
+  const truncated = consumedTokens < tokens.length;
+  lines.slice(0, maxLines).forEach((item, index) => {
+    let display = item;
+    if (index === maxLines - 1 && truncated) {
+      while (display.length > 1 && ctx.measureText(`${display}…`).width > width) display = display.slice(0, -1);
+      display = `${display.trimEnd()}…`;
+    }
+    ctx.fillText(display, x, y + index * resolvedLineHeight);
+  });
+}
 
 function ascii(value: string) { return new TextEncoder().encode(value); }
 function concat(parts: Uint8Array[]) { const size = parts.reduce((sum, p) => sum + p.length, 0); const result = new Uint8Array(size); let offset = 0; parts.forEach((p) => { result.set(p, offset); offset += p.length; }); return result; }

@@ -1,6 +1,7 @@
 import {
   Bot,
   CheckCircle2,
+  ChevronLeft,
   ChevronDown,
   ClipboardList,
   Copy,
@@ -4438,7 +4439,7 @@ function ProjectWorkspaceApp({
   const parameterProblemCount = parameterInvalidInputCount + parameterUndefinedCount;
   const parameterScopeConfirmedForOutput = Boolean(currentGuidedJtsPackage?.settingsSnapshot.outputScopeConfirmedAt);
   const parameterScopeIncludedMethodIds = currentGuidedJtsPackage?.settingsSnapshot.outputScopeIncludedMethodIds ?? [];
-  const jtsParameterReadyForOutput = Boolean(currentGuidedJtsPackage?.status === 'completed' && parameterScopeConfirmedForOutput && parameterScopeIncludedMethodIds.length > 0);
+  const jtsParameterReadyForOutput = Boolean(currentGuidedJtsPackage?.status === 'completed' && !parameterWorkspace.guidedParameterDraft && parameterScopeConfirmedForOutput && parameterScopeIncludedMethodIds.length > 0);
   const parameterScopeIncludedMethodLabels = parameterScopeIncludedMethodIds.map((methodId) => JTS_PARAMETER_METHOD_META[methodId].symbol);
   const parameterScopeExcludedMethodLabels = (currentGuidedJtsPackage?.settingsSnapshot.outputScopeExcludedMethodIds ?? []).map((methodId) => JTS_PARAMETER_METHOD_META[methodId].symbol);
   const parametersReadyForOutput = jtsParameterReadyForOutput || (parameterAuthorityCurrentForOutput && parameterProblemCount === 0);
@@ -5851,6 +5852,63 @@ function ProjectWorkspaceApp({
     const redone = redoStratificationCommand(stratificationWorkspace);
     if (!redone.ok) return reportStratificationProblem(redone.problem);
     void updateStratificationWorkspace(redone.workspace, '已重做分层编辑。');
+  }
+
+  async function rollbackCurrentStratificationGuideStep(): Promise<boolean> {
+    const session = stratificationWorkspace.editSession;
+    if (!session) {
+      reportStratificationProblem('当前没有可返回的分层步骤。');
+      return false;
+    }
+    if (session.staleReason) {
+      reportStratificationProblem('上游检查已经变化，请先放弃当前编辑，再基于最新检查创建修订。');
+      return false;
+    }
+    const persistRollback = async (
+      workspace: StratificationWorkspaceV2,
+      feedback: string,
+      selectionPatch?: Partial<WorkflowSelectionState>,
+    ) => {
+      const accepted = await Promise.resolve(updateStratificationWorkspace(workspace, feedback, selectionPatch));
+      if (accepted === false) return false;
+      return onWaitForDurability ? onWaitForDurability() : true;
+    };
+    const structureReviewCount = session.working.layerStructureReviewHistory?.length ?? 0;
+    const cleanupCount = session.working.thinLayerCleanupHistory?.length ?? 0;
+    const simplificationCount = session.working.layerSimplificationHistory?.length ?? 0;
+    let targetIndex = -1;
+    for (let index = session.undoStack.length - 1; index >= 0; index -= 1) {
+      const snapshot = session.undoStack[index];
+      if ((snapshot.layerStructureReviewHistory?.length ?? 0) < structureReviewCount
+        || (snapshot.thinLayerCleanupHistory?.length ?? 0) < cleanupCount
+        || (snapshot.layerSimplificationHistory?.length ?? 0) < simplificationCount) {
+        targetIndex = index;
+        break;
+      }
+    }
+    if (targetIndex >= 0) {
+      const next = structuredClone(stratificationWorkspace);
+      const nextSession = next.editSession!;
+      nextSession.working = structuredClone(nextSession.undoStack[targetIndex]);
+      nextSession.undoStack = nextSession.undoStack.slice(0, targetIndex);
+      nextSession.redoStack = [];
+      nextSession.dirty = nextSession.isNew || JSON.stringify(nextSession.working) !== JSON.stringify(nextSession.baseline);
+      return persistRollback(next, '已返回整理分层步骤；后续逐层确认已撤销，请重新选择整理方式。');
+    }
+    if (session.isNew) {
+      const discarded = discardStratificationEdit(stratificationWorkspace);
+      if (!discarded.ok) {
+        reportStratificationProblem(discarded.problem);
+        return false;
+      }
+      return persistRollback(discarded.workspace, '已撤销本次候选，可重新选择分层生成方式。', {
+        selectedSchemeId: discarded.workspace.activeSchemeId ?? '',
+        selectedLayerId: '',
+        selectedBoundaryId: '',
+      });
+    }
+    reportStratificationProblem('当前步骤之前没有可恢复的编辑快照。');
+    return false;
   }
 
   function duplicateCurrentStratificationScheme() {
@@ -7441,6 +7499,7 @@ function ProjectWorkspaceApp({
               onDiscard={discardCurrentStratificationEdit}
               onUndo={undoCurrentStratificationEdit}
               onRedo={redoCurrentStratificationEdit}
+              onRollbackGuide={rollbackCurrentStratificationGuideStep}
               onDuplicate={duplicateCurrentStratificationScheme}
               onSelectLayer={selectLayerId}
               onSelectBoundary={selectBoundaryId}
@@ -7735,6 +7794,7 @@ function ProjectWorkspaceApp({
         scheme={activeStratificationScheme}
         rows={governedCheckDraft.rows}
         onClose={() => setThinLayerGuideOpen(false)}
+        onKeepCurrent={() => Boolean(executeStratificationCommand({ kind: 'confirm-current-layer-structure' }))}
         onApplyThin={(analysis, decisions) => Boolean(executeStratificationCommand({
           kind: 'apply-thin-layer-plan',
           thresholdM: analysis.thresholdM,
@@ -10474,6 +10534,8 @@ function StratificationWorkflowGuide({
   decisionDescription,
   onAction,
   actionLabel,
+  canRollback,
+  onRollback,
 }: {
   dataReady: boolean;
   scheme: StratificationSchemeV2 | null;
@@ -10486,6 +10548,8 @@ function StratificationWorkflowGuide({
   decisionDescription: string;
   onAction: () => void;
   actionLabel: string;
+  canRollback: boolean;
+  onRollback: () => void;
 }) {
   type StepState = 'complete' | 'current' | 'problem' | 'warning' | 'pending';
   const candidateReady = Boolean(scheme);
@@ -10511,8 +10575,11 @@ function StratificationWorkflowGuide({
         ))}
       </div>
       <div className="workflow-current-action">
-        <div><span>当前判断</span><strong>{decisionTitle}</strong><p>{decisionDescription}</p></div>
-        {actionLabel ? <button type="button" className="toolbar-button primary" data-testid={actionLabel.includes('设为当前') ? 'stratification-save' : 'stratification-primary-action'} onClick={onAction}>{actionLabel}</button> : <span className="workflow-inline-status">请在下方图中确认当前层</span>}
+        <div className="workflow-current-copy"><span>当前判断</span><strong>{decisionTitle}</strong><p>{decisionDescription}</p></div>
+        <div className="workflow-current-actions">
+          {canRollback ? <button type="button" className="toolbar-button" data-testid="stratification-guide-back" onClick={onRollback}><ChevronLeft />返回上一步</button> : null}
+          {actionLabel ? <button type="button" className="toolbar-button primary" data-testid={actionLabel.includes('设为当前') ? 'stratification-save' : 'stratification-primary-action'} onClick={onAction}>{actionLabel}</button> : <span className="workflow-inline-status">请在下方图中确认当前层</span>}
+        </div>
       </div>
     </section>
   );
@@ -10531,12 +10598,14 @@ function LayerCleanupGuideDialog({
   scheme,
   rows,
   onClose,
+  onKeepCurrent,
   onApplyThin,
   onApplySimplification,
 }: {
   scheme: StratificationSchemeV2;
   rows: ThinLayerEvidenceRow[];
   onClose: () => void;
+  onKeepCurrent: () => boolean;
   onApplyThin: (analysis: ThinLayerAnalysis, decisions: ThinLayerPlanDecision[]) => boolean;
   onApplySimplification: (analysis: MajorGroupMergeAnalysis) => boolean;
 }) {
@@ -10564,7 +10633,8 @@ function LayerCleanupGuideDialog({
           </button>
         </div>
         <div className="confirmation-dialog-actions">
-          <button type="button" className="toolbar-button" onClick={onClose}>暂不整理</button>
+          <button type="button" className="toolbar-button" onClick={onClose}>取消</button>
+          <button type="button" className="toolbar-button" onClick={() => { if (onKeepCurrent()) onClose(); }} data-testid="layer-cleanup-keep-current">使用当前分层</button>
         </div>
       </section>
     </div>
@@ -11093,6 +11163,7 @@ function StratificationWorkbenchDocument({
   onDiscard,
   onUndo,
   onRedo,
+  onRollbackGuide,
   onDuplicate,
   onSelectLayer,
   onSelectBoundary,
@@ -11126,6 +11197,7 @@ function StratificationWorkbenchDocument({
   onDiscard: () => void;
   onUndo: () => void;
   onRedo: () => void;
+  onRollbackGuide: () => Promise<boolean>;
   onDuplicate: () => void;
   onSelectLayer: (layerId: string) => void;
   onSelectBoundary: (boundaryId: string) => void;
@@ -11143,12 +11215,21 @@ function StratificationWorkbenchDocument({
 }) {
   const [viewMode, setViewMode] = useState<StratificationViewMode>('overview');
   const [focusLayerId, setFocusLayerId] = useState('');
+  const [guideRollbackOpen, setGuideRollbackOpen] = useState(false);
+  const [guideRollbackPending, setGuideRollbackPending] = useState(false);
+  const [guideRollbackProblem, setGuideRollbackProblem] = useState('');
   const publishLayerSelectionTimerRef = useRef<number | null>(null);
   const sharedPlotRef = useRef<HTMLDivElement>(null);
   const sharedBoundaryOverlayRef = useRef<HTMLDivElement>(null);
   const session = workspace.editSession?.schemeId === scheme?.schemeId ? workspace.editSession : null;
+  const hasWorkflowReviewHistory = Boolean(session && (
+    session.working.layerStructureReviewHistory?.length
+    || session.working.thinLayerCleanupHistory?.length
+    || session.working.layerSimplificationHistory?.length
+  ));
+  const discardsNewCandidateOnRollback = Boolean(session?.isNew && !hasWorkflowReviewHistory);
   const dirty = Boolean(session?.dirty);
-  const thinLayerReviewed = Boolean(scheme && (scheme.status !== 'working' || scheme.origin?.kind === 'manual' || scheme.thinLayerCleanupHistory?.length || scheme.layerSimplificationHistory?.length));
+  const thinLayerReviewed = Boolean(scheme && (scheme.status !== 'working' || scheme.origin?.kind === 'manual' || scheme.layerStructureReviewHistory?.length || scheme.thinLayerCleanupHistory?.length || scheme.layerSimplificationHistory?.length));
   const problem = issues.find((issue) => issue.severity === 'problem');
   const noticeCount = issues.filter((issue) => issue.severity === 'notice').length;
   const stale = Boolean(session?.staleReason) || scheme?.status === 'stale' || Boolean(scheme && !sameStratificationInput(scheme.input, currentCheckInput)) || gate.label === '方案需更新';
@@ -11442,7 +11523,18 @@ function StratificationWorkbenchDocument({
                 : gate.state === 'deny'
                   ? '定位并修改当前问题'
                   : '进入参数解译'}
+        canRollback={Boolean(dirty && session && !session.staleReason && (hasWorkflowReviewHistory || session.isNew))}
+        onRollback={() => { setGuideRollbackProblem(''); setGuideRollbackOpen(true); }}
       />
+
+      {guideRollbackOpen ? <div className="modal-backdrop stratification-rollback-backdrop" role="presentation" data-testid="stratification-rollback-confirmation">
+        <section className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="stratification-rollback-title">
+          <div className="confirmation-dialog-heading"><div><span>地层分层 · 返回上一步</span><h2 id="stratification-rollback-title">{discardsNewCandidateOnRollback ? '放弃本次候选并返回生成方式？' : '恢复上一分层快照？'}</h2></div><button type="button" className="icon-button" aria-label="取消返回上一步" disabled={guideRollbackPending} onClick={() => setGuideRollbackOpen(false)}><X /></button></div>
+          <p>{discardsNewCandidateOnRollback ? '本次新候选将被放弃；原始 qc、fs、u2 不变。' : '恢复上一分层快照，并撤销其后的整理与逐层确认。原始 qc、fs、u2 不变。'}</p>
+          {guideRollbackProblem ? <div className="guided-generation-problem" role="alert"><strong>返回尚未保存</strong><span>{guideRollbackProblem}</span></div> : null}
+          <div className="confirmation-dialog-actions"><button type="button" className="toolbar-button" data-testid="stratification-rollback-cancel" disabled={guideRollbackPending} onClick={() => setGuideRollbackOpen(false)}>取消</button><button type="button" className="toolbar-button primary" data-testid="stratification-rollback-confirm" disabled={guideRollbackPending || Boolean(guideRollbackProblem)} onClick={async () => { setGuideRollbackPending(true); setGuideRollbackProblem(''); const saved = await onRollbackGuide(); setGuideRollbackPending(false); if (saved) setGuideRollbackOpen(false); else setGuideRollbackProblem('当前页面没有显示返回成功。请保留本页并查看上方保存原因。'); }}>{guideRollbackPending ? '正在保存…' : discardsNewCandidateOnRollback ? '放弃候选' : '恢复上一快照'}</button></div>
+        </section>
+      </div> : null}
 
       {workspace.schemes.length ? <section className="stratification-scheme-toolbar" aria-label="方案与编辑工具">
         <div className="scheme-tabs" data-testid="stratification-scheme-list">

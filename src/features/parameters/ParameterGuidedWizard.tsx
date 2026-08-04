@@ -129,11 +129,13 @@ export function ParameterGuidedWizard(props: Props) {
   const available = useMemo(() => PARAMETERS.filter((item) => item.applies(classes)), [classes]);
   const [draft, setDraft] = useState<GuidedParameterDraftV1>(() => matchesSource(props.persistedDraft, props) ? structuredClone(props.persistedDraft as GuidedParameterDraftV1) : createDraft(props, available, props.completedRun));
   const [problem, setProblem] = useState('');
+  const [rollbackTarget, setRollbackTarget] = useState<{ stage: 'select' | 'configure'; parameterId: string | null; affectedParameterIds: string[]; targetLabel: string } | null>(null);
   const modifyingExisting = Boolean(props.completedRun);
 
   useEffect(() => {
     setDraft(matchesSource(props.persistedDraft, props) ? structuredClone(props.persistedDraft as GuidedParameterDraftV1) : createDraft(props, available, props.completedRun));
     setProblem('');
+    setRollbackTarget(null);
   }, [props.classificationRun.runId, props.completedRun?.runId, props.persistedDraft?.draftId, props.stratificationRevision.revisionId]);
 
   useEffect(() => {
@@ -167,6 +169,57 @@ export function ParameterGuidedWizard(props: Props) {
       const result = props.onSave(next);
       if (!result.ok) setProblem(result.problem);
     }
+  };
+  const requestRollback = (targetStage: 'select' | 'configure', targetParameterId: string | null, affectedParameterIds: string[], targetLabel: string) => {
+    setRollbackTarget({ stage: targetStage, parameterId: targetParameterId, affectedParameterIds: [...new Set(affectedParameterIds)], targetLabel });
+    setProblem('');
+  };
+  const requestPreviousStep = () => {
+    if (draft.stage === 'review') {
+      const previous = selected.at(-1);
+      if (previous) requestRollback('configure', previous.parameterId, [previous.parameterId], `${previous.symbol} · ${previous.label}`);
+      return;
+    }
+    if (draft.stage !== 'configure') return;
+    if (currentIndex === 0) {
+      requestRollback('select', null, selected.map((item) => item.parameterId), '选择参数');
+      return;
+    }
+    const previous = selected[currentIndex - 1];
+    requestRollback('configure', previous.parameterId, selected.slice(currentIndex).map((item) => item.parameterId), `${previous.symbol} · ${previous.label}`);
+  };
+  const requestParameterStep = (parameterId: string) => {
+    const targetIndex = selected.findIndex((item) => item.parameterId === parameterId);
+    if (targetIndex < 0) return;
+    if (draft.stage === 'configure' && targetIndex === currentIndex) return;
+    const navigatingBackward = draft.stage === 'review' || (draft.stage === 'configure' && targetIndex < currentIndex);
+    if (!navigatingBackward) {
+      update((currentDraft) => ({ ...currentDraft, stage: 'configure', currentParameterId: parameterId }));
+      return;
+    }
+    const target = selected[targetIndex];
+    requestRollback('configure', parameterId, selected.slice(targetIndex).map((item) => item.parameterId), `${target.symbol} · ${target.label}`);
+  };
+  const confirmRollback = () => {
+    if (!rollbackTarget) return;
+    const affected = new Set(rollbackTarget.affectedParameterIds);
+    const next: GuidedParameterDraftV1 = {
+      ...draft,
+      stage: rollbackTarget.stage,
+      currentParameterId: rollbackTarget.parameterId,
+      decisions: draft.decisions.filter((item) => !affected.has(item.parameterId)),
+      completedParameterIds: draft.completedParameterIds.filter((parameterId) => !affected.has(parameterId)),
+      updatedAt: new Date().toISOString(),
+    };
+    const result = props.onSave(next);
+    if (!result.ok) {
+      setProblem(result.problem);
+      setRollbackTarget(null);
+      return;
+    }
+    setDraft(next);
+    setRollbackTarget(null);
+    setProblem('');
   };
   const setDecision = (choice: GuidedParameterDecisionV1['choice'], reason?: GuidedParameterDecisionV1['skipReason']) => update((currentDraft) => {
     const previous = currentDraft.decisions.find((item) => item.parameterId === current?.parameterId);
@@ -262,13 +315,13 @@ export function ParameterGuidedWizard(props: Props) {
       <div className="parameter-guide-progress"><i style={{ width: `${draft.stage === 'select' ? 8 : draft.stage === 'review' ? 100 : Math.max(12, ((currentIndex + 1) / Math.max(1, selected.length)) * 88)}%` }} /></div>
       <div className="parameter-guide-layout">
         <nav className="parameter-guide-list" aria-label="参数步骤">
-          <button type="button" className={draft.stage === 'select' ? 'current' : 'complete'} onClick={() => update((item) => ({ ...item, stage: 'select' }))}><span>{draft.stage === 'select' ? '1' : <Check />}</span><strong>选择参数</strong><em>{draft.selectedParameterIds.length} 项</em></button>
+          <button type="button" className={draft.stage === 'select' ? 'current' : 'complete'} onClick={() => draft.stage === 'select' ? undefined : requestRollback('select', null, selected.map((item) => item.parameterId), '选择参数')}><span>{draft.stage === 'select' ? '1' : <Check />}</span><strong>选择参数</strong><em>{draft.selectedParameterIds.length} 项</em></button>
           {selected.map((item, index) => {
             const itemDecision = draft.decisions.find((candidate) => candidate.parameterId === item.parameterId);
             const complete = draft.completedParameterIds.includes(item.parameterId);
             const stateClass = itemDecision?.choice === 'skipped' ? 'skipped' : itemDecision?.choice === 'deferred' ? 'deferred' : complete ? 'complete' : '';
             const futureStep = !complete && firstUnfinishedIndex >= 0 && index > firstUnfinishedIndex;
-            return <button type="button" key={item.parameterId} className={`${draft.stage === 'configure' && current?.parameterId === item.parameterId ? 'current' : ''} ${stateClass}`} disabled={futureStep} onClick={() => update((currentDraft) => ({ ...currentDraft, stage: 'configure', currentParameterId: item.parameterId }))}><span>{itemDecision?.choice === 'skipped' ? <Minus /> : itemDecision?.choice === 'deferred' ? <Clock3 /> : complete ? <Check /> : index + 2}</span><strong>{item.symbol} · {item.label}</strong><em>{itemDecision?.choice === 'skipped' ? '本次不计算' : itemDecision?.choice === 'deferred' ? '稍后处理' : complete ? '已确认' : item.level === 'required' ? '默认纳入' : item.level === 'recommended' ? '建议纳入' : '按需纳入'}</em></button>;
+            return <button type="button" key={item.parameterId} className={`${draft.stage === 'configure' && current?.parameterId === item.parameterId ? 'current' : ''} ${stateClass}`} disabled={futureStep} onClick={() => requestParameterStep(item.parameterId)}><span>{itemDecision?.choice === 'skipped' ? <Minus /> : itemDecision?.choice === 'deferred' ? <Clock3 /> : complete ? <Check /> : index + 2}</span><strong>{item.symbol} · {item.label}</strong><em>{itemDecision?.choice === 'skipped' ? '本次不计算' : itemDecision?.choice === 'deferred' ? '稍后处理' : complete ? '已确认' : item.level === 'required' ? '默认纳入' : item.level === 'recommended' ? '建议纳入' : '按需纳入'}</em></button>;
           })}
           <button type="button" data-testid="parameter-guide-final-step" className={draft.stage === 'review' ? 'current' : ''} onClick={() => update((item) => ({ ...item, stage: 'review' }))} disabled={draft.stage === 'select' || unfinished.length > 0}><span>{selected.length + 2}</span><strong>最终确认</strong><em>{unfinished.length ? `${unfinished.length} 项未确认` : deferred.length ? `${deferred.length} 项需处理` : `${selected.length - draft.decisions.filter((item) => item.choice === 'skipped').length} 项运行`}</em></button>
         </nav>
@@ -286,10 +339,17 @@ export function ParameterGuidedWizard(props: Props) {
         </main>
       </div>
       <footer className="parameter-guide-footer">
-        <button type="button" className="toolbar-button" onClick={draft.stage === 'select' ? close : draft.stage === 'review' ? () => update((item) => ({ ...item, stage: 'configure', currentParameterId: selected.at(-1)?.parameterId ?? null })) : currentIndex === 0 ? () => update((item) => ({ ...item, stage: 'select' })) : () => update((item) => ({ ...item, currentParameterId: selected[currentIndex - 1]?.parameterId ?? null }))}><ChevronLeft />{draft.stage === 'select' ? '保存并关闭' : '上一步'}</button>
+        <button type="button" className="toolbar-button" data-testid="parameter-guide-back" onClick={draft.stage === 'select' ? close : requestPreviousStep}><ChevronLeft />{draft.stage === 'select' ? '保存并关闭' : '返回上一步'}</button>
         <div><span>{draft.stage === 'review' && (unfinished.length || deferred.length) ? `还有 ${unfinished.length + deferred.length} 项需要处理` : '完成每一项后自动保存'}</span><button type="button" className="toolbar-button primary" data-testid="parameter-guide-next" disabled={draft.stage === 'review' && (unfinished.length > 0 || deferred.length > 0)} onClick={draft.stage === 'select' ? goFromSelection : draft.stage === 'review' ? run : completeCurrent}>{draft.stage === 'select' ? `开始逐项确认（${selected.length} 项）` : draft.stage === 'review' ? unfinished.length ? `先确认剩余 ${unfinished.length} 项` : deferred.length ? `先处理暂缓 ${deferred.length} 项` : modifyingExisting ? `保存修改并重新运行 ${selected.length - draft.decisions.filter((item) => item.choice === 'skipped').length} 项` : `确认并运行 ${selected.length - draft.decisions.filter((item) => item.choice === 'skipped').length} 项` : <>确认 {current?.symbol}，继续<ChevronRight /></>}</button></div>
       </footer>
     </section>
+    {rollbackTarget ? <div className="modal-backdrop parameter-rollback-backdrop" role="presentation" data-testid="parameter-rollback-confirmation">
+      <section className="confirmation-dialog" role="dialog" aria-modal="true" aria-labelledby="parameter-rollback-title">
+        <div className="confirmation-dialog-heading"><div><span>参数解译 · 返回上一步</span><h2 id="parameter-rollback-title">返回“{rollbackTarget.targetLabel}”？</h2></div><button type="button" className="icon-button" aria-label="取消返回上一步" onClick={() => setRollbackTarget(null)}><X /></button></div>
+        <p>将回到“{rollbackTarget.targetLabel}”，并清除从该步骤起已保存的设置（如有）。原始数据和更早步骤不变；重新确认后才会生成新试算。</p>
+        <div className="confirmation-dialog-actions"><button type="button" className="toolbar-button" data-testid="parameter-rollback-cancel" onClick={() => setRollbackTarget(null)}>取消</button><button type="button" className="toolbar-button primary" data-testid="parameter-rollback-confirm" onClick={confirmRollback}>返回并清除</button></div>
+      </section>
+    </div> : null}
   </div>;
 }
 

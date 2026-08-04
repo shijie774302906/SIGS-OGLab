@@ -174,6 +174,15 @@ test('approximate CPT classification freezes source rows, marks pore path unavai
   expect(converted.scheme.boundaries.every((boundary) => boundary.jtsCandidateRef)).toBeTruthy();
   expect(converted.scheme.boundaries.every((boundary) => !boundary.reviewRequired)).toBeTruthy();
   expect(converted.scheme.layers.every((layer) => layer.engineeringSoilGroup && !layer.reviewRequired && layer.soilDecision?.reviewStatus === 'pending')).toBeTruthy();
+  const editSession = converted.workspace.editSession;
+  expect(editSession?.undoStack.length).toBeGreaterThan(0);
+  const frozenOrigin = JSON.stringify(converted.scheme.origin);
+  expect([
+    editSession?.baseline,
+    editSession?.working,
+    ...(editSession?.undoStack ?? []),
+    ...(editSession?.redoStack ?? []),
+  ].every((snapshot) => JSON.stringify(snapshot?.origin) === frozenOrigin)).toBeTruthy();
 });
 
 test('full CPTU classification preserves both paths and exact authority revisions', async () => {

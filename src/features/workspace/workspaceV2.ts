@@ -507,6 +507,13 @@ export type StratificationSchemeV2 = {
   depthToM: number;
   layers: StratificationLayerV2[];
   boundaries: StratificationBoundaryV2[];
+  layerStructureReviewHistory?: Array<{
+    reviewId: string;
+    decision: 'keep-current';
+    layerCount: number;
+    boundaryCount: number;
+    reviewedAt: string;
+  }>;
   thinLayerCleanupHistory?: Array<{
     cleanupId: string;
     thresholdM: number;

@@ -1,0 +1,12 @@
+{
+  "a4Pages": 3,
+  "a3Pages": 6,
+  "a4MinimumFontPx": 19,
+  "a3MinimumFontPx": 18,
+  "physicalFloorsPt": {
+    "source": 8,
+    "legend": 9,
+    "body": 10,
+    "title": 12
+  }
+}

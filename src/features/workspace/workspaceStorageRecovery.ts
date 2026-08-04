@@ -91,6 +91,17 @@ export function diagnoseWorkspaceStorageFailure(
 }
 
 function explainInvalidBundle(detail: string) {
+  if (/stratification edit session changed its scheme origin/i.test(detail)) {
+    return {
+      title: '分层来源没有对上，尚未保存',
+      summary: '这不是 qc、fs、u2 的数值问题。返回的分层快照与当前分类方法来源不一致，系统没有写入这次返回。',
+      steps: [
+        '保留当前页面，不要刷新。',
+        '关闭返回确认框，当前已保存的分层仍然有效。',
+        '再次出现时请保留技术详情并联系维护人员，不要重复修改原始数据。',
+      ],
+    };
+  }
   if (/invalid deleted-point record/i.test(detail)) {
     return {
       title: '点位记录没有对上，尚未保存',

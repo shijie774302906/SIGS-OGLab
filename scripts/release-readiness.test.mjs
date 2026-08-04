@@ -5,10 +5,32 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { mkdtempSync } from 'node:fs';
 import {
+  auditReleaseIndex,
   buildSourceReachability,
   hasUnapprovedYingkouSourceData,
   scanTrackedSecrets,
 } from './release-readiness.mjs';
+
+test('release index rejects excluded process files and forbidden prefixes', () => {
+  const root = mkdtempSync(join(tmpdir(), 'release-index-'));
+  mkdirSync(join(root, 'docs', 'process'), { recursive: true });
+  mkdirSync(join(root, 'process_logs'), { recursive: true });
+  writeFileSync(join(root, 'process_logs', 'Process201.md'), '# Process201\n', 'utf8');
+  writeFileSync(join(root, 'docs', 'process', 'release-index.json'), JSON.stringify({
+    schema_version: 1,
+    current_release: {
+      process_id: 'Process202',
+      include_processes: ['Process201'],
+      exclude_processes: [{ id: 'Process200', reason: 'temporary' }],
+    },
+    forbidden_tracked_files: ['process_logs/Process200.md'],
+    forbidden_tracked_prefixes: ['public/leadership/'],
+  }), 'utf8');
+
+  assert.deepEqual(auditReleaseIndex(root, ['src/main.tsx']), []);
+  const findings = auditReleaseIndex(root, ['process_logs/Process200.md', 'public/leadership/index.html']);
+  assert.deepEqual(findings.map((item) => item.id), ['release-forbidden-file', 'release-forbidden-prefix']);
+});
 
 test('secret scanner reports location without returning the secret value', () => {
   const root = mkdtempSync(join(tmpdir(), 'release-audit-secret-'));

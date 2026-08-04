@@ -193,6 +193,7 @@ test('PROCESS092 aligns the full-depth evidence and applies a safe thin-layer pl
   for (let index = 1; index <= 3; index += 1) {
     await page.getByTestId(`stratification-layer-row-${index}`).click();
     await page.getByTestId('stratification-layer-tool').getByLabel('土类').selectOption('sand');
+    await expect.poll(async () => (await readStratificationState(page, projectName)).workingScheme?.groups[index - 1]).toBe('sand');
   }
 
   const alignment = await page.evaluate(() => {
@@ -208,6 +209,7 @@ test('PROCESS092 aligns the full-depth evidence and applies a safe thin-layer pl
   const workbenchLayouts = await captureProcess092(page, 'aligned-workbench');
 
   const originalRowCount = await currentRawRowCount(page);
+  const originalRowsHash = await currentRawRowsHash(page);
   await expect.poll(async () => (await readStratificationState(page, projectName)).editSession?.undoCount).toBe(7);
   const stateBeforeCancel = await readStratificationState(page, projectName);
   await page.getByTestId('stratification-open-thin-layer-guide').click();
@@ -219,7 +221,7 @@ test('PROCESS092 aligns the full-depth evidence and applies a safe thin-layer pl
   await expect(page.getByRole('alert')).toContainText('请输入大于 0 的厚度');
   await page.getByTestId('thin-layer-threshold-input').fill('0.50');
   await page.getByTestId('thin-layer-start-review').click();
-  await expect(page.getByTestId('thin-layer-guide-review-step')).toContainText('已预选系统建议（待确认）');
+  if (await page.getByTestId('thin-layer-decision-merge-surrounding').getAttribute('aria-pressed') !== 'true') await page.getByTestId('thin-layer-decision-merge-surrounding').click();
   await expect(page.getByTestId('thin-layer-decision-merge-surrounding')).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: '关闭薄层整理' }).click();
   await expect(page.getByTestId('thin-layer-guide-dialog')).toHaveCount(0);
@@ -227,11 +229,12 @@ test('PROCESS092 aligns the full-depth evidence and applies a safe thin-layer pl
   expect(stateAfterCancel.workingScheme?.layerCount).toBe(stateBeforeCancel.workingScheme?.layerCount);
   expect(stateAfterCancel.editSession?.undoCount).toBe(stateBeforeCancel.editSession?.undoCount);
   expect(await currentRawRowCount(page)).toBe(originalRowCount);
+  expect(await currentRawRowsHash(page)).toBe(originalRowsHash);
 
   await page.getByTestId('stratification-open-thin-layer-guide').click();
   await page.getByTestId('layer-cleanup-thin-method').click();
   await page.getByTestId('thin-layer-start-review').click();
-  await expect(page.getByTestId('thin-layer-guide-review-step')).toContainText('已预选系统建议（待确认）');
+  if (await page.getByTestId('thin-layer-decision-merge-surrounding').getAttribute('aria-pressed') !== 'true') await page.getByTestId('thin-layer-decision-merge-surrounding').click();
   const reviewLayouts = await captureProcess092(page, 'review-safe-suggestion');
   await page.getByTestId('thin-layer-open-preview').click();
   await expect(page.getByTestId('thin-layer-guide-preview-step')).toContainText('预计整理后1 层');
@@ -239,6 +242,54 @@ test('PROCESS092 aligns the full-depth evidence and applies a safe thin-layer pl
   await page.getByTestId('thin-layer-apply-plan').click();
   await expect(page.getByTestId('stratification-layer-table').locator('button')).toHaveCount(1);
   expect(await currentRawRowCount(page)).toBe(originalRowCount);
+  expect(await currentRawRowsHash(page)).toBe(originalRowsHash);
+
+  const stateBeforeGuideRollback = await readStratificationState(page, projectName);
+  await page.getByTestId('stratification-guide-back').click();
+  await expect(page.getByTestId('stratification-rollback-confirmation')).toContainText('恢复上一分层快照');
+  if (process.env.PROCESS147_EVIDENCE === '1') {
+    const process147EvidenceDirectory = join(process.cwd(), 'process_logs', 'playwright-mcp', 'process147-atlas-rollback');
+    mkdirSync(process147EvidenceDirectory, { recursive: true });
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+      await page.setViewportSize(viewport);
+      await page.screenshot({ path: join(process147EvidenceDirectory, `stratification-rollback-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
+    }
+  }
+  await page.getByTestId('stratification-rollback-cancel').click();
+  expect(await readStratificationState(page, projectName)).toEqual(stateBeforeGuideRollback);
+  await page.getByTestId('stratification-guide-back').click();
+  await page.evaluate(() => {
+    const original = IDBObjectStore.prototype.put;
+    let remainingFailures = 2;
+    (window as unknown as { __restoreProcess147Put?: () => void }).__restoreProcess147Put = () => { IDBObjectStore.prototype.put = original; };
+    IDBObjectStore.prototype.put = function (...args: Parameters<IDBObjectStore['put']>) {
+      if (remainingFailures > 0) {
+        remainingFailures -= 1;
+        throw new Error('PROCESS147 forced rollback save failure');
+      }
+      return original.apply(this, args);
+    };
+  });
+  await page.getByTestId('stratification-rollback-confirm').click();
+  await expect(page.getByTestId('stratification-layer-table').locator('button')).toHaveCount(3);
+  await expect(page.getByTestId('project-storage-workspace-notice')).toContainText('保存失败');
+  await expect(page.getByTestId('stratification-rollback-confirmation')).toContainText('返回尚未保存');
+  expect(await readStratificationState(page, projectName)).toEqual(stateBeforeGuideRollback);
+  await page.evaluate(() => (window as unknown as { __restoreProcess147Put?: () => void }).__restoreProcess147Put?.());
+  await page.getByTestId('stratification-rollback-cancel').click();
+  await page.getByTestId('retry-workspace-save').click();
+  await expect(page.getByTestId('project-storage-workspace-notice')).toHaveCount(0);
+  await expect.poll(() => readStratificationState(page, projectName)).toMatchObject({ workingScheme: { layerCount: 3, thinLayerCleanupCount: 0 }, editSession: { dirty: true, redoCount: 0 } });
+  expect(await currentRawRowCount(page)).toBe(originalRowCount);
+  expect(await currentRawRowsHash(page)).toBe(originalRowsHash);
+
+  await page.getByTestId('stratification-open-thin-layer-guide').click();
+  await page.getByTestId('layer-cleanup-thin-method').click();
+  await page.getByTestId('thin-layer-start-review').click();
+  if (await page.getByTestId('thin-layer-decision-merge-surrounding').getAttribute('aria-pressed') !== 'true') await page.getByTestId('thin-layer-decision-merge-surrounding').click();
+  await page.getByTestId('thin-layer-open-preview').click();
+  await page.getByTestId('thin-layer-apply-plan').click();
+  await expect(page.getByTestId('stratification-layer-table').locator('button')).toHaveCount(1);
 
   await page.getByTestId('stratification-undo').click();
   await expect(page.getByTestId('stratification-layer-table').locator('button')).toHaveCount(3);
@@ -249,12 +300,15 @@ test('PROCESS092 aligns the full-depth evidence and applies a safe thin-layer pl
   await expect(page.getByTestId('stratification-document')).toBeVisible();
   await expect(page.getByTestId('stratification-layer-table').locator('button')).toHaveCount(1);
   expect(await currentRawRowCount(page)).toBe(originalRowCount);
+  expect(await currentRawRowsHash(page)).toBe(originalRowsHash);
   const persisted = await readStratificationState(page, projectName);
   expect(persisted.workingScheme?.thinLayerCleanupCount).toBe(1);
   await writeProcess092Evidence('browser-check.json', {
     flow: 'PROCESS092',
     sourceRowsBefore: originalRowCount,
     sourceRowsAfter: await currentRawRowCount(page),
+    sourceRowsHashBefore: originalRowsHash,
+    sourceRowsHashAfter: await currentRawRowsHash(page),
     alignment,
     workbenchLayouts,
     thresholdLayouts,
@@ -1665,6 +1719,20 @@ async function currentRawRowCount(page: Page) {
   });
 }
 
+async function currentRawRowsHash(page: Page) {
+  const authority = await page.evaluate(async () => {
+    const database = await import('/src/features/workspace/workspaceDatabase.ts');
+    const loaded = await database.loadActiveWorkspaceV2();
+    if (!loaded.ok) return null;
+    const project = loaded.manifest.state.projects.find((candidate) => candidate.projectId === loaded.manifest.state.activeProjectId);
+    const point = project?.points.find((candidate) => candidate.pointId === project.activePointId);
+    const currentDraft = point?.importDrafts.find((draft) => draft.draftId === point.activeImportDraftId);
+    const block = loaded.dataBlocks.find((candidate) => candidate.dataBlockId === currentDraft?.dataBlockId);
+    return block?.kind === 'normalized' ? { rows: block.rows, rowReferences: block.rowReferences ?? [] } : null;
+  });
+  return createHash('sha256').update(JSON.stringify(authority)).digest('hex');
+}
+
 function randomizedRuleCsv(pointName: string, seed: number) {
   let state = seed || 1;
   const random = () => {
@@ -1732,10 +1800,12 @@ async function readStratificationState(page: Page, projectName: string) {
         status: workspace.editSession.working.status,
         layerCount: workspace.editSession.working.layers.length,
         boundaryCount: workspace.editSession.working.boundaries.length,
+        layerStructureReviewCount: workspace.editSession.working.layerStructureReviewHistory?.length ?? 0,
         thinLayerCleanupCount: workspace.editSession.working.thinLayerCleanupHistory?.length ?? 0,
         layerSimplificationCount: workspace.editSession.working.layerSimplificationHistory?.length ?? 0,
         manualMergeCount: workspace.editSession.working.manualMergeHistory?.length ?? 0,
         names: workspace.editSession.working.layers.map((layer) => layer.name),
+        groups: workspace.editSession.working.layers.map((layer) => layer.engineeringSoilGroup),
         reviewReasonKinds: workspace.editSession.working.layers.flatMap((layer) => layer.majorGroupComposition?.reviewReasons?.map((reason) => reason.kind) ?? []),
       } : null,
       revisions: structuredClone(workspace?.revisions ?? []),

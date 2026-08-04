@@ -1,0 +1,103 @@
+{
+  "process": 147,
+  "pages": [
+    {
+      "index": 1,
+      "width": 1080,
+      "height": 1528,
+      "alt": "第 1 页：实测 CPT/CPTU 曲线"
+    },
+    {
+      "index": 2,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 2 页：SBT - Bq 分类图"
+    },
+    {
+      "index": 3,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 3 页：SBTn - Bq 归一化分类图"
+    },
+    {
+      "index": 4,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 4 页：Schneider 2008 分类证据"
+    },
+    {
+      "index": 5,
+      "width": 1080,
+      "height": 1528,
+      "alt": "第 5 页：Fuzzy 最高概率分层与深度窗口组成"
+    },
+    {
+      "index": 6,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 6 页：CPT 解译参考地层"
+    },
+    {
+      "index": 7,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 7 页：归一化参数与 Ic 深度图"
+    },
+    {
+      "index": 8,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 8 页：Modified Robertson 2016 深度分类"
+    },
+    {
+      "index": 9,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 9 页：多方法分类与刚度证据"
+    },
+    {
+      "index": 10,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 10 页：经验参数"
+    },
+    {
+      "index": 11,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 11 页：黏性土经验参数"
+    },
+    {
+      "index": 12,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 12 页：波速与状态参数"
+    },
+    {
+      "index": 13,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 13 页：土体物理指标"
+    },
+    {
+      "index": 14,
+      "width": 1920,
+      "height": 1080,
+      "alt": "第 14 页：归一化与修正指标"
+    },
+    {
+      "index": 15,
+      "width": 1080,
+      "height": 1528,
+      "alt": "第 15 页：公式、参数与参考文献"
+    }
+  ],
+  "physicalPointFloors": {
+    "source": 8,
+    "legend": 9,
+    "body": 10,
+    "title": 12
+  },
+  "zoom": "80%",
+  "browserErrors": []
+}

@@ -34,6 +34,7 @@ export type StratificationCommand =
   | { kind: 'split-layer'; layerId: string; depthM?: number }
   | { kind: 'restore-merged-layer'; layerId: string }
   | { kind: 'merge-layer'; layerId: string; direction: 'above' | 'below'; reason: ManualMergeReason }
+  | { kind: 'confirm-current-layer-structure' }
   | { kind: 'apply-thin-layer-plan'; thresholdM: number; sourceSignature: string; decisions: ThinLayerPlanDecision[] }
   | {
       kind: 'apply-major-group-merge-plan';
@@ -818,6 +819,19 @@ function applyCommandToScheme(
   }
   const next = structuredClone(scheme);
   if (command.kind === 'add-boundary') return splitAtDepth(next, command.depthM, now);
+  if (command.kind === 'confirm-current-layer-structure') {
+    next.layerStructureReviewHistory = [
+      ...(next.layerStructureReviewHistory ?? []),
+      {
+        reviewId: createIdentifier('layer-structure-review'),
+        decision: 'keep-current',
+        layerCount: scheme.layers.length,
+        boundaryCount: scheme.boundaries.length,
+        reviewedAt: now,
+      },
+    ];
+    return { ok: true as const, scheme: finalizeScheme(next, now) };
+  }
   if (command.kind === 'apply-major-group-merge-plan') {
     if (layerSimplificationSchemeSignature(scheme) !== command.sourceSignature) {
       return { ok: false as const, problem: '当前分层已经变化，请重新生成大类合并预览后再应用。' };
