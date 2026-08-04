@@ -8,9 +8,14 @@ coverage/
 .env.*
 mishi.md
 
-# Runtime imports use small projection fixtures under sample_data.
-# Exclude only the non-distributable raw Yingkou workbooks.
+# Private engineering sources and retired temporary pages never enter deployment uploads.
 sample_data/source/yingkou/
+sample_data/source/**/*.csv
+sample_data/source/**/*.xls
+sample_data/source/**/*.xlsx
+sample_data/source/**/*.zip
+sample_data/**/*yingkou*
+public/leadership/
 process_logs/
 playwright-report/
 playwright-results/

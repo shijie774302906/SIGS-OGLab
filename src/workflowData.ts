@@ -1,7 +1,7 @@
-import stratificationBundleJson from '../sample_data/stratification/yingkou-cpt09-layer-scheme-bundle.v1.json';
-import parameterBundleJson from '../sample_data/parameters/yingkou-cpt09-parameter-scheme-bundle.v1.json';
+import stratificationBundleJson from '../sample_data/synthetic/workflow-stratification.v1.json';
+import parameterBundleJson from '../sample_data/synthetic/workflow-parameters.v1.json';
 import outputPackageJson from '../sample_data/output/adopted-output-package.v1.json';
-import methodInputJson from '../sample_data/method-lab/yingkou-cpt09-method-input.v1.json';
+import methodInputJson from '../sample_data/synthetic/workflow-method-input.v1.json';
 import badMissingColumnsJson from '../sample_data/method-lab/bad-missing-columns.v1.json';
 import badNonmonotonicDepthJson from '../sample_data/method-lab/bad-nonmonotonic-depth.v1.json';
 import badNonpositiveLogInputsJson from '../sample_data/method-lab/bad-nonpositive-log-inputs.v1.json';
@@ -337,7 +337,7 @@ export type SyntheticFlowCase = {
   rows: SyntheticCptuRow[];
 };
 
-export const SAMPLE_POINT_ALIAS = 'CPT9-19-S1';
+export const SAMPLE_POINT_ALIAS = 'SYNTHETIC-CPTU';
 
 export const stratificationData = stratificationBundleJson as StratificationBundle;
 export const parameterData = parameterBundleJson as ParameterBundle;
@@ -418,7 +418,7 @@ export function getDefaultWorkflowSelection(): WorkflowSelectionState {
     activeBottomTab: 'issues',
     selectedProjectId: projectContext.projectId,
     selectedPointId: projectContext.pointId,
-    selectedImportBatchId: 'yingkou-cptu-sample-table',
+    selectedImportBatchId: 'synthetic-cptu-sample-table',
     selectedCheckIssueId: getCheckIssues()[0]?.issueId ?? '',
     selectedSchemeId: selectedScheme?.schemeId ?? '',
     selectedLayerId: selectedScheme?.layers[0]?.layerId ?? '',
@@ -465,39 +465,23 @@ export function getProjectPointSummary(): ProjectPointSummary {
     pointScope: pointScope(projectContext.pointName),
     dataVersion: projectContext.dataVersion,
     createdAt: projectContext.createdAt,
-    sourceDepthRange: '0.01-60.76 m',
+    sourceDepthRange: '0.00-10.00 m',
     previewDepthRange: `${minDepth.toFixed(2)}-${maxDepth.toFixed(2)} m`,
     previewRecordCount: methodInputData.rows.length,
-    sourceRecordCount: '4,291',
-    totalPointCount: 3,
+    sourceRecordCount: '5',
+    totalPointCount: 1,
     waterDepthM: methodInputData.waterDepthM,
-    finalDepthM: 60.76,
-    sourceType: 'copied-sample',
-    sourceFiles: ['CPT09数据.xlsx', 'CPT09班报表.xlsx'],
+    finalDepthM: 10,
+    sourceType: 'deterministic-synthetic',
+    sourceFiles: ['synthetic-cptu.csv'],
     availablePoints: [
       {
-        pointId: 'CPT09',
-        pointName: 'CPT09',
+        pointId: 'DEMO-01',
+        pointName: 'DEMO-01',
         alias: SAMPLE_POINT_ALIAS,
         status: '本轮样例',
-        recordCount: '4,291',
-        depthRange: '0.01-60.76 m',
-      },
-      {
-        pointId: 'CPT19',
-        pointName: 'CPT19',
-        alias: SAMPLE_POINT_ALIAS,
-        status: '样例档案',
-        recordCount: '4,498',
-        depthRange: '源资料可查',
-      },
-      {
-        pointId: 'SCPT1',
-        pointName: 'SCPT1',
-        alias: SAMPLE_POINT_ALIAS,
-        status: '样例档案',
-        recordCount: '7,841',
-        depthRange: '源资料可查',
+        recordCount: '5',
+        depthRange: '0.00-10.00 m',
       },
     ],
   };
@@ -746,8 +730,8 @@ export function getCheckIssues(): CheckIssue[] {
       title: '深度连续性',
       severity: 'passed',
       route: 'check',
-      source: '营口 CPTU 样例表',
-      detail: '当前营口样例预览深度单调递增；保留反例用于检查规则说明。',
+      source: '通用合成 CPTU 样例表',
+      detail: '当前合成样例预览深度单调递增；保留反例用于检查规则说明。',
       nextAction: nonmonotonic.error?.message ?? '可查看地层分层。',
     },
     {

@@ -202,6 +202,18 @@ export function auditReleaseIndex(root, trackedFiles) {
       if (file.startsWith(normalized)) pushFinding(findings, 'error', 'release-forbidden-prefix', '禁止上线的路径进入了 Git 发布候选。', { file, prefix: normalized });
     }
   }
+  for (const rawPattern of index.forbidden_tracked_patterns ?? []) {
+    let pattern;
+    try {
+      pattern = new RegExp(rawPattern, 'i');
+    } catch {
+      pushFinding(findings, 'error', 'release-index-invalid-pattern', '上线索引包含无效的禁止路径正则。', { pattern: rawPattern });
+      continue;
+    }
+    for (const file of tracked) {
+      if (pattern.test(file)) pushFinding(findings, 'error', 'release-forbidden-pattern', '禁止上线的路径模式进入了 Git 发布候选。', { file, pattern: rawPattern });
+    }
+  }
   return findings;
 }
 

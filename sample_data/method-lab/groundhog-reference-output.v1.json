@@ -108,7 +108,7 @@
     "runnerVersion": "method-lab-runner.v1",
     "runnerScriptSha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
     "commandLine": "python tools/method-lab/runners/groundhog_reference_runner.py --input input.json --output output.json",
-    "inputJsonPath": "sample_data/method-lab/yingkou-cpt09-method-input.v1.json",
+    "inputJsonPath": "sample_data/synthetic/workflow-method-input.v1.json",
     "outputJsonPath": "sample_data/method-lab/groundhog-reference-output.v1.json",
     "canonicalInputSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "createdAt": "2026-06-29T00:01:00+08:00",

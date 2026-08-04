@@ -619,7 +619,7 @@ AutomationId 建议：
 交付：
 
 - `docs/gmw-p2-parameter-scheme-data-contract.md`
-- `sample_data/parameters/yingkou-cpt09-parameter-scheme-bundle.v1.json`
+- `sample_data/synthetic/workflow-parameters.v1.json`
 - `tools/parameter-check/run-parameter-scheme-mock-check.ps1`
 
 ### GMW-P2C：参数配置表和方法选择器静态布局

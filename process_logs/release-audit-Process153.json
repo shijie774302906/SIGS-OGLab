@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-04T08:28:39.722Z",
+  "mode": "local",
+  "counts": {
+    "error": 0,
+    "warning": 4,
+    "info": 1
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "id": "package-private",
+      "message": "package.json 仍标记为 private；正式公开前需确认是否保留。"
+    },
+    {
+      "severity": "warning",
+      "id": "license-missing",
+      "message": "项目尚未选择开源许可证。"
+    },
+    {
+      "severity": "warning",
+      "id": "license-file-missing",
+      "message": "缺少 LICENSE 文件。"
+    },
+    {
+      "severity": "warning",
+      "id": "very-large-source-file",
+      "message": "源文件超过 500 KB，复查和维护成本较高。",
+      "detail": {
+        "file": "src/App.tsx",
+        "sizeBytes": 809159
+      }
+    },
+    {
+      "severity": "info",
+      "id": "large-source-file",
+      "message": "源文件超过 200 KB。",
+      "detail": {
+        "file": "src/styles.css",
+        "sizeBytes": 268820
+      }
+    }
+  ],
+  "sourceGraph": {
+    "entries": [
+      "src/main.tsx"
+    ],
+    "reachableCount": 76,
+    "unreachableCount": 0
+  }
+}

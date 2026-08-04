@@ -53,7 +53,6 @@
     "jts-output-ui.spec.ts",
     "jts-parameter-package-ui.spec.ts",
     "minimal-import-ui.spec.ts",
-    "new-project-flow-audit.spec.ts",
     "parameter-guided-workflow-ui.spec.ts",
     "parameter-workbench-ui.spec.ts",
     "point-lifecycle-ui.spec.ts",
@@ -74,16 +73,12 @@
   ],
   "real-serial": [
     "check-profile-curves-ui.spec.ts",
-    "import-assistant-real.spec.ts",
     "jts-classification-ui.spec.ts",
     "parameter-persistence.spec.ts",
-    "process131-scpt1-ai-import.spec.ts",
     "process142-gog6-docs.spec.ts",
     "project-persistence.spec.ts",
-    "quick-plot-real.spec.ts",
     "stratification-performance.spec.ts",
     "workspace-database.spec.ts",
-    "workspace-v2-runtime.spec.ts",
-    "yingkou-real-workflow.spec.ts"
+    "workspace-v2-runtime.spec.ts"
   ]
 }

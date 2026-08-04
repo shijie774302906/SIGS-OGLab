@@ -46,7 +46,7 @@ npm.cmd run test:real-serial
 
 - `domain-fast` runs pure domain/state/hash tests without starting Vite.
 - `ui-isolated` uses Playwright's per-test BrowserContext plus `fixtures/isolatedTest.ts` to reset browser-local authority automatically.
-- `real-serial` covers real Yingkou data, persistence, IndexedDB recovery, and performance with one worker.
+- `real-serial` covers public or deterministic full-scale fixtures, persistence, IndexedDB recovery, and performance with one worker; private engineering sources are never required.
 
 The audit fails when a spec is missing, duplicated, stale, in the wrong layer, bypasses the shared UI fixture, or directly clears LocalStorage/IndexedDB. A test that deliberately changes storage during a migration or recovery scenario must call `resetWorkspaceAuthority(page, { reload: false })` at that exact step. Product database names and production persistence code are never changed for test isolation.
 

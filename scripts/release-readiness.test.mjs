@@ -25,11 +25,26 @@ test('release index rejects excluded process files and forbidden prefixes', () =
     },
     forbidden_tracked_files: ['process_logs/Process200.md'],
     forbidden_tracked_prefixes: ['public/leadership/'],
+    forbidden_tracked_patterns: ['^sample_data/(?:source/|.*yingkou)'],
   }), 'utf8');
 
   assert.deepEqual(auditReleaseIndex(root, ['src/main.tsx']), []);
   const findings = auditReleaseIndex(root, ['process_logs/Process200.md', 'public/leadership/index.html']);
   assert.deepEqual(findings.map((item) => item.id), ['release-forbidden-file', 'release-forbidden-prefix']);
+});
+
+test('release index rejects private-case derivatives even outside the raw source folder', () => {
+  const root = mkdtempSync(join(tmpdir(), 'release-audit-private-case-'));
+  mkdirSync(join(root, 'docs', 'process'), { recursive: true });
+  writeFileSync(join(root, 'docs', 'process', 'release-index.json'), JSON.stringify({
+    schema_version: 1,
+    current_release: { process_id: 'Process200', include_processes: [], exclude_processes: [] },
+    forbidden_tracked_files: [],
+    forbidden_tracked_prefixes: [],
+    forbidden_tracked_patterns: ['^sample_data/(?:source/|.*yingkou)'],
+  }), 'utf8');
+  const findings = auditReleaseIndex(root, ['sample_data/parameters/yingkou-derived.json']);
+  assert.equal(findings.some((item) => item.id === 'release-forbidden-pattern'), true);
 });
 
 test('secret scanner reports location without returning the secret value', () => {

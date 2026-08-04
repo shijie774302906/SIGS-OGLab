@@ -657,6 +657,14 @@
       "status": "closed",
       "record": "process_logs/Process152.md",
       "problems": ["KPB-004", "KPB-034", "KPB-036"]
+    },
+    {
+      "id": "Process153",
+      "date": "2026-08-04",
+      "title": "私有数据与临时产物安全清理",
+      "status": "closed",
+      "record": "process_logs/Process153.md",
+      "problems": ["KPB-012", "KPB-037"]
     }
   ]
 }

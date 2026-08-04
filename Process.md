@@ -4,7 +4,14 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process152 已验证更新安全生产发布
+## Current - Process153 私有数据与临时产物安全清理
+
+- Date: 2026-08-04
+- Status: `active / confirmed`
+- Goal: 用通用合成样例替换营口派生样例，删除私有文件、密钥和临时产物，并加强未来发布拦截。
+- Detail: `plan.md`
+
+## Recent - Process152 已验证更新安全生产发布
 
 - Date: 2026-08-04
 - Status: `closed / verified / deployed`

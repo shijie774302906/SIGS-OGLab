@@ -37,7 +37,7 @@
     "runnerVersion": "method-lab-runner.v1",
     "runnerScriptSha256": "1111111111111111111111111111111111111111111111111111111111111111",
     "commandLine": "python tools/method-lab/runners/groundhog_reference_runner.py --input input.json --output output.json",
-    "inputJsonPath": "sample_data/method-lab/yingkou-cpt09-method-input.v1.json",
+    "inputJsonPath": "sample_data/synthetic/workflow-method-input.v1.json",
     "outputJsonPath": "sample_data/method-lab/runner-failed-dependency-missing.v1.json",
     "canonicalInputSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "createdAt": "2026-06-29T00:03:00+08:00",

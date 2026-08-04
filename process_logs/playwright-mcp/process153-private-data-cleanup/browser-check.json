@@ -1,0 +1,17 @@
+{
+  "process": "Process153",
+  "checked_at": "2026-08-04T00:00:00+08:00",
+  "source": "final local release candidate",
+  "checks": {
+    "tracked_forbidden_names": "pass",
+    "runtime_private_markers": "pass",
+    "dist_private_markers": "pass",
+    "secret_patterns": "pass",
+    "synthetic_workflow_fixture": "pass",
+    "ui_isolated": "pass-with-isolated-rerun",
+    "real_serial_without_private_case": "pass"
+  },
+  "browser_errors": 0,
+  "horizontal_overflow": false,
+  "resolutions": ["1440x900", "1920x1080"]
+}

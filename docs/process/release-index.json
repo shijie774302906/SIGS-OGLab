@@ -8,13 +8,14 @@
     "site": "https://sigs-oglab.com"
   },
   "current_release": {
-    "process_id": "Process152",
+    "process_id": "Process153",
     "baseline_commit": "2f127929b38d76a6e1f296175510f4ac4c96ef4d",
-    "already_live_through": "Process146",
-    "deployment_status": "deployed",
-    "deployment_commit": "f5ffc53",
+    "already_live_through": "Process152",
+    "deployment_status": "pending",
+    "deployment_commit": "",
     "deployment_url": "https://sigs-oglab.com",
-    "include_processes": ["Process147", "Process148", "Process150", "Process151"],
+    "include_processes": ["Process153"],
+    "pending_processes": ["Process153"],
     "exclude_processes": [
       {
         "id": "Process149",
@@ -33,5 +34,11 @@
     "public/leadership/",
     "sample_data/source/yingkou/",
     "process_logs/playwright-mcp/process149-"
+  ],
+  "forbidden_tracked_patterns": [
+    "^sample_data/(?:source/|.*yingkou)",
+    "^tests/e2e/(?:.*yingkou|.*leadership)",
+    "^public/leadership/",
+    "^process_logs/(?:Process149\\.md|playwright-mcp/process149-)"
   ]
 }

@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-04T08:52:05.144Z",
+  "context_files": [
+    "plan.md"
+  ],
+  "context_hash": "0215bd98ec68af8acc9d48be41a0e0eb94e921b4e3f407823698bfae0fd330a2",
+  "library_hash": "5dc0abcbbc884d662c672dbd44c306c7a9f425d06bb592ac3eb54843ccb6fdff",
+  "status": "reviewed",
+  "matches": [
+    {
+      "problem_id": "KPB-012",
+      "title": "验收只证明状态存在，没有证明工程语义正确",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "验收",
+          "真实"
+        ]
+      ],
+      "related_updates": [
+        "Process070",
+        "Process080",
+        "Process081",
+        "Process084",
+        "Process086",
+        "Process087",
+        "Process088",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process094",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process105",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process114",
+        "Process115",
+        "Process116",
+        "Process117",
+        "Process118",
+        "Process119",
+        "Process120",
+        "Process121",
+        "Process122",
+        "Process123",
+        "Process124",
+        "Process125",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process130",
+        "Process131",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process137",
+        "Process138",
+        "Process139",
+        "Process140",
+        "Process141",
+        "Process142",
+        "Process143",
+        "Process146",
+        "Process147",
+        "Process148",
+        "Process151",
+        "Process153"
+      ],
+      "required_checks": [
+        "至少包含一个失败恢复和一个真实规模流程。",
+        "截图检查标签、单位、选中态、禁用态、溢出和错误日志。"
+      ],
+      "disposition": "covered",
+      "note": "合成数据完成领域、隔离 UI 与真实规模串行测试；含既有恢复路径，双分辨率无溢出和浏览器错误。",
+      "evidence": [
+        "process_logs/playwright-mcp/process153-private-data-cleanup/browser-check.json"
+      ]
+    },
+    {
+      "problem_id": "KPB-037",
+      "title": "只排除私有原始文件但派生样例仍进入前端发布包",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "私有数据",
+          "派生样例"
+        ],
+        [
+          "发布",
+          "营口"
+        ]
+      ],
+      "related_updates": [
+        "Process153"
+      ],
+      "required_checks": [
+        "扫描 git ls-files，确认没有私有原始文件、派生 fixture、专属测试、密钥和临时页面。",
+        "构建后扫描 dist，确认项目名、点位名、私有样本名和密钥模式均不存在。",
+        "用合成数据完成 build、领域测试、隔离 UI 测试和真实规模串行测试，证明替换不会破坏工作流。",
+        "记录 origin/main 历史扫描结果；若历史仍含派生文件，在公开仓库前单独决定是否重写历史。"
+      ],
+      "disposition": "covered",
+      "note": "当前跟踪树、运行源码和 dist 均无私有标记；以全合成样例替代；历史重写保留为公开前单独确认事项。",
+      "evidence": [
+        "process_logs/release-audit-Process153.json",
+        "process_logs/playwright-mcp/process153-private-data-cleanup/evidence-manifest.json"
+      ]
+    }
+  ]
+}

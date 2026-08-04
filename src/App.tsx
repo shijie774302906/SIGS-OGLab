@@ -14217,7 +14217,7 @@ function GenericRightPanel({ route, pointName }: { route: RouteId; pointName: st
       ['导入核对', '字段映射'],
     ],
     import: [
-      ['导入源', '营口 CPTU 样例表'],
+      ['导入源', '通用合成 CPTU 样例表'],
       ['字段映射', '已读取'],
       ['预览行数', '4,282'],
       ['检查动作', '运行数据检查'],
@@ -14283,7 +14283,7 @@ function SupportingDocument({ route }: { route: RouteId }) {
       lead: '可解析 CSV/XLSX，核对字段、单位与点位归属后生成待检查草稿。',
       icon: FileInput,
       rows: [
-        ['导入批次', '营口 CPTU 样例表'],
+        ['导入批次', '通用合成 CPTU 样例表'],
         ['字段映射', '已读取'],
         ['预览', '4,282 行'],
         ['检查动作', '数据检查'],

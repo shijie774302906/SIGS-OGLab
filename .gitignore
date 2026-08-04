@@ -21,6 +21,16 @@ __pycache__/
 mishi.md
 .vercel/
 sample_data/source/yingkou/
+sample_data/source/**/*.csv
+sample_data/source/**/*.xls
+sample_data/source/**/*.xlsx
+sample_data/source/**/*.zip
+sample_data/**/*[Yy]ingkou*
+tests/e2e/*[Yy]ingkou*
+public/leadership/
+tests/e2e/leadership-platform.spec.ts
+process_logs/Process149.md
+process_logs/playwright-mcp/process149-*
 
 # Local design references are not required by the running website.
 CPeT-IT data report.pdf

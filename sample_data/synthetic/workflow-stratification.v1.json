@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "layer-scheme-bundle.v1",
+  "projectionOnly": true,
+  "pointContext": {
+    "projectId": "synthetic-demo",
+    "projectName": "通用合成示例",
+    "pointId": "DEMO-01",
+    "pointName": "DEMO-01",
+    "dataVersion": "synthetic-v1",
+    "depthUnit": "m",
+    "createdAt": "2026-08-04T00:00:00Z"
+  },
+  "sourceData": { "officialWriteAllowed": false },
+  "layerSchemes": [
+    {
+      "schemeId": "synthetic-review-scheme",
+      "name": "合成候选分层",
+      "status": "Review",
+      "sourceType": "Synthetic",
+      "projectionOnly": true,
+      "modifiedAt": "2026-08-04T00:00:00Z",
+      "layers": [
+        {
+          "layerId": "synthetic-layer-1",
+          "layerNo": 1,
+          "depthFromM": 0,
+          "depthToM": 4,
+          "thicknessM": 4,
+          "engineeringSoilGroup": "clay",
+          "soilClassLabel": "黏性土（合成）",
+          "soilClassConfidence": "review",
+          "sourceType": "Synthetic",
+          "uncertaintyKind": "demonstration",
+          "parameterApplicability": ["su", "unit-weight"]
+        },
+        {
+          "layerId": "synthetic-layer-2",
+          "layerNo": 2,
+          "depthFromM": 4,
+          "depthToM": 10,
+          "thicknessM": 6,
+          "engineeringSoilGroup": "sand",
+          "soilClassLabel": "砂性土（合成）",
+          "soilClassConfidence": "review",
+          "sourceType": "Synthetic",
+          "uncertaintyKind": "demonstration",
+          "parameterApplicability": ["phi-prime", "dr", "unit-weight"]
+        }
+      ],
+      "boundaries": [
+        { "boundaryId": "synthetic-boundary-0", "depthM": 0, "boundaryType": "top", "upperLayerId": null, "lowerLayerId": "synthetic-layer-1", "reviewRequired": false },
+        { "boundaryId": "synthetic-boundary-1", "depthM": 4, "boundaryType": "internal", "upperLayerId": "synthetic-layer-1", "lowerLayerId": "synthetic-layer-2", "reviewRequired": true, "evidenceRefs": ["synthetic-evidence-boundary"] },
+        { "boundaryId": "synthetic-boundary-2", "depthM": 10, "boundaryType": "bottom", "upperLayerId": "synthetic-layer-2", "lowerLayerId": null, "reviewRequired": false }
+      ],
+      "preflight": {
+        "coverageStatus": "complete",
+        "canUseForTrialParameterRun": true,
+        "canUseForOfficialParameterRun": false,
+        "blockingMessages": [],
+        "warningMessages": ["仅用于界面演示，不代表真实工程。"],
+        "reviewRequiredDepths": ["4.00 m"]
+      }
+    }
+  ],
+  "classificationEvidence": [
+    {
+      "axisDefinition": { "x": "Fr", "y": "Qtn" },
+      "units": { "x": "%", "y": "-" },
+      "points": [
+        { "pointEvidenceId": "synthetic-point-1", "depthM": 2, "label": "合成黏性土证据", "x": 4.2, "y": 18, "engineeringSoilGroup": "clay", "linkedLayerIds": ["synthetic-layer-1"] },
+        { "pointEvidenceId": "synthetic-point-2", "depthM": 7, "label": "合成砂性土证据", "x": 1.1, "y": 85, "engineeringSoilGroup": "sand", "linkedLayerIds": ["synthetic-layer-2"] }
+      ]
+    }
+  ],
+  "evidenceRefs": [
+    { "evidenceRefId": "synthetic-evidence-boundary", "evidenceType": "synthetic-demonstration", "depthFromM": 3.8, "depthToM": 4.2, "summary": "确定性合成边界，仅用于界面演示。" }
+  ]
+}
