@@ -59,7 +59,7 @@
       "root_causes": ["技术异常直接投影为用户提示。", "错误没有明确责任页面和可执行恢复动作。"],
       "prevention": ["错误状态必须包含原因、影响、证据、责任页面和一个推荐动作。", "能在当前流程恢复时保留用户原任务并自动续接。"],
       "required_checks": ["覆盖失败、取消、返回、重试、连续失败和恢复成功。", "验证恢复入口能到达准确位置而非页面顶部。"],
-      "related_updates": ["Process072", "Process073", "Process074", "Process075", "Process083", "Process086", "Process087", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process103", "Process104", "Process107", "Process108", "Process109", "Process111", "Process112", "Process113", "Process114", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process146", "Process147", "Process150"],
+      "related_updates": ["Process072", "Process073", "Process074", "Process075", "Process083", "Process086", "Process087", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process103", "Process104", "Process107", "Process108", "Process109", "Process111", "Process112", "Process113", "Process114", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process146", "Process147", "Process150", "Process152"],
       "related_tests": ["tests/e2e/jts-classification-recovery-ui.spec.ts", "tests/e2e/workspace-storage-recovery.spec.ts"]
     },
     {
@@ -509,7 +509,7 @@
       "root_causes": ["候选方案先用默认来源建立边界和撤销快照，最后才把工作副本与基线改为分类方法来源。", "流程返回错误地把普通边界编辑撤销栈当作向导阶段历史。", "测试只覆盖整理或确认后的回退，没有覆盖候选刚生成即返回。"],
       "prevention": ["在创建第一个命令和撤销快照之前冻结方案来源，并保证 working、baseline、scheme、undo 和 redo 全部同源。", "向导回退只消费显式流程历史；新候选没有流程历史时应整体放弃候选，而不是执行普通编辑撤销。", "成功提示和关闭确认框必须等待权威存储完成；失败时留在原位置并显示专项原因。"],
       "required_checks": ["覆盖自动候选零确认、部分确认、全部确认以及整理后返回，断言来源始终一致。", "断言返回后的 IndexedDB 权威状态、刷新状态和页面文案一致，且没有保存错误。", "注入保存失败，断言确认框不关闭、不会显示成功，并可从同一位置重试。"],
-      "related_updates": ["Process150"],
+      "related_updates": ["Process150", "Process152"],
       "related_tests": ["tests/e2e/jts-classification-stratification.spec.ts", "tests/e2e/jts-classification-ui.spec.ts", "tests/e2e/stratification-workflow-ui.spec.ts", "tests/e2e/workspace-storage-recovery.spec.ts"]
     },
     {
@@ -526,6 +526,21 @@
       "required_checks": ["断言来源不低于 8 pt、图例/刻度不低于 9 pt、正文不低于 10 pt、标题不低于 12 pt，覆盖 A3 横/竖版和 A4。", "在 1440×900、1920×1080 下检查真实 80% 预览、横向滚动、标题/图例/表格重叠与浏览器错误。", "生成专业 A3/A4 代表页和快捷图册代表页，人工确认层名、单位、坐标、分类图例和来源可辨认。"],
       "related_updates": ["Process151"],
       "related_tests": ["tests/e2e/report-typography.spec.ts", "tests/e2e/report-rendering-ui.spec.ts", "tests/e2e/quick-plot-ui.spec.ts"]
+    },
+    {
+      "id": "KPB-036",
+      "title": "Playwright 复用其他工作区服务导致测试验证错误版本",
+      "status": "active",
+      "severity": "important",
+      "closure_gate": true,
+      "areas": ["playwright", "test-isolation", "release", "dev-server"],
+      "match_groups": [["Playwright", "旧版本"], ["测试通过", "页面未更新"], ["5173", "工作区"], ["webServer", "复用"]],
+      "symptoms": ["代码已修复但浏览器断言仍看到旧行为，测试却可能继续通过或给出不相关失败。", "另一个工作区已经占用默认端口时，Playwright 复用了旧 Vite 服务，没有验证当前发布候选。"],
+      "root_causes": ["测试服务器允许复用既有端口，但没有验证端口进程的工作目录或提交。", "发布验收继续使用默认 5173，没有为干净候选分配独立端口。"],
+      "prevention": ["发布候选必须使用独立端口并显式设置 PLAYWRIGHT_WEB_SERVER_URL 与 PLAYWRIGHT_WEB_SERVER_COMMAND。", "最终证据记录工作区、提交、端口和测试命令；开发接口在测试环境提供确定性响应，避免被外部旧服务掩盖。"],
+      "required_checks": ["确认验收端口由当前工作区命令启动，且页面资产对应当前提交。", "在默认 5173 已被占用时，仍用独立端口完成 domain、UI 和 real 三层回归。", "线上发布后再次检查正式域名、接口、双分辨率、溢出和浏览器错误。"],
+      "related_updates": ["Process152"],
+      "related_tests": ["tests/e2e/fixtures/isolatedTest.ts", "scripts/release-readiness.test.mjs"]
     }
   ]
 }

@@ -7,9 +7,10 @@ Detailed closure records live in `process_logs/ProcessNNN.md`. The complete form
 ## Current - Process152 已验证更新安全生产发布
 
 - Date: 2026-08-04
-- Status: `active / confirmed`
-- Goal: 发布 Process147、148、150、151；明确排除 Process149 临时领导展示页、私有数据、密钥和本机产物，并以机器可读上线索引约束发布包。
-- Detail: `plan.md`
+- Status: `closed / verified / deployed`
+- Result: Process147、148、150、151 已发布至正式域名；机器可读上线索引明确排除 Process149、私有数据、密钥和本机产物。
+- Verification: 分层测试、发布审计、正式域名双分辨率、AI/统计接口与浏览器错误检查通过。
+- Detail: `process_logs/Process152.md`
 
 ## Recent - Process151 专业成果物理字号统一
 

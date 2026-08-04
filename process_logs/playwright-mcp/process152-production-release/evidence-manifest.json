@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "processId": "Process152",
+  "generatedAt": "2026-08-04T07:33:53.794Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process152-production-release",
+  "context": {
+    "path": "process_logs/Process152.md",
+    "size": 2246,
+    "sha256": "2cdc72fad6ca835cdc42b72b0555385a6e41980f67b890303444f96a8de01dda"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "docs/process/release-index.json",
+        "size": 1093,
+        "sha256": "8154b8f706b3007611c71e970f50497ffff41efcc65275de254aaa11996ae16d"
+      },
+      {
+        "path": "process_logs/knowledge-reviews/Process152.json",
+        "size": 2321,
+        "sha256": "0ff8897214b0ef1063b71b4a26822205f5e26c84f219e777caaae1a8151e7a85"
+      },
+      {
+        "path": "process_logs/release-audit-Process152.json",
+        "size": 1163,
+        "sha256": "52d378be62b572c5292aae25dd57ab20325cf0ab2175918f87334d0ae6f4d070"
+      },
+      {
+        "path": "scripts/process-doctor.mjs",
+        "size": 14189,
+        "sha256": "8637660b2709f86aa1619195689fa7d82cd9928b80baab7e507249045a433368"
+      },
+      {
+        "path": "scripts/release-readiness.mjs",
+        "size": 13689,
+        "sha256": "ac67efc2a9816ae79ed2c29dfd0c248c640c4c04e2bb9132c09fc0c17f3c3be9"
+      },
+      {
+        "path": "src/App.tsx",
+        "size": 809159,
+        "sha256": "5ede08c26d3f3d3f567ff45e80f9476bfed22185902ad4d27654c7adc5d878a2"
+      },
+      {
+        "path": "src/features/output/jtsOutputDomain.ts",
+        "size": 46797,
+        "sha256": "7c3d64a17e491f73f7d830f33e71162d267f070f66fa0c8b3df68c7f2198d4b4"
+      },
+      {
+        "path": "src/features/output/reportTypography.ts",
+        "size": 1971,
+        "sha256": "46eb8ad5e5128dbbb7f2b0d584b40a2461fdecec287b1df0a6c25a5894f9b588"
+      },
+      {
+        "path": "tests/e2e/fixtures/isolatedTest.ts",
+        "size": 2596,
+        "sha256": "4f771fb45e5a226f9263c4d5d90adc0b7d33f2d8b6c3c20ab089848bd6246ef7"
+      },
+      {
+        "path": "tests/e2e/report-typography.spec.ts",
+        "size": 2195,
+        "sha256": "e391c25fc13bdbdab1fd29e10a7aa61205179c3e9c3b6ad2dfa8063f8c7dcd11"
+      }
+    ],
+    "aggregateSha256": "8d93f6671869f84a19e88ba704021fb35d0186891ddc10250ba526aeca4f76a1"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process152-production-release/browser-check.json",
+        "size": 3036,
+        "sha256": "639a78840defaf2b4e3279529c3455cb484b735c8680e7d00acbd6d7283ba68e"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process152-production-release/home-1440x900.png",
+        "size": 81100,
+        "sha256": "6a710b7e41b82084bd9a028bdce1e3ae0390a41c38c09660951356068d72b540"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process152-production-release/home-1920x1080.png",
+        "size": 85338,
+        "sha256": "85e39bc0a6415ae2607930c377eb7a71d2df39874313cb49e6f47d57c4d188bb"
+      }
+    ],
+    "aggregateSha256": "f1d354b62798a6118f92b832dc45bbc42184ace26ae271c53a15f65fbd194ce6"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:assistant-server",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:domain-fast",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:ui-isolated -- --workers=3",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:real-serial",
+      "exitCode": 0
+    },
+    {
+      "command": "npx.cmd vercel --prod --yes",
+      "exitCode": 0
+    }
+  ],
+  "seedOrSource": [
+    "generated CPT/CPTU and public production endpoints; private Yingkou excluded"
+  ],
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
+}

@@ -649,6 +649,14 @@
       "status": "closed",
       "record": "process_logs/Process151.md",
       "problems": ["KPB-012", "KPB-021", "KPB-035"]
+    },
+    {
+      "id": "Process152",
+      "date": "2026-08-04",
+      "title": "已验证更新的安全生产发布",
+      "status": "closed",
+      "record": "process_logs/Process152.md",
+      "problems": ["KPB-004", "KPB-034", "KPB-036"]
     }
   ]
 }

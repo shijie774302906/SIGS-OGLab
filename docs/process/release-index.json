@@ -11,6 +11,9 @@
     "process_id": "Process152",
     "baseline_commit": "2f127929b38d76a6e1f296175510f4ac4c96ef4d",
     "already_live_through": "Process146",
+    "deployment_status": "deployed",
+    "deployment_commit": "f5ffc53",
+    "deployment_url": "https://sigs-oglab.com",
     "include_processes": ["Process147", "Process148", "Process150", "Process151"],
     "exclude_processes": [
       {
