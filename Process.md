@@ -4,7 +4,14 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process153 私有数据与临时产物安全清理
+## Current - Process154 国内正式站版本统一与可追溯发布
+- Date: 2026-08-18
+- Status: `closed / implemented / verified / ready for deployment`
+- Result: 国内站发布候选已统一主分支业务修复、专业六页首次指引、安全 Markdown、同源 `/help/` 手册和 CloudBase 发布门禁；独立 AI 实验室、私有数据、密钥与临时页面均被排除。
+- Verification: build、domain 272/272、UI 144/144、real 26 passed / 2 optional skipped、CloudBase 16/16、release parity 16/16、双分辨率与知识门禁通过。
+- Detail: `process_logs/Process154.md`
+
+## Recent - Process153 私有数据与临时产物安全清理
 
 - Date: 2026-08-04
 - Status: `closed / verified / deployed`

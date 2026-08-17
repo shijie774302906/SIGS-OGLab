@@ -2,8 +2,6 @@
 
 Status: `no active slice`
 
-当前无活动切片。
+Process154 已完成实现与本地关闭验收，详细记录见 `process_logs/Process154.md`。
 
-最近关闭：`Process153`，私有数据与临时产物已清理并发布至 `https://sigs-oglab.com`。
-
-下一项工作开始前，应按 `AGENTS.md` 建立新的唯一活动计划并完成确认。
+下一项工作须经用户单独确认后再建立新的活动切片。

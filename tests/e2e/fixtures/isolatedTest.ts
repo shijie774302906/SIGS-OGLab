@@ -34,6 +34,15 @@ export async function resetWorkspaceAuthority(page: Page, options: { reload?: bo
             source: 'playwright-fixture',
           }));
         }
+        for (const route of ['project', 'import', 'check', 'stratification', 'parameters', 'output']) {
+          window.localStorage.setItem(`sigs-oglab:professional-guide:v1:${route}`, JSON.stringify({
+            version: 1,
+            route,
+            method: 'complete',
+            dismissedAt: '2026-08-18T00:00:00.000Z',
+            source: 'playwright-fixture',
+          }));
+        }
       });
       lastProblem = null;
       break;

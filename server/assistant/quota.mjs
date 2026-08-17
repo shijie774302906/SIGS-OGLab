@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { createCloudBasePostgresQuotaStore } from '../storage/cloudbase-postgres.mjs';
 
 export const PUBLIC_ASSISTANT_DAILY_LIMIT = 100;
 export const ASSISTANT_VISITOR_COOKIE = 'sigs_ai_visitor';
@@ -131,6 +132,14 @@ export function createAssistantQuotaService({
 } = {}) {
   const limit = Number(config?.publicQuotaLimit) || PUBLIC_ASSISTANT_DAILY_LIMIT;
   let resolvedStore = store;
+  if (!resolvedStore && config?.publicQuotaStorage === 'cloudbase-postgres') {
+    resolvedStore = createCloudBasePostgresQuotaStore({
+      envId: config.cloudbaseEnvId,
+      apiKey: config.cloudbaseApiKey,
+      restUrl: config.cloudbasePostgresRestUrl,
+      fetchImpl,
+    });
+  }
   if (!resolvedStore && config?.publicQuotaStorage === 'upstash') {
     resolvedStore = createUpstashQuotaStore({
       url: config.upstashRedisRestUrl,

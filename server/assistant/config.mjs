@@ -86,14 +86,25 @@ export function createAssistantServerConfig(environment = process.env) {
   // Keep the native Upstash names as an explicit self-hosted/config-file option.
   const upstashRedisRestUrl = unquote(environment.UPSTASH_REDIS_REST_URL || environment.KV_REST_API_URL);
   const upstashRedisRestToken = unquote(environment.UPSTASH_REDIS_REST_TOKEN || environment.KV_REST_API_TOKEN);
-  const publicQuotaStorage = upstashRedisRestUrl && upstashRedisRestToken
-    ? 'upstash'
-    : environment.VERCEL
+  const cloudbaseEnvId = unquote(environment.CLOUDBASE_ENV_ID || environment.TCB_ENV || environment.TCB_ENV_ID);
+  const cloudbaseApiKey = unquote(environment.CLOUDBASE_API_KEY || environment.CLOUDBASE_APIKEY);
+  const cloudbasePostgresRestUrl = unquote(environment.CLOUDBASE_RDB_REST_URL);
+  const managedDeployment = Boolean(
+    environment.VERCEL
+    || environment.CLOUDBASE_ENV_ID
+    || environment.TCB_ENV
+    || environment.NODE_ENV === 'production',
+  );
+  const publicQuotaStorage = cloudbaseEnvId && cloudbaseApiKey
+    ? 'cloudbase-postgres'
+    : upstashRedisRestUrl && upstashRedisRestToken
+      ? 'upstash'
+    : managedDeployment
       ? 'unavailable'
       : 'memory';
   return Object.freeze({
-    host: '127.0.0.1',
-    port: Number(environment.ASSISTANT_PORT || 8787),
+    host: environment.HOST || (environment.PORT ? '0.0.0.0' : '127.0.0.1'),
+    port: Number(environment.PORT || environment.ASSISTANT_PORT || 8787),
     provider: mockEnabled ? 'mock' : 'deepseek',
     deepseekApiKey: secret.value,
     deepseekApiKeySource: secret.source,
@@ -107,9 +118,13 @@ export function createAssistantServerConfig(environment = process.env) {
     maxConcurrentRequests: 2,
     publicQuotaLimit: 100,
     publicQuotaStorage,
+    cloudbaseEnvId,
+    cloudbaseApiKey,
+    cloudbasePostgresRestUrl,
     upstashRedisRestUrl,
     upstashRedisRestToken,
     assistantVisitorSecret: unquote(environment.ASSISTANT_VISITOR_SECRET) || secret.value || 'sigs-oglab-local-visitor',
+    secureCookies: managedDeployment,
   });
 }
 

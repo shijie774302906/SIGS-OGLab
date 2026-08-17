@@ -1,0 +1,16 @@
+import { _ as _export_sfc, o as openBlock, c as createElementBlock, a2 as createStaticVNode } from "./chunks/framework.ZXCZ9mzl.js";
+const _imports_0 = "/help/images/workflow/quick-input-location.png";
+const _imports_1 = "/help/images/workflow/quick-input-grid.png";
+const _imports_2 = "/help/images/gog6/quick-ai-review.png";
+const __pageData = JSON.parse('{"title":"快捷出图：导入数据","description":"","frontmatter":{},"headers":[],"relativePath":"quick/import.md","filePath":"quick/import.md","lastUpdated":1785585521000}');
+const _sfc_main = { name: "quick/import.md" };
+function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", null, [..._cache[0] || (_cache[0] = [
+    createStaticVNode('<h1 id="快捷出图-导入数据" tabindex="-1">快捷出图：导入数据 <a class="header-anchor" href="#快捷出图-导入数据" aria-label="Permalink to &quot;快捷出图：导入数据&quot;">​</a></h1><figure class="manual-shot"><img src="' + _imports_0 + '" alt="快捷出图数据输入页，中央为数据表，底部为图册信息和生成按钮"><figcaption>先看中央数据表，再确认下方图册信息。页面只保留一个主要动作：确认并生成图册。</figcaption></figure><h2 id="paste" tabindex="-1">粘贴标准数据 <a class="header-anchor" href="#paste" aria-label="Permalink to &quot;粘贴标准数据 {#paste}&quot;">​</a></h2><p>点击数据表空白处，按 <code>Ctrl + V</code>。列顺序固定为：深度、qc、fs、u2。深度单位为 m，qc 为 MPa，fs 和 u2 为 kPa。</p><p>fs 或 u2 可以留空。不要插入标题、合并单元格或说明行。</p><h2 id="excel" tabindex="-1">从 Excel 导入 <a class="header-anchor" href="#excel" aria-label="Permalink to &quot;从 Excel 导入 {#excel}&quot;">​</a></h2><p>点击“从 Excel 导入”，选择 <code>.xlsx</code> 文件。文件有多个数据表时，选择包含 CPT/CPTU 测量值的一个。</p><figure class="manual-shot manual-shot-compact"><img src="' + _imports_1 + '" alt="快捷出图数据表，列为深度、qc、fs 和 u2"><figcaption>导入后先核对列名、单位和前几行数值。</figcaption></figure><h2 id="ai-import" tabindex="-1">使用 AI 整理非标准文件 <a class="header-anchor" href="#ai-import" aria-label="Permalink to &quot;使用 AI 整理非标准文件 {#ai-import}&quot;">​</a></h2><p>点击“AI 整理数据”，上传 CSV 或 <code>.xlsx</code>。AI 只生成导入草稿，不修改原文件，也不会直接写入当前数据。</p><p>确认页重点检查：</p><ol><li>工作表和表头行是否正确。</li><li>深度、qc、fs、u2 的字段映射是否正确。</li><li>源单位是否正确。</li><li>额外列是否被排除。</li><li>预览数值是否与源文件一致。</li></ol><p>确认无误后再导入。AI 不可用或判断不确定时，保留当前文件，改用手动字段映射。</p><h2 id="gog6" tabindex="-1">GoG 6 怎么导入 <a class="header-anchor" href="#gog6" aria-label="Permalink to &quot;GoG 6 怎么导入 {#gog6}&quot;">​</a></h2><p>GoG 6 的前 10 行是标题和来源说明，第 11 行是字段，第 12 行是单位。建议使用 AI 整理，并确认使用 Sheet1 的后四列 <code>Depth / qc / fs / u2</code>。</p><p>其中源表的 <code>qt</code> 表头是误写，数据提供者已确认实际为 <code>qc</code>。在 AI 提问时选择“是，实际是 qc”。系统只修正字段身份，源单元格不变；导入后的 qc 工作值仅按 <code>kPa → MPa</code> 进行单位标准化。其余重复列、z 和说明列不用于本次快捷图册。</p><figure class="manual-shot manual-shot-compact"><img src="' + _imports_2 + '" alt="GoG 6 快捷导入确认页，源 qt 列按用户确认映射为 qc"><figcaption>“按你的修正”表示只修正字段身份；样例数值会同时显示，便于与源表核对。</figcaption></figure><h2 id="完成信号" tabindex="-1">完成信号 <a class="header-anchor" href="#完成信号" aria-label="Permalink to &quot;完成信号&quot;">​</a></h2><div class="task-check">数据表显示有效行数和来源文件名，深度从浅到深，按钮区域显示可以生成或只等待孔压选择。</div><h2 id="出现问题" tabindex="-1">出现问题 <a class="header-anchor" href="#出现问题" aria-label="Permalink to &quot;出现问题&quot;">​</a></h2><div class="task-recovery">如果数值缩小或放大 1000 倍，通常是 MPa 和 kPa 选错。取消确认，返回单位映射，不要在源数据上批量乘除。</div>', 21)
+  ])]);
+}
+const _import = /* @__PURE__ */ _export_sfc(_sfc_main, [["render", _sfc_render]]);
+export {
+  __pageData,
+  _import as default
+};

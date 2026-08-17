@@ -1,21 +1,22 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-04",
+  "updated_at": "2026-08-18",
   "production": {
     "repository": "shijie774302906/SIGS-OGLab",
     "branch": "main",
     "vercel_project": "sigs-oglab-web",
-    "site": "https://sigs-oglab.com"
+    "cloudbase_environment": "sigs-oglabx-prod-d8exjjk8103d9ad",
+    "site": "https://sigs-oglabx.com"
   },
   "current_release": {
-    "process_id": "Process153",
-    "baseline_commit": "2f127929b38d76a6e1f296175510f4ac4c96ef4d",
+    "process_id": "Process154",
+    "baseline_commit": "8315cde8adb6",
     "already_live_through": "Process153",
-    "deployment_status": "deployed",
-    "deployment_commit": "1890a86",
-    "deployment_url": "https://sigs-oglab.com",
-    "include_processes": ["Process153"],
-    "pending_processes": [],
+    "deployment_status": "verified-ready",
+    "deployment_commit": null,
+    "deployment_url": "https://sigs-oglabx.com",
+    "include_processes": ["Process154"],
+    "pending_processes": ["Process154"],
     "exclude_processes": [
       {
         "id": "Process149",

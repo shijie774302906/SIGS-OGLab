@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "processId": "Process154",
+  "generatedAt": "2026-08-17T16:28:11.957Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process154-production-parity",
+  "context": {
+    "path": "process_logs/Process154.md",
+    "size": 3620,
+    "sha256": "8fe0d25cfe94705cb1c74b1de513d58ebd4a7c41dddaa7f371e425b775b0fa1b"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "process_logs/knowledge-reviews/Process154.json",
+        "size": 4003,
+        "sha256": "77a6fdd3742a3f34c337521b350beb34696a4e3ed13da586b541b91e372f0c4f"
+      },
+      {
+        "path": "src/components/ProfessionalFirstUseGuide.tsx",
+        "size": 12058,
+        "sha256": "d2ed1f2665c43aa62f658df0a0f6e11a113f151f82239f2e7cbc2a04dd6e8fb5"
+      },
+      {
+        "path": "src/components/ProjectFeedbackLauncher.tsx",
+        "size": 13956,
+        "sha256": "a7d474fd0d1890fe42319b25cdf6c1d49bed4ad626b861b9fb2cbd40a1d3fe15"
+      },
+      {
+        "path": "src/features/assistant/AssistantMarkdown.tsx",
+        "size": 956,
+        "sha256": "ab17771d7d07e37f39b86ddc1fbd61191dc5b9f475e01a077b2d18833059dc42"
+      },
+      {
+        "path": "tests/e2e/process154-production-parity.spec.ts",
+        "size": 7961,
+        "sha256": "7d5534c2fc0befc51f32c5e35d77040ddcdef6a08aaa64a7179241f84d208360"
+      }
+    ],
+    "aggregateSha256": "3381a633bbd21eb2b41be10656007eaebcd2498229c973bd4442abac0630c4ca"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process154-production-parity/browser-check.json",
+        "size": 444,
+        "sha256": "56e3c452c3a74a393740c327d1d76154928e32d44f31d07ef4f414a607b708f0"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process154-production-parity/professional-project-guide-1440x900.png",
+        "size": 177400,
+        "sha256": "8023abd7c2fa14d8c67c2e0106dc3b12e6b4510d2e1596d82685dffbc61b9cd0"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process154-production-parity/professional-project-guide-1920x1080.png",
+        "size": 192752,
+        "sha256": "5632653146452178b0e0065a551309181f8ef6bd9e3ae675d98cb3634c990d91"
+      }
+    ],
+    "aggregateSha256": "6f8e1a5bf99b1535653c77a37c1dcd13ab8b0a75719c59918840c96447c33dd7"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build:release",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:domain-fast",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:ui-isolated",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run test:real-serial",
+      "exitCode": 0
+    }
+  ],
+  "seedOrSource": [
+    "isolated-workspace-v2"
+  ],
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
+}

@@ -1,11 +1,12 @@
 import { BookOpenText, CheckCircle2, Copy, ExternalLink, MessageSquareText, X } from 'lucide-react';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { VisitorAnalyticsLauncher } from '../features/analytics/VisitorAnalyticsLauncher';
+import { SiteComplianceLink } from './SiteComplianceLink';
 
 const PROJECT_FEEDBACK_EMAIL = 'sigsoglab@163.com';
 const PROJECT_FEEDBACK_ENDPOINT = `https://formsubmit.co/ajax/${PROJECT_FEEDBACK_EMAIL}`;
 const PROJECT_FEEDBACK_MAX_FILE_SIZE = 10 * 1024 * 1024;
-const PROJECT_DOCS_ROOT = 'https://docs.sigs-oglab.com';
+const PROJECT_DOCS_ROOT = '/help';
 
 const PAGE_HELP_PATHS: Record<string, string> = {
   '项目集合': '/start/',
@@ -202,6 +203,7 @@ export function ProjectFeedbackLauncher({
         <span>反馈与建议</span>
       </button>
       <VisitorAnalyticsLauncher placement={placement} />
+      <SiteComplianceLink placement={placement} />
       {open ? (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => {
           if (event.target === event.currentTarget) closeFeedback();

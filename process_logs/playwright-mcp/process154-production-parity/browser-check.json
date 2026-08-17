@@ -1,0 +1,26 @@
+{
+  "process": 154,
+  "routes": [
+    "project",
+    "import",
+    "check",
+    "stratification",
+    "parameters",
+    "output"
+  ],
+  "layouts": [
+    {
+      "viewport": "1440x900",
+      "bodyOverflowX": false,
+      "cardInsideViewport": true
+    },
+    {
+      "viewport": "1920x1080",
+      "bodyOverflowX": false,
+      "cardInsideViewport": true
+    }
+  ],
+  "browserErrors": [],
+  "helpRoot": "/help/",
+  "standaloneAgentLab": false
+}

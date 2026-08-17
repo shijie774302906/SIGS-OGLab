@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-08-04",
+  "updated_at": "2026-08-18",
   "updates": [
     {
       "id": "Process070",
@@ -665,6 +665,14 @@
       "status": "closed",
       "record": "process_logs/Process153.md",
       "problems": ["KPB-012", "KPB-037"]
+    },
+    {
+      "id": "Process154",
+      "date": "2026-08-18",
+      "title": "中国正式站功能对齐与发布门禁",
+      "status": "closed",
+      "record": "process_logs/Process154.md",
+      "problems": ["KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-011", "KPB-012", "KPB-016", "KPB-017", "KPB-020", "KPB-023", "KPB-033", "KPB-034", "KPB-037"]
     }
   ]
 }

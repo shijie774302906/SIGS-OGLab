@@ -15,6 +15,7 @@ import {
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useAssistantConnection } from './AssistantConnectionProvider';
 import { AssistantPublicQuotaNote, publicAssistantQuotaReady } from './AssistantPublicQuotaNote';
+import { AssistantMarkdown } from './AssistantMarkdown';
 import { assistantSessionReducer, initialAssistantSessionState } from './assistantState';
 import {
   executeAssistantReadTool,
@@ -410,7 +411,10 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
       <div className="assistant-messages" aria-live="polite" data-testid="assistant-messages">
         {state.messages.map((message) => (
           <article key={message.id} className={`assistant-message ${message.role}`}>
-            <p>{message.content}</p>{message.detail ? <small>{message.detail}</small> : null}
+            {message.role === 'assistant'
+              ? <AssistantMarkdown content={message.content} testId="professional-ai-markdown" />
+              : <p>{message.content}</p>}
+            {message.detail ? <small>{message.detail}</small> : null}
           </article>
         ))}
         {state.status === 'loading' ? (

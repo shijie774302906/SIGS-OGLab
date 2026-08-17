@@ -7,13 +7,13 @@ const feedbackEndpoint = 'https://formsubmit.co/ajax/sigsoglab@163.com';
 
 test('help links map each product shell to one stable manual location', () => {
   expect(projectHelpLinks('项目集合')).toEqual({
-    manual: 'https://docs.sigs-oglab.com/',
-    page: 'https://docs.sigs-oglab.com/start/',
+    manual: '/help/',
+    page: '/help/start/',
   });
-  expect(projectHelpLinks('数据检查').page).toBe('https://docs.sigs-oglab.com/professional/check#current-problem');
-  expect(projectHelpLinks('快捷出图 · 数据输入').page).toBe('https://docs.sigs-oglab.com/quick/import');
-  expect(projectHelpLinks('快捷出图 · 图册').page).toBe('https://docs.sigs-oglab.com/quick/generate-export#read');
-  expect(projectHelpLinks('未知页面').page).toBe('https://docs.sigs-oglab.com/start/');
+  expect(projectHelpLinks('数据检查').page).toBe('/help/professional/check#current-problem');
+  expect(projectHelpLinks('快捷出图 · 数据输入').page).toBe('/help/quick/import');
+  expect(projectHelpLinks('快捷出图 · 图册').page).toBe('/help/quick/generate-export#read');
+  expect(projectHelpLinks('未知页面').page).toBe('/help/start/');
 });
 
 test('global feedback form submits only the explicit feedback fields and returns to the same page', async ({ page, context }) => {
@@ -45,8 +45,8 @@ test('global feedback form submits only the explicit feedback fields and returns
   await expect(page.getByTestId('document-project')).toBeVisible();
 
   const feedbackTrigger = page.getByTestId('open-project-feedback');
-  await expect(page.getByTestId('open-project-manual')).toHaveAttribute('href', 'https://docs.sigs-oglab.com/');
-  await expect(page.getByTestId('open-current-page-help')).toHaveAttribute('href', 'https://docs.sigs-oglab.com/professional/import#project');
+  await expect(page.getByTestId('open-project-manual')).toHaveAttribute('href', '/help/');
+  await expect(page.getByTestId('open-current-page-help')).toHaveAttribute('href', '/help/professional/import#project');
   await expect(page.getByTestId('open-project-manual')).toHaveAttribute('target', '_blank');
   await expect(feedbackTrigger).toBeVisible();
   await expect(feedbackTrigger).toHaveText('反馈与建议');

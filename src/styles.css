@@ -1392,6 +1392,10 @@ button:focus-visible {
     left: 12px;
     bottom: 12px;
   }
+
+  .site-compliance-link.floating {
+    display: none;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -1451,6 +1455,11 @@ button:focus-visible {
 .visitor-analytics-popover li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 30px; border-top: 1px solid #edf0f1; font-size: 12px; }
 .visitor-analytics-popover li span { color: #53676e; }
 .visitor-analytics-popover li strong { font-variant-numeric: tabular-nums; }
+
+.site-compliance-link { color: #78878d; font-size: 10px; line-height: 1.35; text-decoration: none; }
+.site-compliance-link:hover, .site-compliance-link:focus-visible { color: #493a83; text-decoration: underline; outline: none; }
+.site-compliance-link.sidebar { display: block; min-width: 0; padding: 2px 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.site-compliance-link.floating { align-self: center; padding: 0 2px; }
 
 .editor-shell {
   grid-column: 2;

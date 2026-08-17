@@ -26,6 +26,7 @@ import {
 import { startTransition, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { ProjectFeedbackLauncher } from './components/ProjectFeedbackLauncher';
 import { ProjectHubFirstUseGuide } from './components/ProjectHubFirstUseGuide';
+import { ProfessionalFirstUseGuide, type ProfessionalGuideRoute } from './components/ProfessionalFirstUseGuide';
 import { FlowCaseBanner } from './components/workbench/FlowCaseBanner';
 import { MetricInline } from './components/workbench/MetricInline';
 import { PageDecisionBand } from './components/workbench/PageDecisionBand';
@@ -3988,6 +3989,7 @@ function ProjectWorkspaceApp({
     ?? null;
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [rightPanelView, setRightPanelView] = useState<'tools' | 'assistant'>('tools');
+  const [professionalGuideReplayToken, setProfessionalGuideReplayToken] = useState(0);
   const assistantExecutedCommandIdsRef = useRef(new Set<string>());
   useEffect(() => {
     if (activeRoute === 'stratification') setRightPanelOpen(false);
@@ -7475,6 +7477,7 @@ function ProjectWorkspaceApp({
         stratificationHandoffState={stratificationHandoffGate.state}
         workspaceProject={workspaceProject}
         onPointLifecycle={onPointLifecycle}
+        onOpenOnboarding={() => setProfessionalGuideReplayToken((current) => current + 1)}
       />
       <main className="editor-shell" data-testid="editor-shell">
         <section className="document-host" data-testid="active-document">
@@ -7702,6 +7705,7 @@ function ProjectWorkspaceApp({
               {flowFeedback}
             </div>
           ) : null}
+          <ProfessionalFirstUseGuide route={activeRoute as ProfessionalGuideRoute} replayToken={professionalGuideReplayToken} />
         </section>
       </main>
       <aside className={`right-panel ${rightPanelOpen ? 'is-open' : 'is-collapsed'}`} data-testid="right-panel" data-state={rightPanelOpen ? 'open' : 'collapsed'}>
@@ -8695,6 +8699,7 @@ function Explorer({
   stratificationHandoffState,
   workspaceProject,
   onPointLifecycle,
+  onOpenOnboarding,
 }: {
   activeRoute: RouteId;
   summary: ProjectPointSummary;
@@ -8707,6 +8712,7 @@ function Explorer({
   stratificationHandoffState: 'allow' | 'warn' | 'deny';
   workspaceProject?: ProjectWorkspaceV2;
   onPointLifecycle?: (command: PointLifecycleCommand) => PointLifecycleResult;
+  onOpenOnboarding: () => void;
 }) {
   const groups: Array<{ title: string; routeIds: RouteId[] }> = [
     { title: '数据准备区', routeIds: ['project', 'import'] },
@@ -8892,7 +8898,7 @@ function Explorer({
           <span>{summary.pointAlias} / 本机工作区</span>
         </div>
         <div className="sidebar-utility-row" aria-label="工具">
-          <ProjectFeedbackLauncher pageLabel={feedbackPageLabel} placement="sidebar" />
+          <ProjectFeedbackLauncher pageLabel={feedbackPageLabel} placement="sidebar" onOpenOnboarding={onOpenOnboarding} />
         </div>
       </div>
     </aside>

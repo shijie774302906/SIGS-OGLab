@@ -1,3 +1,5 @@
+import { createCloudBasePostgresVisitorAnalyticsStore } from '../storage/cloudbase-postgres.mjs';
+
 const TOTALS_KEY = 'sigs:analytics:v1:totals';
 const REGIONS_KEY = 'sigs:analytics:v1:regions';
 const VISITOR_KEY_PREFIX = 'sigs:analytics:v1:visitor:';
@@ -53,7 +55,7 @@ function regionLabel(key) {
   return COUNTRY_LABELS[country] ?? country;
 }
 
-function normalizeSnapshot(raw) {
+export function normalizeVisitorAnalyticsSnapshot(raw) {
   const regions = Object.entries(raw.regions ?? {})
     .map(([key, visits]) => ({ key, label: regionLabel(key), visits: Math.max(0, Number(visits) || 0) }))
     .filter((region) => region.visits > 0)
@@ -83,7 +85,7 @@ export function createMemoryVisitorAnalyticsStore() {
         visitors += 1;
       }
       regions.set(regionKey, (regions.get(regionKey) ?? 0) + 1);
-      return normalizeSnapshot({ visitors, visits, regions: Object.fromEntries(regions) });
+      return normalizeVisitorAnalyticsSnapshot({ visitors, visits, regions: Object.fromEntries(regions) });
     },
   };
 }
@@ -126,13 +128,21 @@ export function createUpstashVisitorAnalyticsStore({ url, token, fetchImpl = fet
       for (let index = 0; index < flatRegions.length; index += 2) {
         regions[String(flatRegions[index])] = Number(flatRegions[index + 1]) || 0;
       }
-      return normalizeSnapshot({ visitors: result?.[0], visits: result?.[1], regions });
+      return normalizeVisitorAnalyticsSnapshot({ visitors: result?.[0], visits: result?.[1], regions });
     },
   };
 }
 
 export function createVisitorAnalyticsService({ config, fetchImpl = fetch, store } = {}) {
   let resolvedStore = store;
+  if (!resolvedStore && config?.publicQuotaStorage === 'cloudbase-postgres') {
+    resolvedStore = createCloudBasePostgresVisitorAnalyticsStore({
+      envId: config.cloudbaseEnvId,
+      apiKey: config.cloudbaseApiKey,
+      restUrl: config.cloudbasePostgresRestUrl,
+      fetchImpl,
+    });
+  }
   if (!resolvedStore && config?.publicQuotaStorage === 'upstash') {
     resolvedStore = createUpstashVisitorAnalyticsStore({
       url: config.upstashRedisRestUrl,
@@ -149,7 +159,10 @@ export function createVisitorAnalyticsService({ config, fetchImpl = fetch, store
     async record(subject, region) {
       if (!resolvedStore || !subject) return { status: 'unavailable', totals: null, regions: [] };
       try {
-        return await resolvedStore.record(subject, region?.key || 'UNKNOWN');
+        const snapshot = await resolvedStore.record(subject, region?.key || 'UNKNOWN');
+        return snapshot?.status === 'ready'
+          ? snapshot
+          : normalizeVisitorAnalyticsSnapshot(snapshot);
       } catch {
         return { status: 'unavailable', totals: null, regions: [] };
       }

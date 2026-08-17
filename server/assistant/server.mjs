@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { assistantServerConfig } from './config.mjs';
 import { createAssistantCore } from './core.mjs';
 import { createAssistantQuotaService, createAssistantVisitor } from './quota.mjs';
+import { createVisitorAnalyticsService, resolveVisitorRegion } from '../analytics/visitor-analytics.mjs';
 
 function writeJson(response, status, payload, origin) {
   response.writeHead(status, {
@@ -14,12 +15,14 @@ function writeJson(response, status, payload, origin) {
   response.end(JSON.stringify(payload));
 }
 
-function allowedOrigin(origin) {
+function allowedOrigin(origin, headers = {}) {
   if (!origin) return null;
   try {
     const parsed = new URL(origin);
-    if (!['127.0.0.1', 'localhost'].includes(parsed.hostname)) return null;
     if (!['http:', 'https:'].includes(parsed.protocol)) return null;
+    const forwardedHost = String(headers['x-forwarded-host'] ?? '').split(',')[0].trim().toLowerCase();
+    const requestHost = String(forwardedHost || headers.host || '').trim().toLowerCase();
+    if (!['127.0.0.1', 'localhost'].includes(parsed.hostname) && parsed.host.toLowerCase() !== requestHost) return null;
     return origin;
   } catch {
     return null;
@@ -61,15 +64,22 @@ export function createNodeAssistantServer({
 } = {}) {
   const quotaService = createAssistantQuotaService({ config, fetchImpl });
   const core = createAssistantCore({ config, fetchImpl, quotaService });
+  const analytics = createVisitorAnalyticsService({ config, fetchImpl });
   let concurrentRequests = 0;
 
   return http.createServer(async (request, response) => {
+    const url = new URL(request.url || '/', 'http://127.0.0.1');
+    if (url.pathname === '/healthz') {
+      writeJson(response, 200, { status: 'ready' });
+      return;
+    }
     const visitor = createAssistantVisitor({
       cookieHeader: request.headers.cookie,
       secret: config.assistantVisitorSecret,
+      secure: config.secureCookies,
     });
     if (visitor.setCookie) response.setHeader('Set-Cookie', visitor.setCookie);
-    const origin = allowedOrigin(request.headers.origin);
+    const origin = allowedOrigin(request.headers.origin, request.headers);
     if (request.headers.origin && !origin) {
       writeJson(response, 403, { problem: '不允许的请求来源。' });
       return;
@@ -84,6 +94,16 @@ export function createNodeAssistantServer({
       response.end();
       return;
     }
+    if (url.pathname === '/api/visits') {
+      if (request.method !== 'GET') {
+        response.setHeader('Allow', 'GET');
+        writeJson(response, 405, { status: 'unavailable', totals: null, regions: [] }, origin);
+        return;
+      }
+      const snapshot = await analytics.record(visitor.subject, resolveVisitorRegion(request.headers));
+      writeJson(response, 200, snapshot, origin);
+      return;
+    }
     if (concurrentRequests >= config.maxConcurrentRequests) {
       writeJson(response, 429, { problem: '当前已有 AI 请求正在处理，请稍后重试。' }, origin);
       return;
@@ -95,7 +115,6 @@ export function createNodeAssistantServer({
     const abortFromClient = () => controller.abort('client-aborted');
     request.once('aborted', abortFromClient);
     try {
-      const url = new URL(request.url || '/', 'http://127.0.0.1');
       const body = request.method === 'POST'
         ? await readBody(request, config.maxBodyBytes)
         : null;

@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-17T16:28:00.773Z",
+  "context_files": [
+    "process_logs/Process154.md"
+  ],
+  "context_hash": "1578ef3a3c8b888706296fc3cf176a95e0d746c57e8b4a2a0bd22215b8675424",
+  "library_hash": "c86584ead5b3d481bde234d4a64ddf65fff8cbe53b6646b6c840bd93790afc08",
+  "status": "reviewed",
+  "matches": [
+    {
+      "problem_id": "KPB-002",
+      "title": "点击动作没有及时反馈",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "首次",
+          "运行"
+        ],
+        [
+          "选择",
+          "执行"
+        ]
+      ],
+      "related_updates": [
+        "Process086",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process095",
+        "Process104",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process111",
+        "Process113",
+        "Process114",
+        "Process116",
+        "Process117",
+        "Process123",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process136",
+        "Process138",
+        "Process139",
+        "Process141",
+        "Process142",
+        "Process143",
+        "Process150",
+        "Process154"
+      ],
+      "required_checks": [
+        "覆盖真实数据首次运行，不得预先生成结果。",
+        "断言 running、disabled、完成或失败恢复状态按顺序出现。"
+      ],
+      "disposition": "covered",
+      "note": "首次进入、回放、跨页及错误恢复由隔离 UI 测试覆盖",
+      "evidence": [
+        "domain-fast 272/272；ui-isolated 144/144"
+      ]
+    },
+    {
+      "problem_id": "KPB-017",
+      "title": "少量参数域异常迫使用户重做上游流程",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "参数",
+          "局部忽略"
+        ]
+      ],
+      "related_updates": [
+        "Process107",
+        "Process108",
+        "Process122",
+        "Process125",
+        "Process154"
+      ],
+      "required_checks": [
+        "覆盖安全单点、样本量不足、高比例、连续异常、整层失去代表值、跨层零有效值和领域层伪造超限原因。",
+        "覆盖门槛外的风险查看、取消、返回检查、双击防重复提交、二次确认和刷新持久化。",
+        "忽略后断言其他有效值继续绘制、缺口不连线、层代表值排除该值，并在刷新和跨页后保持。",
+        "断言原始数据行、分类运行和最终分层修订完全不变。"
+      ],
+      "disposition": "covered",
+      "note": "参数局部忽略与持久化既有回归通过，本次发布对齐未改变领域逻辑",
+      "evidence": [
+        "parameter PROCESS107 2/2；ui-isolated 144/144"
+      ]
+    },
+    {
+      "problem_id": "KPB-037",
+      "title": "只排除私有原始文件但派生样例仍进入前端发布包",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "发布",
+          "营口"
+        ]
+      ],
+      "related_updates": [
+        "Process153",
+        "Process154"
+      ],
+      "required_checks": [
+        "扫描 git ls-files，确认没有私有原始文件、派生 fixture、专属测试、密钥和临时页面。",
+        "构建后扫描 dist，确认项目名、点位名、私有样本名和密钥模式均不存在。",
+        "用合成数据完成 build、领域测试、隔离 UI 测试和真实规模串行测试，证明替换不会破坏工作流。",
+        "记录 origin/main 历史扫描结果；若历史仍含派生文件，在公开仓库前单独决定是否重写历史。"
+      ],
+      "disposition": "covered",
+      "note": "跟踪文件与构建产物均扫描私有数据、密钥、实验入口和发布差异",
+      "evidence": [
+        "release audit 0 errors；preflight 16/16；parity 16/16"
+      ]
+    }
+  ]
+}
