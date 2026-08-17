@@ -111,9 +111,12 @@ export function createAssistantServerConfig(environment = process.env) {
     deepseekApiKeyProblem: secret.problem,
     deepseekBaseUrl: (environment.DEEPSEEK_BASE_URL || 'https://api.deepseek.com').replace(/\/+$/, ''),
     deepseekModel: environment.DEEPSEEK_MODEL || 'deepseek-v4-pro',
-    // Vercel gives this function 60 seconds. Stop the upstream call first so the
-    // function still has time to return a controlled, retryable JSON response.
-    requestTimeoutMs: Math.min(Math.max(Number(environment.ASSISTANT_TIMEOUT_MS || 55_000), 5_000), 55_000),
+    // File import only needs sheet/header/unit recognition. Use the faster
+    // model while keeping the professional/report assistant on the main model.
+    deepseekImportModel: environment.DEEPSEEK_IMPORT_MODEL || 'deepseek-v4-flash',
+    // CloudBase Run gives an HTTP request about 60 seconds. Keep two seconds for
+    // the service to turn an upstream timeout into controlled, retryable JSON.
+    requestTimeoutMs: Math.min(Math.max(Number(environment.ASSISTANT_TIMEOUT_MS || 58_000), 5_000), 58_000),
     maxBodyBytes: 512 * 1024,
     maxConcurrentRequests: 2,
     publicQuotaLimit: 100,

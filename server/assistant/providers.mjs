@@ -90,6 +90,9 @@ export async function requestDeepSeekTurn({
   const availableTools = assistantToolsForContext(context);
   const allowedToolNames = new Set(availableTools.map((tool) => tool.function.name));
   const importRoute = ['import', 'quick-input'].includes(context.scope.route);
+  const selectedModel = importRoute
+    ? (config.deepseekImportModel || 'deepseek-v4-flash')
+    : config.deepseekModel;
   const quickReportSynthesis = context.scope.route === 'quick-report' && (
     turns.at(-1)?.role === 'tool' || context.quickPlotReport?.evidenceOnly === true
   );
@@ -100,7 +103,7 @@ export async function requestDeepSeekTurn({
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: config.deepseekModel,
+      model: selectedModel,
       messages: [
         {
           role: 'system',
@@ -121,14 +124,14 @@ export async function requestDeepSeekTurn({
       // quick-atlas read has returned, the next request must synthesize the
       // answer instead of entering an unbounded read -> read loop.
       tool_choice: quickReportSynthesis ? undefined : 'auto',
-      thinking: context.scope.route === 'quick-report'
+      thinking: context.scope.route === 'quick-report' || importRoute
         ? { type: 'disabled' }
         : undefined,
       temperature: 0.1,
       max_tokens: context.scope.route === 'quick-input'
         ? 3_000
         : importRoute
-          ? 8_000
+          ? 4_000
           : context.scope.route === 'quick-report'
             ? quickReportSynthesis ? 900 : 700
             : 1_200,
@@ -162,7 +165,7 @@ export async function requestDeepSeekTurn({
       return {
         kind: 'message',
         content: partial,
-        model: String(payload.model || config.deepseekModel),
+        model: String(payload.model || selectedModel),
         usage: {
           inputTokens: Number(payload?.usage?.prompt_tokens) || undefined,
           outputTokens: Number(payload?.usage?.completion_tokens) || undefined,
@@ -190,7 +193,7 @@ export async function requestDeepSeekTurn({
         content: ['import', 'quick-input'].includes(context.scope.route)
           ? '这次没有形成可用的字段整理建议。原文件未修改；请重试，或返回手动字段映射。'
           : '这次没有形成当前页面可执行的建议。没有执行任何修改。',
-        model: String(payload.model || config.deepseekModel),
+        model: String(payload.model || selectedModel),
       };
     }
     if (context.scope.route === 'quick-input' && calls.length !== 1) {
@@ -206,7 +209,7 @@ export async function requestDeepSeekTurn({
       ...(typeof message.reasoning_content === 'string'
         ? { reasoningContent: message.reasoning_content.slice(0, 40_000) }
         : {}),
-      model: String(payload.model || config.deepseekModel),
+      model: String(payload.model || selectedModel),
     };
   }
   if (context.scope.route === 'quick-input') {
@@ -230,7 +233,7 @@ export async function requestDeepSeekTurn({
   return {
     kind: 'message',
     content,
-    model: String(payload.model || config.deepseekModel),
+    model: String(payload.model || selectedModel),
     usage: {
       inputTokens: Number(payload?.usage?.prompt_tokens) || undefined,
       outputTokens: Number(payload?.usage?.completion_tokens) || undefined,

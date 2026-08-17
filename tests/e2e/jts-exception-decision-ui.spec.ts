@@ -62,9 +62,19 @@ test('isolated JTS anomaly offers a short reversible decision and preserves raw 
   await expect(page.getByTestId('stratification-layer-decision-panel')).toBeVisible();
   await page.locator('details.layer-advanced-evidence > summary').click();
   await expect(page.getByTestId('stratification-layer-evidence-audit')).toBeVisible();
-  await expect(page.getByTestId('stratification-layer-evidence-audit')).toContainText('分类路径');
-  await expect(page.getByTestId('stratification-layer-evidence-audit')).toContainText('来源运行');
+  await expect(page.getByTestId('stratification-layer-evidence-audit')).toContainText('分类方法');
+  await expect(page.getByTestId('stratification-layer-evidence-audit')).toContainText('计算状态');
   await expect(page.getByTestId('stratification-layer-evidence-audit')).toContainText('本层证据');
+  if (process.env.PROCESS155_EVIDENCE === '1') {
+    const process155Directory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process155-ai-timeout-copy');
+    mkdirSync(process155Directory, { recursive: true });
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+      await page.setViewportSize(viewport);
+      const workbenchText = await page.getByTestId('workbench-root').innerText();
+      expect(workbenchText).not.toMatch(/公式包|来源运行|sourceRowId|runId|schemeId|输入哈希|结果哈希/i);
+      await page.screenshot({ path: path.join(process155Directory, `professional-stratification-evidence-${viewport.width}x${viewport.height}.png`), fullPage: true });
+    }
+  }
   if (process.env.MILESTONE_EVIDENCE === '1') {
     for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
       await page.setViewportSize(viewport);

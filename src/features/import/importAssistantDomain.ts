@@ -75,7 +75,7 @@ export type ImportCleanupCellEdit = {
 export type ImportCleanupProposal = {
   sourceFingerprint: string;
   sheetName: string;
-  headerRow: number;
+  headerRow: number | null;
   summary: string;
   columns: ImportCleanupColumnDecision[];
   cellEdits: ImportCleanupCellEdit[];
@@ -244,7 +244,7 @@ export function cleanupProposalFromImportTool(
   const proposal: ImportCleanupProposal = {
     sourceFingerprint: boundedString(args.sourceFingerprint, 96),
     sheetName: boundedString(args.sheetName, 120),
-    headerRow: Number(args.headerRow),
+    headerRow: args.headerRow === null ? null : Number(args.headerRow),
     summary: boundedString(args.summary, 320),
     columns: Array.isArray(args.columns) ? args.columns.slice(0, 8).map((column) => {
       const value = column as Record<string, unknown>;
@@ -270,7 +270,7 @@ export function cleanupProposalFromImportTool(
   if (proposal.sourceFingerprint !== source.sourceFingerprint) return { ok: false, problem: 'AI 建议引用了旧来源，请重新整理当前文件。' };
   const sheet = source.sheets.find((candidate) => candidate.sheetName === proposal.sheetName);
   if (!sheet) return { ok: false, problem: 'AI 建议引用了不存在的工作表。' };
-  if (!Number.isInteger(proposal.headerRow) || proposal.headerRow < 1 || proposal.headerRow >= sheet.rowCount) {
+  if (proposal.headerRow !== null && (!Number.isInteger(proposal.headerRow) || proposal.headerRow < 1 || proposal.headerRow >= sheet.rowCount)) {
     return { ok: false, problem: 'AI 建议的表头行无效。' };
   }
   const allowedTargets = new Set(['pointName', 'depthM', 'qc', 'fs', 'u2']);
@@ -329,8 +329,8 @@ export async function createPipelineFromImportCleanup(input: {
   const validation = validateConfirmedProposal(input.proposal, input.source, input.measurementAuthorization);
   if (!validation.ok) throw new Error(validation.problem);
   const { proposal, sheet } = validation;
-  const headerIndex = proposal.headerRow - 1;
-  const sourceHeader = sheet.rows[headerIndex] ?? [];
+  const headerIndex = proposal.headerRow === null ? -1 : proposal.headerRow - 1;
+  const sourceHeader = headerIndex >= 0 ? sheet.rows[headerIndex] ?? [] : [];
   const labelByIndex = new Map(proposal.columns.map((column) => [column.sourceColumnIndex, column.headerLabel]));
   const headers = Array.from({ length: sheet.columnCount }, (_, index) => (
     sourceHeader[index]?.trim() || labelByIndex.get(index)?.trim() || `第 ${index + 1} 列`
@@ -342,7 +342,7 @@ export async function createPipelineFromImportCleanup(input: {
     ? {
         sheetName: sheet.sheetName,
         fidelity: 'cached-values' as const,
-        headerRows: sheet.rows.slice(0, proposal.headerRow).map((row) => [...row]),
+        headerRows: sheet.rows.slice(0, proposal.headerRow ?? 0).map((row) => [...row]),
         rows: dataRows.map(({ row }) => [...row]),
         displayRowNumbers: dataRows.map(({ displayRowNumber }) => displayRowNumber),
         formulaDefinitionsRequireOriginalFile: true as const,
@@ -364,7 +364,7 @@ export async function createPipelineFromImportCleanup(input: {
     rows: dataRows.map(({ row }) => [...row]),
     displayRowNumbers: dataRows.map(({ displayRowNumber }) => displayRowNumber),
     sourceSheetName: sheet.sheetName,
-    sourceHeaderRow: proposal.headerRow,
+    sourceHeaderRow: proposal.headerRow ?? undefined,
     sourceWorkbookSheets: input.source.sheets.map((candidate) => ({
       sheetName: candidate.sheetName,
       rowCount: candidate.rowCount,

@@ -22,7 +22,9 @@ export class AssistantRequestError extends Error {
 const ASSISTANT_ENDPOINT = '/api/assistant';
 const REQUIRED_ASSISTANT_SERVICE = 'sigs-oglab-assistant';
 const REQUIRED_ASSISTANT_PROTOCOLS = ['sigs.assistant/1', 'sigs.ai-import/1'];
-const ASSISTANT_TURN_TIMEOUT_MS = 65_000;
+// CloudBase Run allows about 60 seconds per HTTP request. The browser waits
+// slightly longer so it can receive the server's controlled timeout response.
+const ASSISTANT_TURN_TIMEOUT_MS = 70_000;
 
 export function assistantTurnTimeoutMs() {
   return ASSISTANT_TURN_TIMEOUT_MS;
@@ -30,12 +32,12 @@ export function assistantTurnTimeoutMs() {
 
 function clientTimeoutProblem(route: AssistantContextSnapshot['scope']['route']) {
   if (route === 'quick-report') {
-    return '等待图册解读超过 65 秒。你的问题已保留，可直接重新解读；图册和数据没有改变。';
+    return '本次图册解读超过单次服务等待时间。你的问题已保留，可直接重新解读；图册和数据没有改变。';
   }
   if (route === 'import' || route === 'quick-input') {
-    return '等待文件整理超过 65 秒。可以直接重试；原文件没有改变。';
+    return '本次文件整理超过平台最长等待时间。文件仍保留，可以直接重试；原文件没有改变。';
   }
-  return '等待 AI 回答超过 65 秒。可以直接重试；没有执行任何修改。';
+  return '本次 AI 回答超过平台最长等待时间。可以直接重试；没有执行任何修改。';
 }
 
 async function readJson(response: Response) {

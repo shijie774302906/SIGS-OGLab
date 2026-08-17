@@ -58,6 +58,7 @@
     "point-lifecycle-ui.spec.ts",
     "preparation-guided-flow.spec.ts",
     "process154-production-parity.spec.ts",
+    "process155-import-scale.spec.ts",
     "process142-manual-screens.spec.ts",
     "project-feedback.spec.ts",
     "project-onboarding.spec.ts",

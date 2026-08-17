@@ -211,11 +211,17 @@ export type AssistantPublicQuota = {
   resetAt: string;
 };
 
+export type AssistantTaskModels = {
+  professional: string;
+  import: string;
+};
+
 export type AssistantCapability =
   | {
       serviceAvailable: true;
       provider: 'deepseek' | 'mock';
       model: string;
+      taskModels?: AssistantTaskModels;
       requiresApiKey: boolean;
       publicAccess?: boolean;
       publicQuota?: AssistantPublicQuota;
@@ -228,6 +234,7 @@ export type AssistantCapability =
       serviceAvailable: false;
       provider: 'deepseek' | 'mock';
       model: string | null;
+      taskModels?: AssistantTaskModels;
       requiresApiKey: boolean;
       publicAccess?: boolean;
       publicQuota?: AssistantPublicQuota;

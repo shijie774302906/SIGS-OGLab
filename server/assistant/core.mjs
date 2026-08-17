@@ -34,10 +34,10 @@ function safeProblem(error, aborted = false, route = null) {
   const isFileRoute = route === 'import' || route === 'quick-input';
   const problem = aborted
     ? route === 'quick-report'
-      ? '模型读取图册超过 55 秒。你的问题已保留，可以直接重新解读；图册和数据没有改变。'
+      ? '模型读取图册超过本次服务时限。你的问题已保留，可以直接重新解读；图册和数据没有改变。'
       : isFileRoute
-        ? '模型整理文件超过 55 秒。可以直接重试；原文件没有改变。'
-        : '模型响应超过 55 秒。可以直接重试；没有执行任何修改。'
+        ? '模型整理文件超过本次服务时限。可以直接重试；原文件没有改变。'
+        : '模型响应超过本次服务时限。可以直接重试；没有执行任何修改。'
     : error?.code === 'MODEL_OUTPUT_TRUNCATED'
       ? route === 'quick-report'
         ? '这次图册回答没有生成完整。你的问题已保留，可以直接重新解读；图册和数据没有改变。'
@@ -90,6 +90,12 @@ export function createAssistantCore({
         serviceAvailable: true,
         provider: config.provider,
         model: config.provider === 'mock' ? 'deterministic-mock' : config.deepseekModel,
+        taskModels: config.provider === 'mock'
+          ? { professional: 'deterministic-mock', import: 'deterministic-mock' }
+          : {
+              professional: config.deepseekModel,
+              import: config.deepseekImportModel || 'deepseek-v4-flash',
+            },
         requiresApiKey: config.provider !== 'mock' && !publicAccess,
         publicAccess,
         ...(publicQuota ? { publicQuota } : {}),

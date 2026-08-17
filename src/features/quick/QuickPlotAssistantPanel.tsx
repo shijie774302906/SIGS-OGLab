@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAssistantConnection } from '../assistant/AssistantConnectionProvider';
+import { AssistantProcessingStatus } from '../assistant/AssistantProcessingStatus';
 import { AssistantPublicQuotaNote, publicAssistantQuotaReady } from '../assistant/AssistantPublicQuotaNote';
 import { AssistantRequestError } from '../assistant/assistantClient';
 import type {
@@ -764,7 +765,10 @@ export function QuickPlotAssistantPanel({
 
   const providerLabel = connection.capability?.provider === 'mock'
     ? '测试模型 · 已连接'
-    : `DeepSeek · ${connection.usingPersonalKey ? '自己的 Key' : '公共额度'}`;
+    : `${mode === 'input'
+      ? `文件整理 · ${connection.capability?.taskModels?.import ?? 'DeepSeek Flash'}`
+      : `图册解读 · ${connection.capability?.taskModels?.professional ?? connection.capability?.model ?? 'DeepSeek Pro'}`}
+      · ${connection.usingPersonalKey ? '自己的 Key' : '公共额度'}`;
   const canUseAi = Boolean(
     connection.connected
     && outboundConsent
@@ -842,7 +846,13 @@ export function QuickPlotAssistantPanel({
           {!messages.length ? <article className="assistant-message system"><p>{mode === 'input' ? '上传文件后，我会识别中文或英文表头，并列出未使用的列。' : '可询问当前页、其他页面、方法或某个深度范围。'}</p></article> : null}
           {!proposal ? messages.map((message) => <article key={message.id} className={`assistant-message ${message.role}`}>{mode === 'report' && message.role === 'assistant' ? <QuickReportMarkdown content={message.content} /> : <p>{message.content}</p>}{message.detail ? <small>{message.detail}</small> : null}</article>) : null}
           {status === 'parsing' ? <div className="assistant-running"><LoaderCircle />正在读取文件…</div> : null}
-          {status === 'reading' ? <div className="assistant-running"><LoaderCircle />{mode === 'input' ? 'AI 正在判断工作表、字段和单位…' : '正在回答（最多 2 分钟）…'}{mode === 'input' ? <button type="button" className="toolbar-button" onClick={stopRequest}><Square />停止判断</button> : <button type="button" className="toolbar-button" onClick={stopReportRequest}><Square />停止</button>}</div> : null}
+          {status === 'reading' ? <AssistantProcessingStatus
+            mode={mode === 'input' ? 'import' : 'report'}
+            testId={mode === 'input' ? 'quick-ai-processing' : 'quick-report-processing'}
+            action={mode === 'input'
+              ? <button type="button" className="toolbar-button" onClick={stopRequest}><Square />停止判断</button>
+              : <button type="button" className="toolbar-button" onClick={stopReportRequest}><Square />停止</button>}
+          /> : null}
           {question ? (
             <article className="import-assistant-question" data-testid="quick-ai-question">
               <strong>{question.question.prompt}</strong><p>{question.question.reason}</p>

@@ -86,7 +86,7 @@ test('assistant authority hash changes with route, revision and engineering stat
 });
 
 test('PROCESS145 browser waits long enough to receive the server timeout response', () => {
-  expect(assistantTurnTimeoutMs()).toBe(65_000);
+  expect(assistantTurnTimeoutMs()).toBe(70_000);
   expect(QUICK_REPORT_TOTAL_BUDGET_MS).toBe(120_000);
 });
 

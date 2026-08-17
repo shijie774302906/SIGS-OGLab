@@ -106,6 +106,33 @@ test('PROCESS154 six professional pages keep independent first-use guides and su
   await page.getByTestId('professional-onboarding-close').click();
 });
 
+test('PROCESS155 six professional pages keep internal identifiers out of the daily UI', async ({ page }) => {
+  await createProfessionalProject(page);
+  const forbidden = [
+    /公式包\s*(?:ID|标识)?/i,
+    /来源运行/,
+    /运行\s*ID/i,
+    /方案\s*ID/i,
+    /修订\s*ID/i,
+    /原始哈希|结果哈希|输入哈希|指纹/,
+    /内容哈希|技术标识|公式安全边界/,
+    /sourceRowId|schemeId|runId|revisionId|formulaSpecHash|astHash/i,
+  ];
+  const reviewed: Array<{ route: string; document: string }> = [];
+
+  for (const [route, document] of professionalRoutes) {
+    if (route !== 'project') await openPersistedProfessionalRoute(page, route);
+    await expect(page.getByTestId(document)).toBeVisible();
+    const guide = page.getByTestId(`professional-${route}-onboarding`);
+    if (await guide.isVisible().catch(() => false)) await page.getByTestId('professional-onboarding-skip').click();
+    const visibleText = await page.getByTestId('workbench-root').innerText();
+    for (const pattern of forbidden) expect(visibleText).not.toMatch(pattern);
+    reviewed.push({ route, document });
+  }
+
+  expect(reviewed).toHaveLength(6);
+});
+
 test('PROCESS154 professional assistant renders readable Markdown and drops raw HTML', async ({ page }) => {
   await page.unroute('**/api/assistant/capabilities');
   await page.route('**/api/assistant/capabilities', async (route) => {

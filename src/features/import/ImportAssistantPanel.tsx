@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAssistantConnection } from '../assistant/AssistantConnectionProvider';
+import { AssistantProcessingStatus } from '../assistant/AssistantProcessingStatus';
 import { AssistantPublicQuotaNote, publicAssistantQuotaReady } from '../assistant/AssistantPublicQuotaNote';
 import type {
   AssistantContextSnapshot,
@@ -361,7 +362,7 @@ export function ImportAssistantPanel({
   const canAsk = Boolean(source && sourceAttachment && pipelineContext && baseWorkspaceRevision !== null && quotaReady);
   const connectedLabel = connection.capability?.provider === 'mock'
     ? '测试模型 · 已连接'
-    : `DeepSeek · ${connection.usingPersonalKey ? '自己的 Key' : '公共额度'}`;
+    : `文件整理 · ${connection.capability?.taskModels?.import ?? 'DeepSeek Flash'} · ${connection.usingPersonalKey ? '自己的 Key' : '公共额度'}`;
 
   return (
     <section className="import-assistant-panel" data-testid="import-assistant-panel">
@@ -437,7 +438,12 @@ export function ImportAssistantPanel({
           <article key={message.id} className={`assistant-message ${message.role}`}><p>{message.content}</p>{message.detail ? <small>{message.detail}</small> : null}</article>
         ))}
         {status === 'loading' || status === 'building' ? (
-          <div className="assistant-running" data-testid="import-assistant-running"><LoaderCircle />{status === 'building' ? '正在生成导入草稿…' : '正在识别当前文件…'}</div>
+          <AssistantProcessingStatus
+            mode="import"
+            phase={status === 'building' ? 'building' : 'reading'}
+            testId="import-assistant-running"
+            action={<button type="button" className="toolbar-button" onClick={() => requestAbortRef.current?.abort('cancelled-by-user')}>停止</button>}
+          />
         ) : null}
         {question ? (
           <article className="import-assistant-question" data-testid="import-assistant-question">
@@ -460,7 +466,7 @@ export function ImportAssistantPanel({
         {cleanup ? (
           <article className="import-assistant-cleanup" data-testid="import-assistant-cleanup">
             <span>{status === 'success' ? '已导入' : 'AI 草稿待确认'}</span>
-            <h3>{cleanup.proposal.sheetName} · 表头第 {cleanup.proposal.headerRow} 行</h3>
+            <h3>{cleanup.proposal.sheetName} · {cleanup.proposal.headerRow === null ? '无表头，首行即数据' : `表头第 ${cleanup.proposal.headerRow} 行`}</h3>
             <p>{cleanup.proposal.cellEdits.length
               ? `${cleanup.proposal.cellEdits.length} 项测量值建议待复核；查看原值、新值和理由后才能导入。`
               : '原始单元格未修改；标准化时按下列单位换算。'}</p>
@@ -541,9 +547,7 @@ export function ImportAssistantPanel({
           disabled={!canAsk || !connection.connected || !importConsent || status !== 'idle' || Boolean(question) || Boolean(cleanup)}
           data-testid="import-assistant-input"
         />
-        {status === 'loading' ? (
-          <button type="button" className="assistant-send cancel" onClick={() => requestAbortRef.current?.abort('cancelled-by-user')} aria-label="停止整理"><X /></button>
-        ) : (
+        {status === 'loading' || status === 'building' ? null : (
           <button type="submit" className="assistant-send" disabled={!input.trim()} aria-label="发送"><Send /></button>
         )}
       </form>
@@ -615,7 +619,7 @@ function sourceHeaderLabel(
   columnIndex: number,
 ) {
   const sheet = source?.sheets.find((candidate) => candidate.sheetName === proposal.sheetName);
-  const rawLabel = sheet?.rows[proposal.headerRow - 1]?.[columnIndex]?.trim() ?? '';
+  const rawLabel = proposal.headerRow === null ? '' : sheet?.rows[proposal.headerRow - 1]?.[columnIndex]?.trim() ?? '';
   return rawLabel.replace(/&#(?:10|x0*a);/gi, ' ').replace(/\s+/g, ' ').trim() || `第 ${columnIndex + 1} 列`;
 }
 

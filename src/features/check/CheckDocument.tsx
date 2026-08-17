@@ -497,21 +497,21 @@ export function CheckDocument({
             </div>
             <div className="readiness-row">
               <span>最近检查</span>
-              <strong title={activeRun?.runId}>{activeRun ? compactIdentifier(activeRun.runId) : checkedDraftVersion === null ? '未运行' : '历史记录'}</strong>
+              <strong>{activeRun ? formatDateTime(activeRun.createdAt) : checkedDraftVersion === null ? '未运行' : '历史记录'}</strong>
             </div>
             <div className="readiness-row">
               <span>{artifactStatus === 'stale' ? '失效依据' : '当前依据'}</span>
-              <strong data-testid="check-current-input" title={activeRun?.input ? `${activeRun.input.pointId} / ${activeRun.input.draftId}` : undefined}>
-                {activeRun?.input ? `${compactIdentifier(activeRun.input.pointId)} / ${compactIdentifier(activeRun.input.draftId)}` : '尚未形成当前检查依据'}
+              <strong data-testid="check-current-input">
+                {activeRun?.input ? '当前点位 / 当前导入数据' : '尚未形成当前检查依据'}
               </strong>
             </div>
             <div className="readiness-row">
-              <span>输入修订</span>
-              <strong data-testid="check-current-revisions">{activeRun?.input ? formatRevisionVector(activeRun.input.revisions) : '未绑定'}</strong>
+              <span>数据一致性</span>
+              <strong data-testid="check-current-revisions">{activeRun?.input ? artifactStatus === 'stale' ? '数据已变化，需要重新检查' : '与当前导入数据一致' : '未检查'}</strong>
             </div>
             <div className="readiness-row">
-              <span>导入版本</span>
-              <strong>{String(draft.version).slice(-6)}</strong>
+              <span>工作数据</span>
+              <strong>{draft.rows.length} 行</strong>
             </div>
             <div className="readiness-row">
               <span>字段范围</span>
@@ -557,7 +557,7 @@ export function CheckDocument({
                         : '历史';
                     return (
                     <tr key={record.runId} data-testid={`check-history-row-${index}`} data-run-use={useState}>
-                      <td title={record.runId}>第 {checkRunHistory.length - index} 次</td>
+                      <td>第 {checkRunHistory.length - index} 次</td>
                       <td>{record.conclusion}</td>
                       <td><span className={`inline-state ${useState === '当前依据' ? 'ok' : useState === '失效依据' ? 'notice' : 'muted'}`}>{useState}</span></td>
                       <td>{record.counts.issue}</td>
@@ -969,8 +969,8 @@ function CheckDataEvidence({ governance, rows }: { governance: DataGovernanceWor
           {[0, 0.5, 1].map((ratio) => <text key={ratio} x={plot.left + ratio * (width - plot.left - plot.right)} y={height - 6} textAnchor={ratio === 0 ? 'start' : ratio === 1 ? 'end' : 'middle'}>{(ratio * qcMax / 1000).toFixed(1)} MPa</text>)}
           {showRaw ? <path d={rawPath} className="raw-curve" /> : null}
           {showSmooth ? <path d={smoothPath} className="smooth-curve" /> : null}
-          {rows.filter((item) => excluded.has(item.sourceRowId)).map((item) => <circle key={item.sourceRowId} cx={x(item.row.qcKpa)} cy={y(item.row.depthM)} r={4} className="excluded-point"><title>{item.sourceRowId} 已排除</title></circle>)}
-          {anomalies.map((item) => <circle key={item.sourceRowId} cx={x(item.rawQcKpa)} cy={y(item.depthM)} r={5} className="anomaly-point"><title>{item.sourceRowId} 平滑偏差提示</title></circle>)}
+          {rows.filter((item) => excluded.has(item.sourceRowId)).map((item) => <circle key={item.sourceRowId} cx={x(item.row.qcKpa)} cy={y(item.row.depthM)} r={4} className="excluded-point"><title>{item.row.depthM.toFixed(2)} m 已排除</title></circle>)}
+          {anomalies.map((item) => <circle key={item.sourceRowId} cx={x(item.rawQcKpa)} cy={y(item.depthM)} r={5} className="anomaly-point"><title>{item.depthM.toFixed(2)} m 平滑偏差提示</title></circle>)}
         </svg>
       </div>
       <div className="check-governance-summary">
@@ -1002,14 +1002,6 @@ function checkStateStatusClass(checkState: string) {
   if (checkState === '无问题') return 'status-success';
   if (checkState === '仅提示' || checkState === '需重新检查' || checkState === '未检查') return 'status-info';
   return 'status-warning';
-}
-
-function formatRevisionVector(revisions: NonNullable<CheckRunRecord['input']>['revisions']) {
-  return `源 ${revisions.source} / 映射 ${revisions.mapping} / 单位 ${revisions.unit} / 标准化 ${revisions.normalization} / 点位计划 ${revisions.pointPlan}`;
-}
-
-function compactIdentifier(value: string) {
-  return value.length <= 24 ? value : `${value.slice(0, 10)}...${value.slice(-10)}`;
 }
 
 function sameCheckInput(left: CheckRunRecord['input'], right: CheckRunRecord['input']) {

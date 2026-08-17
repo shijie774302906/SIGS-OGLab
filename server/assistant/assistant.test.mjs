@@ -141,11 +141,12 @@ function quickReportContext() {
   };
 }
 
-test('default DeepSeek model is v4-pro and import route exposes only import tools', () => {
+test('default DeepSeek routes professional work to Pro and file recognition to Flash', () => {
   const config = createAssistantServerConfig({});
   assert.equal(config.deepseekModel, 'deepseek-v4-pro');
-  assert.equal(config.requestTimeoutMs, 55_000);
-  assert.equal(createAssistantServerConfig({ ASSISTANT_TIMEOUT_MS: '60000' }).requestTimeoutMs, 55_000);
+  assert.equal(config.deepseekImportModel, 'deepseek-v4-flash');
+  assert.equal(config.requestTimeoutMs, 58_000);
+  assert.equal(createAssistantServerConfig({ ASSISTANT_TIMEOUT_MS: '60000' }).requestTimeoutMs, 58_000);
   assert.equal(assistantServerConfig.deepseekModel, 'deepseek-v4-pro');
   assert.deepEqual(
     assistantToolsForContext(importContext()).map((tool) => tool.function.name),
@@ -308,11 +309,13 @@ test('DeepSeek import turns reject a wrong-page tool as a safe user-facing expla
     context: importContext(),
     config: {
       deepseekModel: 'deepseek-v4-pro',
+      deepseekImportModel: 'deepseek-v4-flash',
       deepseekBaseUrl: 'https://api.deepseek.com',
     },
     fetchImpl: async (_url, init) => {
       const request = JSON.parse(init.body);
-      assert.equal(request.model, 'deepseek-v4-pro');
+      assert.equal(request.model, 'deepseek-v4-flash');
+      assert.deepEqual(request.thinking, { type: 'disabled' });
       assert.deepEqual(
         request.tools.map((tool) => tool.function.name),
         ['read_import_source', 'ask_import_question', 'propose_import_cleanup'],
@@ -351,6 +354,7 @@ test('DeepSeek quick import enforces one versioned decision even though thinking
     },
     config: {
       deepseekModel: 'deepseek-v4-pro',
+      deepseekImportModel: 'deepseek-v4-flash',
       deepseekBaseUrl: 'https://api.deepseek.com',
     },
   };
@@ -359,6 +363,8 @@ test('DeepSeek quick import enforces one versioned decision even though thinking
     fetchImpl: async (_url, init) => {
       const request = JSON.parse(init.body);
       assert.equal(request.tool_choice, 'auto');
+      assert.equal(request.model, 'deepseek-v4-flash');
+      assert.deepEqual(request.thinking, { type: 'disabled' });
       assert.equal(request.max_tokens, 3_000);
       assert.deepEqual(
         request.tools.map((tool) => tool.function.name),
@@ -389,17 +395,20 @@ test('DeepSeek quick import enforces one versioned decision even though thinking
   }), /唯一的文件判断/);
 });
 
-test('DeepSeek import turns use a large output budget and preserve thinking-mode tool state', async () => {
+test('DeepSeek import turns use Flash without thinking and preserve prior tool state', async () => {
   const reasoningContent = 'internal thinking state required by the provider';
   const core = createAssistantCore({
     config: {
       provider: 'deepseek',
       deepseekModel: 'deepseek-v4-pro',
+      deepseekImportModel: 'deepseek-v4-flash',
       deepseekBaseUrl: 'https://api.deepseek.com',
     },
     fetchImpl: async (_url, init) => {
       const request = JSON.parse(init.body);
-      assert.equal(request.max_tokens, 8_000);
+      assert.equal(request.model, 'deepseek-v4-flash');
+      assert.deepEqual(request.thinking, { type: 'disabled' });
+      assert.equal(request.max_tokens, 4_000);
       const assistantTurn = request.messages.find((message) => message.role === 'assistant');
       const toolTurn = request.messages.find((message) => message.role === 'tool');
       assert.equal(assistantTurn.reasoning_content, reasoningContent);
@@ -471,11 +480,14 @@ test('truncated DeepSeek import output reports the real recoverable reason', asy
     config: {
       provider: 'deepseek',
       deepseekModel: 'deepseek-v4-pro',
+      deepseekImportModel: 'deepseek-v4-flash',
       deepseekBaseUrl: 'https://api.deepseek.com',
     },
     fetchImpl: async (_url, init) => {
       const request = JSON.parse(init.body);
-      assert.equal(request.max_tokens, 8_000);
+      assert.equal(request.model, 'deepseek-v4-flash');
+      assert.deepEqual(request.thinking, { type: 'disabled' });
+      assert.equal(request.max_tokens, 4_000);
       return new Response(JSON.stringify({
         model: 'deepseek-v4-pro',
         choices: [{
@@ -532,7 +544,7 @@ test('PROCESS145 quick report timeout explains the reason and preserves a direct
   assert.deepEqual(result, {
     status: 504,
     body: {
-      problem: '模型读取图册超过 55 秒。你的问题已保留，可以直接重新解读；图册和数据没有改变。',
+      problem: '模型读取图册超过本次服务时限。你的问题已保留，可以直接重新解读；图册和数据没有改变。',
       code: 'UPSTREAM_TIMEOUT',
     },
   });
@@ -861,6 +873,10 @@ test('capability only reports the stateless relay and never creates a server ses
     serviceAvailable: true,
     provider: 'deepseek',
     model: 'deepseek-chat',
+    taskModels: {
+      professional: 'deepseek-chat',
+      import: 'deepseek-v4-flash',
+    },
     requiresApiKey: true,
     publicAccess: false,
   });
@@ -1201,6 +1217,10 @@ test('Node adapter exposes the same stateless capability and connection contract
       serviceAvailable: true,
       provider: 'deepseek',
       model: 'deepseek-chat',
+      taskModels: {
+        professional: 'deepseek-chat',
+        import: 'deepseek-v4-flash',
+      },
       requiresApiKey: true,
       publicAccess: false,
     });

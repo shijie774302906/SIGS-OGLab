@@ -1142,7 +1142,8 @@ test('PROCESS145 stopping a slow report keeps the question and offers the same r
   await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
   await page.getByTestId('quick-ai-toggle').click();
   await page.getByRole('button', { name: '解释当前页' }).click();
-  await expect(page.getByText('正在回答（最多 2 分钟）…')).toBeVisible();
+  await expect(page.getByTestId('quick-report-processing')).toContainText('AI 正在分析图册');
+  await expect(page.getByTestId('quick-report-processing')).toContainText('最长约 2 分钟');
   await page.getByRole('button', { name: '停止', exact: true }).click();
   await expect(page.getByTestId('quick-ai-error')).toContainText('已停止本次解读');
   await expect(page.getByTestId('quick-ai-error')).toContainText('问题已保留');

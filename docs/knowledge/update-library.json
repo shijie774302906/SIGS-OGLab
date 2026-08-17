@@ -673,6 +673,14 @@
       "status": "closed",
       "record": "process_logs/Process154.md",
       "problems": ["KPB-002", "KPB-003", "KPB-004", "KPB-006", "KPB-011", "KPB-012", "KPB-016", "KPB-017", "KPB-020", "KPB-023", "KPB-033", "KPB-034", "KPB-037"]
+    },
+    {
+      "id": "Process155",
+      "date": "2026-08-18",
+      "title": "AI 文件整理等待与专业界面呈现优化",
+      "status": "closed",
+      "record": "process_logs/Process155.md",
+      "problems": ["KPB-001", "KPB-003", "KPB-004", "KPB-009", "KPB-011", "KPB-012", "KPB-015", "KPB-023", "KPB-024", "KPB-037"]
     }
   ]
 }

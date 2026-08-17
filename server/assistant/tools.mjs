@@ -126,7 +126,7 @@ export const ASSISTANT_TOOLS = Object.freeze([
         properties: {
           sourceFingerprint: { type: 'string', minLength: 32, maxLength: 96 },
           sheetName: { type: 'string', minLength: 1, maxLength: 120 },
-          headerRow: { type: 'integer', minimum: 1 },
+          headerRow: { type: ['integer', 'null'], minimum: 1 },
           dataStartRow: { type: 'integer', minimum: 1 },
           dataEndRow: { type: 'integer', minimum: 1 },
           summary: { type: 'string', minLength: 1, maxLength: 320 },

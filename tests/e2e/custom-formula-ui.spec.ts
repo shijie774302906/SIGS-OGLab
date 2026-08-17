@@ -149,6 +149,16 @@ test('FLOW-G1D-03 preserves revisions and runs through edit, duplicate, delete, 
   await expect(page.getByTestId('custom-formula-revision-3')).toBeVisible();
   await page.getByTestId('custom-formula-revision-3').click();
   await expect(page.getByTestId('custom-formula-revision-3')).toContainText('Qtn + 3');
+  if (process.env.PROCESS155_EVIDENCE === '1') {
+    const process155Directory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process155-ai-timeout-copy');
+    mkdirSync(process155Directory, { recursive: true });
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+      await page.setViewportSize(viewport);
+      const workbenchText = await page.getByTestId('workbench-root').innerText();
+      expect(workbenchText).not.toMatch(/内容哈希|技术标识|sourceRowId|runId|revisionId|astHash|formulaSpecHash/i);
+      await page.screenshot({ path: path.join(process155Directory, `professional-formula-revisions-${viewport.width}x${viewport.height}.png`), fullPage: true });
+    }
+  }
   await page.getByTestId('custom-formula-run-history').locator('.parameter-run-history-list button').last().click();
   await expect(page.getByTestId('custom-formula-run-authority')).toContainText('Qtn + 1');
   await expect(page.getByTestId('custom-formula-definition')).toContainText('Qtn + 1');

@@ -6802,7 +6802,7 @@ function ProjectWorkspaceApp({
     }).filter((item) => item.applicableLayerIds.length > 0);
     const ignoredPointNotices = (outputPackage.settingsSnapshot.ignoredPointDecisions ?? []).map((decision) => {
       const item = outputPackage.checklist.find((candidate) => candidate.methodId === decision.methodId);
-      return `${decision.forced ? '参数强制忽略' : '参数局部忽略'}：${item?.symbol ?? decision.methodId}，深度 ${decision.depthM.toFixed(2)} m，源行 ${decision.sourceRowId}；原失败原因：${decision.originalReason}${decision.forced ? `；未满足的建议条件：${decision.thresholdViolations?.join('；') ?? '已由工程师确认'}；确认时间：${decision.forcedConfirmedAt ?? decision.decidedAt}` : ''}；仅影响本次参数试算。`;
+      return `${decision.forced ? '参数强制忽略' : '参数局部忽略'}：${item?.symbol ?? decision.methodId}，深度 ${decision.depthM.toFixed(2)} m；原失败原因：${decision.originalReason}${decision.forced ? `；未满足的建议条件：${decision.thresholdViolations?.join('；') ?? '已由工程师确认'}；确认时间：${decision.forcedConfirmedAt ?? decision.decidedAt}` : ''}；仅影响本次参数试算。`;
     });
     const includedParameterValues = outputPackage.values.filter((item) => includedMethodIds.has(item.methodId));
     const includedRepresentativeValues = outputPackage.representativeValues.filter((item) => includedMethodIds.has(item.methodId));
@@ -9688,7 +9688,7 @@ function ImportDocument({
               <span>上传 CSV 或 .xlsx 后生成导入草稿；Excel 会保留 sheet、表头行和原始行号。</span>
             </div>
           </div>
-          <label className="file-drop-zone" htmlFor="import-file-input">
+          <label className={`file-drop-zone ${pipeline ? 'has-source' : ''}`} htmlFor="import-file-input">
             <FileInput className="drop-icon" />
             <span>{excelParsing ? '正在解析工作簿…' : '选择 CSV 或 Excel 文件'}</span>
             <strong>{draft.fileName}</strong>
@@ -9704,7 +9704,9 @@ function ImportDocument({
               }}
             />
           </label>
-          <div className="template-action-row" data-testid="import-template-actions">
+          <details className="import-template-disclosure" key={pipeline ? draft.fileName : 'empty-source'} open={!pipeline}>
+            <summary>模板与演示数据</summary>
+            <div className="template-action-row" data-testid="import-template-actions">
             <button
               type="button"
               className="toolbar-button"
@@ -9740,7 +9742,8 @@ function ImportDocument({
             <button type="button" className="toolbar-button" data-testid="detail-copy-template-header" onClick={onCopyTemplateHeader}>
               复制标准表头
             </button>
-          </div>
+            </div>
+          </details>
           {demoReplacePending ? (
             <div className="inline-confirmation" data-testid="import-demo-replace-confirmation">
               <span>将用系统生成演示数据替换当前导入草稿；已保存的项目数据不会立即修改。</span>
@@ -11102,14 +11105,14 @@ function StratificationLayerDecisionPanel({
           <span><strong>分类方法</strong>{jtsDualPathEvidence
             ? jtsRun.route === 'full_cptu' ? 'JTS/T 242—2020 · Ic 与孔压双路径' : 'JTS/T 242—2020 · Ic 近似路径'
             : `${evidenceMethod?.label ?? '当前方法'} · 单方法分类`}</span>
-          <span><strong>来源运行</strong>{jtsRun.runId}</span>
-          <span><strong>公式包</strong>{jtsRun.formulaPackageId} / v{jtsRun.formulaPackageVersion}</span>
+          <span><strong>计算状态</strong>{jtsRun.status === 'completed' ? '该方案绑定的数据快照已完成' : jtsRun.status === 'stale' ? '数据已变化，需要重新计算' : '计算失败，需要重新计算'}</span>
+          <span><strong>方法版本</strong>{jtsRun.methodVersion ?? '历史记录未标注'}</span>
           <span><strong>本层证据</strong>{layerEvidenceRows.length} 行 · {exceptionalEvidenceRows.length} 行需要复核/无法分类</span>
-          {layerEvidenceRows.length ? <span><strong>源行范围</strong>{layerEvidenceRows[0].sourceRowId} – {layerEvidenceRows[layerEvidenceRows.length - 1].sourceRowId}</span> : null}
-          <details><summary>查看行级证据（需复核项优先）</summary><div className="layer-evidence-row-list">{displayedEvidenceRows.map((row) => <span key={row.sourceRowId}><code>{row.sourceRowId}</code><em>{row.depthM.toFixed(2)} m</em><strong>{row.selectedClass?.label ?? '无法分类'}</strong><small>{jtsDualPathEvidence
+          {layerEvidenceRows.length ? <span><strong>深度范围</strong>{layerEvidenceRows[0].depthM.toFixed(2)}–{layerEvidenceRows[layerEvidenceRows.length - 1].depthM.toFixed(2)} m</span> : null}
+          <details><summary>查看行级证据（需复核项优先）</summary><div className="layer-evidence-row-list">{displayedEvidenceRows.map((row) => <span key={row.sourceRowId}><em>{row.depthM.toFixed(2)} m</em><strong>{row.selectedClass?.label ?? '无法分类'}</strong><small>{jtsDualPathEvidence
             ? row.comparison.state === 'same' ? '双路径一致' : row.comparison.state === 'adjacent' ? '相邻分类' : row.comparison.state === 'unresolved' ? '路径冲突' : '路径不可用'
             : row.confidence === 'high' ? '已分类' : row.confidence === 'review' ? '需要复核' : '无法分类'}{row.issues.length ? ` · ${row.issues.join('；')}` : ''}</small></span>)}</div>{layerEvidenceRows.length > 12 ? <p className="short-note">需要复核的行优先显示；本层共 {layerEvidenceRows.length} 行。</p> : null}</details>
-        </div> : <p className="short-note">当前层没有关联的分类来源运行。</p>}
+        </div> : <p className="short-note">当前层没有可用的分类记录。</p>}
       </details>
 
       <div className="layer-review-progress"><span>{queues.pending.length} 层待确认</span><span>{queues.deferred.length} 层暂时保留</span></div>
@@ -12158,7 +12161,7 @@ function StratificationWorkbenchRightPanel({
               <>
                 <PropertyRow label="名称" value={scheme.name} />
                 <PropertyRow label="版本" value={`v${scheme.version}`} />
-                <PropertyRow label="旧检查依据" value={compactWorkspaceIdentifier(scheme.input.checkRunId)} />
+                <PropertyRow label="检查依据" value="建立该方案时的数据检查结果" />
                 <PropertyRow label="提交记录" value={`${workspace.revisions?.filter((revision) => revision.schemeId === scheme.schemeId).length ?? 0} 个`} />
                 <p className="short-note">{workspace.editSession?.staleReason ? '未提交修改已保留为只读内容。放弃后可基于最新检查创建修订方案。' : '该方案仅保留为只读历史。请使用页面顶部的“创建修订方案”继续。'}</p>
               </>
@@ -12190,7 +12193,7 @@ function StratificationWorkbenchRightPanel({
                 ) : null}
                 <PropertyRow label="版本" value={`v${scheme.version}`} />
                 <PropertyRow label="提交记录" value={`${workspace.revisions?.filter((revision) => revision.schemeId === scheme.schemeId).length ?? 0} 个`} />
-                <PropertyRow label="依赖检查" value={compactWorkspaceIdentifier(scheme.input.checkRunId)} />
+                <PropertyRow label="检查依据" value="当前数据检查结果" />
                 <PropertyRow label="编辑" value={workspace.editSession?.schemeId === scheme.schemeId && workspace.editSession.dirty ? '有未提交修改' : '无未提交修改'} />
               </>
             )}
@@ -12529,10 +12532,6 @@ function JtsRecoveryPanel({ issue, recovery, onExecute }: {
         >{directNavigation.label}</button>
       ) : null}
       {!automaticOptions.length ? <p className="short-note">工程上下文必须由用户确认，系统不会代填。</p> : null}
-      <details className="jts-recovery-technical" data-testid="jts-recovery-technical">
-        <summary>技术信息</summary>
-        <code>{issue.code}</code>
-      </details>
     </section>
   );
 }
@@ -12661,10 +12660,6 @@ function stratificationIssueLocationLabel(issue: StratificationIssue, scheme: St
 
 function stratificationSchemeStatusLabel(status: StratificationSchemeV2['status']) {
   return { working: '工作中', current: '当前工作方案', history: '历史', stale: '需更新' }[status];
-}
-
-function compactWorkspaceIdentifier(value: string) {
-  return value.length <= 24 ? value : `${value.slice(0, 10)}...${value.slice(-10)}`;
 }
 
 function fallbackWorkspaceStorageDiagnosis(message: string) {
@@ -13739,13 +13734,13 @@ function CustomFormulaRightPanel({
         <div className="custom-formula-meta-grid"><NullableNumberField label="结果下限" value={formula.resultMinimum} onChange={(value) => onUpdate({ resultMinimum: value })} testId="custom-formula-min" /><NullableNumberField label="结果上限" value={formula.resultMaximum} onChange={(value) => onUpdate({ resultMaximum: value })} testId="custom-formula-max" /></div>
         {sampleRow ? <div className="custom-formula-sample" data-testid="custom-formula-sample"><span>样例行 · 深度 {sampleRow.depthM.toFixed(2)} m</span><strong>{sampleEvaluation?.kind === 'value' ? `${sampleEvaluation.value.toFixed(4)} ${formula.unit}` : sampleEvaluation?.kind === 'missing' ? `缺少 ${sampleEvaluation.variable}` : sampleEvaluation?.kind === 'problem' ? sampleEvaluation.message : '表达式通过后显示结果'}</strong><small>qnet {sampleRow.qnetKpa?.toFixed(2) ?? '—'} · Qtn {sampleRow.qtn?.toFixed(2) ?? '—'} · IcRW {sampleRow.ic?.toFixed(2) ?? '—'}</small></div> : null}
         {!validation?.ok ? <div className="custom-formula-problems" data-testid="custom-formula-validation-problems">{validation?.problems.map((problem) => <p key={problem}>{problem}</p>)}</div> : <p className="short-note" data-testid="custom-formula-validation-ok">表达式仅包含允许的变量、函数和算术结构。</p>}
-      </section> : displayedFormula ? <section className="query-card" data-testid="custom-formula-definition"><div className="query-card-heading"><h2>公式定义</h2><span>v{revision?.version ?? displayedFormula.version}</span></div>{revision && formula && revision.version !== formula.version ? <p className="short-note" data-testid="custom-formula-historical-definition">正在查看历史运行绑定的公式修订；新运行仍使用当前公式。</p> : null}<PropertyRow label="符号 / 单位" value={`${displayedFormula.symbol} / ${displayedFormula.unit}`} /><PropertyRow label="单位校验" value="用户声明，系统未验证量纲" /><PropertyRow label="表达式" value={displayedFormula.expression} /><PropertyRow label="目标层" value={`${displayedFormula.targetLayerIds.length} 层`} /><PropertyRow label="结果范围" value={`${displayedFormula.resultMinimum ?? '未设'} - ${displayedFormula.resultMaximum ?? '未设'}`} /><details><summary>公式安全边界</summary><p className="short-note">只执行白名单 AST；不执行 JavaScript、属性访问或动态调用。</p><code>{revision?.astHash ?? '尚未提交'}</code></details></section> : null}
+      </section> : displayedFormula ? <section className="query-card" data-testid="custom-formula-definition"><div className="query-card-heading"><h2>公式定义</h2><span>v{revision?.version ?? displayedFormula.version}</span></div>{revision && formula && revision.version !== formula.version ? <p className="short-note" data-testid="custom-formula-historical-definition">正在查看历史运行绑定的公式版本；新运行仍使用当前公式。</p> : null}<PropertyRow label="符号 / 单位" value={`${displayedFormula.symbol} / ${displayedFormula.unit}`} /><PropertyRow label="单位校验" value="用户声明，系统未验证量纲" /><PropertyRow label="表达式" value={displayedFormula.expression} /><PropertyRow label="目标层" value={`${displayedFormula.targetLayerIds.length} 层`} /><PropertyRow label="结果范围" value={`${displayedFormula.resultMinimum ?? '未设'} - ${displayedFormula.resultMaximum ?? '未设'}`} /><details><summary>公式安全范围</summary><p className="short-note">只允许数字、已列出的变量、基础运算和批准的数学函数。</p></details></section> : null}
 
-      {formula && !editing ? <section className="query-card" data-testid="custom-formula-revisions"><div className="query-card-heading"><h2>公式修订</h2><span>{revisions.length}</span></div>{revisions.map((candidate) => <details key={candidate.revisionId} data-testid={`custom-formula-revision-${candidate.version}`}><summary>v{candidate.version} · {candidate.committedAt}</summary><PropertyRow label="表达式" value={candidate.snapshot.expression} /><PropertyRow label="符号 / 单位" value={`${candidate.snapshot.symbol} / ${candidate.snapshot.unit}`} /><PropertyRow label="目标层" value={`${candidate.snapshot.targetLayerIds.length} 层`} /><code>{candidate.contentHash}</code></details>)}</section> : null}
+      {formula && !editing ? <section className="query-card" data-testid="custom-formula-revisions"><div className="query-card-heading"><h2>公式修订</h2><span>{revisions.length}</span></div>{revisions.map((candidate) => <details key={candidate.revisionId} data-testid={`custom-formula-revision-${candidate.version}`}><summary>v{candidate.version} · {candidate.committedAt}</summary><PropertyRow label="表达式" value={candidate.snapshot.expression} /><PropertyRow label="符号 / 单位" value={`${candidate.snapshot.symbol} / ${candidate.snapshot.unit}`} /><PropertyRow label="目标层" value={`${candidate.snapshot.targetLayerIds.length} 层`} /><p className="short-note">该修订已冻结，可在修订记录中追溯。</p></details>)}</section> : null}
 
       {formula && !editing ? <section className="query-card" data-testid="custom-formula-run-history"><div className="query-card-heading"><h2>运行记录</h2><span>{runs.length}</span></div>{openRun ? <button type="button" className="toolbar-button dock-action" onClick={onCancel} data-testid="custom-formula-cancel"><X size={14} />取消运行</button> : null}<div className="parameter-run-history-list">{runs.map((candidate) => <button type="button" key={candidate.runId} className={candidate.runId === run?.runId ? 'selected' : ''} onClick={() => onSelectRun(candidate.runId)} data-testid={`custom-formula-run-${candidate.runId}`}><span><strong>{candidate.symbolSnapshot} / v{candidate.formulaVersion}</strong><em>{parameterRunStatusLabel(candidate.status)}</em></span><small>{candidate.completedAt ?? candidate.createdAt}</small></button>)}{!runs.length ? <p className="short-note">当前公式还没有运行历史。</p> : null}</div></section> : null}
 
-      {run ? <section className="query-card" data-testid="custom-formula-run-authority"><div className="query-card-heading"><h2>选中运行依据</h2><span>只读快照</span></div><PropertyRow label="公式修订" value={`v${run.formulaVersion}`} /><PropertyRow label="表达式" value={run.expressionSnapshot} /><PropertyRow label="符号 / 单位" value={`${run.symbolSnapshot} / ${run.unitSnapshot}`} /><PropertyRow label="目标层" value={`${run.targetLayerIdsSnapshot.length} 层`} /><PropertyRow label="输入行" value={`${run.inputRowsSnapshot.length} 行`} /><div className="dock-button-row"><button type="button" className="toolbar-button" onClick={onLocateSourceRow}><FileInput size={14} />定位来源行</button></div><details><summary>技术标识</summary><code>{run.formulaRevisionId}</code><code>{run.astHash}</code><code>{run.inputHash}</code></details></section> : null}
+      {run ? <section className="query-card" data-testid="custom-formula-run-authority"><div className="query-card-heading"><h2>选中运行依据</h2><span>只读快照</span></div><PropertyRow label="公式版本" value={`v${run.formulaVersion}`} /><PropertyRow label="表达式" value={run.expressionSnapshot} /><PropertyRow label="符号 / 单位" value={`${run.symbolSnapshot} / ${run.unitSnapshot}`} /><PropertyRow label="目标层" value={`${run.targetLayerIdsSnapshot.length} 层`} /><PropertyRow label="输入行" value={`${run.inputRowsSnapshot.length} 行`} /><div className="dock-button-row"><button type="button" className="toolbar-button" onClick={onLocateSourceRow}><FileInput size={14} />定位来源行</button></div></section> : null}
       {commandProblem ? <section className="query-card parameter-command-problem" data-testid="parameter-command-problem"><div className="query-card-heading"><h2>当前问题</h2></div><p>{commandProblem}</p></section> : null}
     </RightPanelShell>
   );
@@ -14078,7 +14073,6 @@ function ParameterRightPanel({
               <PropertyRow label="方法版本" value={selectedRun?.methodVersion ?? slot.selectedMethodVersion ?? '尚未冻结'} />
               {slot.parameterKey === 'SuKpa' && slot.settings.kind === 'suc_qnet_nkt_v1' ? <PropertyRow label="Nkt 来源" value={slot.settings.nktByLayer.every((item) => item.setting.origin === 'literature_starting_assumption') ? '文献起始假设 / 按层冻结' : '场地标定 / 按层冻结'} /> : null}
               <PropertyRow label="证据快照" value={selectedRun ? `${selectedRun.evidenceSnapshot.length} 个层级快照` : '运行时冻结'} />
-              <details><summary>技术标识</summary><code>{selectedRun?.formulaReference ?? (slot.parameterKey === 'PhiDeg' ? 'Mayne-Cargill-Greig-2023-Rev1.1-p82-Eq5.6' : 'Mayne-Cargill-Greig-2023-Rev1.1-p113-Eq6.7')}</code><code>{slot.selectedMethodId ?? '—'}</code></details>
             </details>
           </>
         ) : (
@@ -14099,11 +14093,10 @@ function ParameterRightPanel({
               <PropertyRow label="贯入速率" value={`${parameterRateEvidenceLabel(item.rate.status)}${item.rate.nominalRateMmPerSec === null ? '' : ` / ${item.rate.nominalRateMmPerSec} mm/s`}`} />
               <PropertyRow label="排水条件" value={parameterDrainageEvidenceLabel(item.drainage.status, item.drainage.resolvedAs)} />
               <PropertyRow label="材料适用性" value={`${parameterMaterialEvidenceLabel(item.material.status)} / ${parameterMaterialClassLabel(item.material.materialClass)}`} />
-              <details><summary>证据修订</summary><code>{item.evidenceRevisionRefs.rate}</code><code>{item.evidenceRevisionRefs.drainage}</code><code>{item.evidenceRevisionRefs.material}</code>{item.evidenceRevisionRefs.conflictContext ? <code>{item.evidenceRevisionRefs.conflictContext}</code> : null}</details>
+              <PropertyRow label="证据状态" value="已随本次运行冻结" />
             </details>
           ))}
         </div>
-        <details><summary>技术标识</summary><code>{selectedRun.formulaReference}</code><code>{selectedRun.formulaSpecHash}</code></details>
       </section> : null}
 
       {scheme && settings ? <section className="query-card" data-testid="parameter-input-settings-dock">
@@ -14167,7 +14160,6 @@ function ParameterRightPanel({
         <PropertyRow label="结果状态" value={inspectedValue ? parameterValueStatusLabel(inspectedValue.status) : slot?.targetScope.layerIds.includes(inspectedLayer?.layerId ?? '') ? '目标层无结果' : '非目标层'} />
         {inspectedValue?.reasonCodes.length ? <p className="short-note">{inspectedValue.reasonCodes.map((code) => parameterReasonSummary(code)).join('；')}</p> : null}
         <div className="dock-button-row"><button type="button" className="toolbar-button" onClick={onShowIssues}><ListChecks size={14} />查看问题详情</button><button type="button" className="toolbar-button" onClick={onLocateSourceRow}><FileInput size={14} />定位来源行</button></div>
-        <details><summary>技术标识</summary><code>{inspectedRow.sourceRowId}</code>{inspectedValue?.reasonCodes.map((code) => <code key={code}>{code}</code>)}</details>
       </section> : null}
 
       {commandProblem ? <section className="query-card parameter-command-problem" data-testid="parameter-command-problem"><div className="query-card-heading"><h2>当前问题</h2></div><p>{commandProblem}</p></section> : null}

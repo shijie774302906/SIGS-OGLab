@@ -41,7 +41,7 @@ test('FLOW-E-01 blocks an unchecked point and allows a current notice-only resul
   await expect(page.getByTestId('check-first-look')).toContainText('检查完成，可进入地层分层');
   await expect(page.getByTestId('explorer-stratification')).toHaveAttribute('data-handoff-state', 'warn');
   await expect(page.getByTestId('check-current-input')).not.toContainText('尚未形成');
-  await expect(page.getByTestId('check-current-revisions')).toContainText('标准化');
+  await expect(page.getByTestId('check-current-revisions')).toContainText('与当前导入数据一致');
   await expect(page.getByTestId('check-history-row-0')).toHaveAttribute('data-run-use', '当前依据');
   const layouts = await capture(page, 'flow-e-01-current-check');
   const dependencyLayouts = await captureSection(page, 'flow-e-01-current-dependency', 'check-scope');

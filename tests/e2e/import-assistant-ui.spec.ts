@@ -9,6 +9,8 @@ const process129EvidenceEnabled = process.env.PROCESS129_EVIDENCE === '1';
 const process129EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process129-import-csv');
 const process131EvidenceEnabled = process.env.PROCESS131_EVIDENCE === '1' || process.env.MILESTONE_EVIDENCE === '1';
 const process131EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process131-import-integrity');
+const process155EvidenceEnabled = process.env.PROCESS155_EVIDENCE === '1' || process.env.MILESTONE_EVIDENCE === '1';
+const process155EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process155-ai-timeout-copy');
 
 test('AI import asks one structured question, previews a new draft, and imports only after confirmation', async ({ page }, testInfo) => {
   const browserErrors: string[] = [];
@@ -113,6 +115,117 @@ test('AI import asks one structured question, previews a new draft, and imports 
       turnCount: turnBodies.length,
       browserErrors,
       layout,
+    }, null, 2), 'utf8');
+  }
+});
+
+test('PROCESS155 professional import stays active beyond 55 seconds and then shows the draft', async ({ page }, testInfo) => {
+  test.setTimeout(90_000);
+  const browserErrors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
+  page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
+
+  await page.route('**/api/assistant/capabilities', async (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      serviceId: 'sigs-oglab-assistant',
+      buildId: 'process155-slow-import',
+      instanceId: 'playwright-mock-instance',
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+      serviceAvailable: true,
+      provider: 'mock',
+      model: 'deepseek-v4-pro',
+      taskModels: { professional: 'deepseek-v4-pro', import: 'deepseek-v4-flash' },
+      requiresApiKey: false,
+    }),
+  }));
+  await page.route('**/api/assistant/turn', async (route) => {
+    const body = route.request().postDataJSON() as {
+      context: { importSource: { sourceFingerprint: string } };
+    };
+    await new Promise((resolve) => setTimeout(resolve, 56_000));
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        kind: 'tool_calls',
+        model: 'deepseek-v4-flash',
+        content: null,
+        calls: [{
+          id: 'process155-cleanup',
+          name: 'propose_import_cleanup',
+          arguments: JSON.stringify({
+            sourceFingerprint: body.context.importSource.sourceFingerprint,
+            sheetName: 'CSV',
+            headerRow: 1,
+            summary: '已识别深度、qc、fs 和 u2；测量值保持不变。',
+            columns: [
+              { sourceColumnIndex: 0, targetField: 'depthM', sourceUnit: 'm', reason: '深度列。' },
+              { sourceColumnIndex: 1, targetField: 'qc', sourceUnit: 'MPa', reason: '锥尖阻力列。' },
+              { sourceColumnIndex: 2, targetField: 'fs', sourceUnit: 'kPa', reason: '侧摩阻列。' },
+              { sourceColumnIndex: 3, targetField: 'u2', sourceUnit: 'kPa', reason: '孔压列。' },
+            ],
+            cellEdits: [],
+          }),
+        }],
+      }),
+    });
+  });
+  await page.reload();
+
+  const projectName = `AI 慢响应 ${Date.now()}`;
+  await page.getByTestId('new-project-name').fill(projectName);
+  await page.getByTestId('project-mode-professional').click();
+  await page.getByTestId('create-project-submit').click();
+  await page.getByTestId('explorer-import').click();
+
+  const filePath = testInfo.outputPath('process155-slow.csv');
+  writeFileSync(filePath, ['深度(m),锥尖阻力(MPa),侧摩阻(kPa),孔压(kPa)', '0.5,1.2,12,20', '1.0,1.5,15,25'].join('\n'), 'utf8');
+  await page.getByTestId('import-file-input').setInputFiles(filePath);
+  await expect(page.getByTestId('import-template-actions')).not.toBeVisible();
+  await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
+  await expect(page.getByTestId('import-assistant-provider')).toContainText('测试模型');
+  await page.getByTestId('import-assistant-start').click();
+
+  const running = page.getByTestId('import-assistant-running');
+  await expect(running).toBeVisible();
+  await expect(page.getByTestId('import-assistant-start')).toHaveCount(0);
+  await expect(running.getByRole('button', { name: '停止' })).toBeVisible();
+  await page.waitForTimeout(55_200);
+  await expect(running).toContainText(/已等待 5[45] 秒/);
+  await expect(running).toContainText('AI 正在分析文件');
+  await expect(page.getByTestId('import-assistant-error')).toHaveCount(0);
+  const layouts: Array<{ viewport: string; bodyOverflowX: boolean; panelOverflowX: boolean }> = [];
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+    await page.setViewportSize(viewport);
+    const layout = await page.evaluate(() => {
+      const panel = document.querySelector<HTMLElement>('[data-testid="import-assistant-panel"]');
+      return {
+        bodyOverflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        panelOverflowX: Boolean(panel && panel.scrollWidth > panel.clientWidth),
+      };
+    });
+    expect(layout).toEqual({ bodyOverflowX: false, panelOverflowX: false });
+    layouts.push({ viewport: `${viewport.width}x${viewport.height}`, ...layout });
+    if (process155EvidenceEnabled) {
+      mkdirSync(process155EvidenceDirectory, { recursive: true });
+      await page.screenshot({
+        path: path.join(process155EvidenceDirectory, `slow-import-${viewport.width}x${viewport.height}.png`),
+        fullPage: true,
+      });
+    }
+  }
+  await expect(page.getByTestId('import-assistant-cleanup')).toContainText('AI 草稿待确认', { timeout: 5_000 });
+  expect(browserErrors).toEqual([]);
+  if (process155EvidenceEnabled) {
+    writeFileSync(path.join(process155EvidenceDirectory, 'slow-import-browser-check.json'), JSON.stringify({
+      process: 'Process155',
+      simulatedUpstreamDelayMs: 56_000,
+      stillRunningAfterMs: 55_200,
+      completed: true,
+      layouts,
+      browserErrors,
     }, null, 2), 'utf8');
   }
 });
@@ -887,5 +1000,3 @@ async function inspectPreviewLayout(page: Page) {
     };
   });
 }
-
-

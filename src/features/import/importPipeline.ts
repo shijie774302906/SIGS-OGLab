@@ -134,7 +134,7 @@ export const IMPORT_TARGET_DEFINITIONS: readonly TargetDefinition[] = [
     standardHeader: 'qc(MPa)',
     aliases: ['qc', 'qckpa', 'qcmpa', 'cone', 'coneresistance', '锥尖阻力'],
     requiredLevel: 'required',
-    label: 'Qc',
+    label: '锥尖阻力 qc',
     standardUnit: 'kPa',
   },
   {

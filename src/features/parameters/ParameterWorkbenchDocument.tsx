@@ -327,7 +327,7 @@ function JtsParameterPackageEvidence({
       })}</div>{run.values.some((value) => value.status === 'ignored') ? <details className="parameter-ignored-point-audit" data-testid="parameter-ignored-point-audit"><summary>查看本次试算忽略的点（{run.values.filter((value) => value.status === 'ignored').length}）</summary><div>{run.values.filter((value) => value.status === 'ignored').map((value) => {
         const decision = ignoredDecisionByKey.get(`${value.methodId}:${value.sourceRowId}`);
         const item = run.checklist.find((candidate) => candidate.methodId === value.methodId);
-        return <div key={value.valueId} className={`ignored-point-row ${decision?.forced ? 'forced' : ''}`}><strong>{value.depthM.toFixed(2)} m</strong><span><b>{item?.symbol ?? value.methodId} · {decision?.forced ? `工程师强制忽略 · ${formatDecisionTime(decision.forcedConfirmedAt ?? decision.decidedAt)}` : '局部忽略'}</b>{value.reason}{decision?.forced ? <small>未满足的建议条件：{decision.thresholdViolations?.join('；')} · 仅限本次参数试算</small> : null}<details><summary>技术来源</summary><code>{value.sourceRowId}</code></details></span></div>;
+        return <div key={value.valueId} className={`ignored-point-row ${decision?.forced ? 'forced' : ''}`}><strong>{value.depthM.toFixed(2)} m</strong><span><b>{item?.symbol ?? value.methodId} · {decision?.forced ? `工程师强制忽略 · ${formatDecisionTime(decision.forcedConfirmedAt ?? decision.decidedAt)}` : '局部忽略'}</b>{value.reason}{decision?.forced ? <small>未满足的建议条件：{decision.thresholdViolations?.join('；')} · 仅限本次参数试算</small> : null}</span></div>;
       })}</div></details> : null}</details>
       <div className="check-governance-summary"><span>默认纳入方法 {required.length}</span><span>{run.summary.forcedIgnoredPointCount ? run.summary.eligibleForOutput ? '参数试算可继续；含工程师强制忽略项，成果使用前需复核' : '含工程师强制忽略项；仍有已选参数待处理' : run.summary.eligibleForOutput ? run.summary.totalSkipped ? '可生成带排除声明的部分成果' : '原型成果预检已满足' : '仍有已选参数待处理'}</span><span>运行 {run.status === 'completed' ? '当前' : '需要更新'}</span></div>
       {diagnosis ? <div className="modal-backdrop parameter-issue-backdrop" role="presentation">
@@ -975,7 +975,6 @@ function ParameterIssuesAndHistory({ run, derivationRun, onLocateIssueRow }: { r
       <span><strong>{issue.severity === 'problem' ? '存在问题' : '提示'}</strong><small>{issue.sourceRowId && depthsBySourceRow.has(issue.sourceRowId) ? `深度 ${depthsBySourceRow.get(issue.sourceRowId)!.toFixed(2)} m` : '全局'}</small></span>
       <p>{issue.message}</p>
       {issue.sourceRowId ? <button type="button" className="toolbar-button" onClick={() => onLocateIssueRow(issue.sourceRowId!)} data-testid={`parameter-issue-locate-${issue.sourceRowId}`}><FileInput size={13} />定位来源行</button> : null}
-      <details><summary>技术代码</summary>{issue.sourceRowId ? <code>{issue.sourceRowId}</code> : null}<code>{issue.reasonCode}</code></details>
     </div>
   ));
   return (
@@ -985,7 +984,6 @@ function ParameterIssuesAndHistory({ run, derivationRun, onLocateIssueRow }: { r
         <History size={16} />
         <span>前置推导 <strong>{derivationRun ? runStatusLabel(derivationRun.status) : '无'}</strong></span>
         <span>结果运行 <strong>{run ? runStatusLabel(run.status) : '无'}</strong></span>
-        <details><summary>技术标识</summary><code>{run?.runId ?? '—'}</code></details>
       </div>
       <div className="problem-list compact">
         <section className="parameter-result-issues" data-testid="parameter-current-result-issues">
