@@ -390,6 +390,124 @@ test('PROCESS134 versioned AI decision keeps the first numeric row in a headerle
   });
 });
 
+test('quick import supplements a uniquely explicit optional u2 header omitted by the model', () => {
+  const source: ImportAssistantSource = {
+    operationId: 'quick-explicit-u2',
+    sourceFingerprint: '8'.repeat(64),
+    fileName: 'explicit-u2.csv',
+    fileType: 'CSV',
+    mimeType: 'text/csv',
+    sizeBytes: 180,
+    sheets: [{
+      sheetName: 'CSV',
+      rowCount: 3,
+      columnCount: 5,
+      rows: [
+        ['备注', '孔隙水压力 u2 (kPa)', '深度 (m)', '锥尖阻力 qc (MPa)', '侧摩阻力 fs (kPa)'],
+        ['现场记录', '18', '0.01', '1.2', '12'],
+        ['现场记录', '19', '0.02', '1.4', '14'],
+      ],
+      displayRowNumbers: [1, 2, 3],
+      delimiter: ',',
+    }],
+  };
+  const expected = { requestId: 'request-explicit-u2', contextHash: 'context-explicit-u2' };
+  const validation = quickPlotDecisionFromTool({
+    id: 'decision-explicit-u2',
+    name: 'submit_quick_plot_import_decision',
+    arguments: JSON.stringify({
+      protocolVersion: QUICK_PLOT_IMPORT_PROTOCOL,
+      requestId: expected.requestId,
+      operationId: source.operationId,
+      sourceFingerprint: source.sourceFingerprint,
+      contextHash: expected.contextHash,
+      kind: 'proposal',
+      proposal: {
+        proposalId: 'proposal-explicit-u2',
+        sheetName: 'CSV',
+        headerMode: 'present',
+        headerRow: 1,
+        dataStartRow: 2,
+        dataEndRow: 3,
+        summary: '模型识别了主要字段。',
+        columns: [
+          { sourceColumnIndex: 2, targetField: 'depthM', sourceUnit: 'm', reason: '深度列。' },
+          { sourceColumnIndex: 3, targetField: 'qc', sourceUnit: 'MPa', reason: 'qc 列。' },
+          { sourceColumnIndex: 4, targetField: 'fs', sourceUnit: 'kPa', reason: 'fs 列。' },
+        ],
+        ignoredColumns: [
+          { sourceColumnIndex: 0, headerLabel: '备注', reason: '非测量字段。' },
+          { sourceColumnIndex: 1, headerLabel: '孔隙水压力 u2 (kPa)', reason: '模型遗漏。' },
+        ],
+        warnings: [],
+      },
+    }),
+  }, source, expected);
+  expect(validation.ok).toBe(true);
+  if (!validation.ok || validation.decision.kind !== 'proposal') return;
+  expect(validation.decision.proposal.columns).toContainEqual(expect.objectContaining({
+    sourceColumnIndex: 1,
+    targetField: 'u2',
+    sourceUnit: 'kPa',
+    evidenceKind: 'source-explicit',
+  }));
+  expect(validation.decision.proposal.ignoredColumns).not.toContainEqual(expect.objectContaining({ sourceColumnIndex: 1 }));
+});
+
+test('quick optional-field fallback leaves unitless fs and ambiguous u2 choices untouched', () => {
+  const source: ImportAssistantSource = {
+    operationId: 'quick-ambiguous-optional',
+    sourceFingerprint: '6'.repeat(64),
+    fileName: 'ambiguous.csv',
+    fileType: 'CSV',
+    mimeType: 'text/csv',
+    sizeBytes: 180,
+    sheets: [{
+      sheetName: 'CSV',
+      rowCount: 3,
+      columnCount: 6,
+      rows: [
+        ['深度 (m)', '锥尖阻力 qc (MPa)', 'fs', '孔压', 'u2 (kPa)', '孔隙水压力 (kPa)'],
+        ['0.01', '1.2', '12', '18', '18', '18'],
+        ['0.02', '1.4', '14', '19', '19', '19'],
+      ],
+      displayRowNumbers: [1, 2, 3],
+      delimiter: ',',
+    }],
+  };
+  const expected = { requestId: 'request-ambiguous', contextHash: 'context-ambiguous' };
+  const validation = quickPlotDecisionFromTool({
+    id: 'decision-ambiguous',
+    name: 'submit_quick_plot_import_decision',
+    arguments: JSON.stringify({
+      protocolVersion: QUICK_PLOT_IMPORT_PROTOCOL,
+      requestId: expected.requestId,
+      operationId: source.operationId,
+      sourceFingerprint: source.sourceFingerprint,
+      contextHash: expected.contextHash,
+      kind: 'proposal',
+      proposal: {
+        proposalId: 'proposal-ambiguous',
+        sheetName: 'CSV',
+        headerMode: 'present',
+        headerRow: 1,
+        dataStartRow: 2,
+        dataEndRow: 3,
+        summary: '仅确认必需字段。',
+        columns: [
+          { sourceColumnIndex: 0, targetField: 'depthM', sourceUnit: 'm', reason: '深度列。' },
+          { sourceColumnIndex: 1, targetField: 'qc', sourceUnit: 'MPa', reason: 'qc 列。' },
+        ],
+        ignoredColumns: [],
+        warnings: [],
+      },
+    }),
+  }, source, expected);
+  expect(validation.ok).toBe(true);
+  if (!validation.ok || validation.decision.kind !== 'proposal') return;
+  expect(validation.decision.proposal.columns).toHaveLength(2);
+});
+
 test('PROCESS134 unknown labels may be model-inferred, while stale identity and explicit qt conflict are rejected', () => {
   const source: ImportAssistantSource = {
     operationId: 'quick-ai-unknown-labels',

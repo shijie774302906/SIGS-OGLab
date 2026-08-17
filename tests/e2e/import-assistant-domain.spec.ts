@@ -3,6 +3,7 @@ import {
   buildCleanedImportCsv,
   cleanupProposalFromImportTool,
   createPipelineFromImportCleanup,
+  explicitOptionalMeasurementColumns,
   extractImportAssistantSource,
   readImportAssistantSource,
   validateImportCleanupConfirmation,
@@ -90,6 +91,62 @@ test('AI import reads bounded source windows and rejects stale or unauthorized e
   };
   expect(cleanupProposalFromImportTool(toolCall(withEdit), source, false).ok).toBe(false);
   expect(cleanupProposalFromImportTool(toolCall(withEdit), source, true).ok).toBe(true);
+});
+
+test('explicit optional u2 header is preserved when the model omits it', () => {
+  const explicitSource: ImportAssistantSource = {
+    ...source,
+    sourceFingerprint: '9'.repeat(64),
+    sheets: [{
+      sheetName: 'CSV',
+      rowCount: 3,
+      columnCount: 5,
+      rows: [
+        ['备注', '孔隙水压力 u2 (kPa)', '深度 (m)', '锥尖阻力 qc (MPa)', '侧摩阻力 fs (kPa)'],
+        ['现场记录', '18', '0.01', '1.2', '12'],
+        ['现场记录', '19', '0.02', '1.4', '14'],
+      ],
+      displayRowNumbers: [1, 2, 3],
+    }],
+  };
+  const modelProposal: ImportCleanupProposal = {
+    sourceFingerprint: explicitSource.sourceFingerprint,
+    sheetName: 'CSV',
+    headerRow: 1,
+    summary: '模型识别了必需字段。',
+    columns: [
+      { sourceColumnIndex: 2, targetField: 'depthM', sourceUnit: 'm', reason: '深度列。' },
+      { sourceColumnIndex: 3, targetField: 'qc', sourceUnit: 'MPa', reason: 'qc 列。' },
+      { sourceColumnIndex: 4, targetField: 'fs', sourceUnit: 'kPa', reason: 'fs 列。' },
+    ],
+    cellEdits: [],
+  };
+  const validation = cleanupProposalFromImportTool(toolCall(modelProposal), explicitSource, false);
+  expect(validation.ok).toBe(true);
+  if (!validation.ok) return;
+  expect(validation.proposal.columns).toContainEqual(expect.objectContaining({
+    sourceColumnIndex: 1,
+    targetField: 'u2',
+    sourceUnit: 'kPa',
+  }));
+});
+
+test('optional-field fallback does not guess unitless or duplicate headers', () => {
+  expect(explicitOptionalMeasurementColumns({
+    sheetName: 'unitless',
+    rowCount: 2,
+    columnCount: 1,
+    rows: [['孔隙水压力 u2'], ['18']],
+    displayRowNumbers: [1, 2],
+  }, 1, new Set(), new Set())).toEqual([]);
+
+  expect(explicitOptionalMeasurementColumns({
+    sheetName: 'duplicate',
+    rowCount: 2,
+    columnCount: 2,
+    rows: [['u2 (kPa)', '孔隙水压力 (kPa)'], ['18', '18']],
+    displayRowNumbers: [1, 2],
+  }, 1, new Set(), new Set())).toEqual([]);
 });
 
 test('cleaned CSV preserves a mapped missing u2 cell as blank instead of inventing zero', async () => {

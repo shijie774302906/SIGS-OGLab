@@ -1,5 +1,9 @@
 import type { AssistantToolCall } from '../assistant/assistantTypes';
-import type { ImportAssistantSource, ImportAssistantSheet } from '../import/importAssistantDomain';
+import {
+  explicitOptionalMeasurementColumns,
+  type ImportAssistantSource,
+  type ImportAssistantSheet,
+} from '../import/importAssistantDomain';
 import type { QuickPlotRowV1 } from './quickPlotDomain';
 
 export const QUICK_PLOT_IMPORT_PROTOCOL = 'sigs.ai-import/1' as const;
@@ -173,6 +177,20 @@ export function quickPlotDecisionFromTool(
     return { ok: false, problem: 'AI 同时返回了问题和判断，请重新判断；文件没有改变。' };
   }
   const proposalArgs = asRecord(args.proposal);
+  const parsedColumns = parseColumns(proposalArgs.columns);
+  const parsedIgnoredColumns = parseIgnoredColumns(proposalArgs.ignoredColumns);
+  const proposalSheetName = boundedString(proposalArgs.sheetName, 120);
+  const proposalHeaderRow = proposalArgs.headerRow === null ? null : Number(proposalArgs.headerRow);
+  const proposalSheet = source.sheets.find((candidate) => candidate.sheetName === proposalSheetName);
+  const explicitOptionalColumns = proposalSheet
+    ? explicitOptionalMeasurementColumns(
+        proposalSheet,
+        proposalHeaderRow,
+        new Set(parsedColumns.map((column) => column.sourceColumnIndex)),
+        new Set(parsedColumns.map((column) => column.targetField)),
+      )
+    : [];
+  const supplementedIndexes = new Set(explicitOptionalColumns.map((column) => column.sourceColumnIndex));
   const proposalValidation = validateProposal({
     protocolVersion: QUICK_PLOT_IMPORT_PROTOCOL,
     requestId: common.identity.requestId,
@@ -181,14 +199,20 @@ export function quickPlotDecisionFromTool(
     contextHash: common.identity.contextHash,
     proposalId: boundedString(proposalArgs.proposalId, 120) || call.id,
     proposalHash: '',
-    sheetName: boundedString(proposalArgs.sheetName, 120),
+    sheetName: proposalSheetName,
     headerMode: proposalArgs.headerMode as QuickPlotHeaderMode,
-    headerRow: proposalArgs.headerRow === null ? null : Number(proposalArgs.headerRow),
+    headerRow: proposalHeaderRow,
     dataStartRow: Number(proposalArgs.dataStartRow),
     dataEndRow: Number(proposalArgs.dataEndRow),
     summary: boundedString(proposalArgs.summary, 320),
-    columns: parseColumns(proposalArgs.columns),
-    ignoredColumns: parseIgnoredColumns(proposalArgs.ignoredColumns),
+    columns: [
+      ...parsedColumns,
+      ...explicitOptionalColumns.map((column) => ({
+        ...column,
+        evidenceKind: 'source-explicit' as const,
+      })),
+    ],
+    ignoredColumns: parsedIgnoredColumns.filter((column) => !supplementedIndexes.has(column.sourceColumnIndex)),
     warnings: Array.isArray(proposalArgs.warnings)
       ? proposalArgs.warnings.slice(0, 12).map((value) => boundedString(value, 240)).filter(Boolean)
       : [],

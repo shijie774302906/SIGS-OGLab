@@ -556,6 +556,21 @@
       "required_checks": ["扫描 git ls-files，确认没有私有原始文件、派生 fixture、专属测试、密钥和临时页面。", "构建后扫描 dist，确认项目名、点位名、私有样本名和密钥模式均不存在。", "用合成数据完成 build、领域测试、隔离 UI 测试和真实规模串行测试，证明替换不会破坏工作流。", "记录 origin/main 历史扫描结果；若历史仍含派生文件，在公开仓库前单独决定是否重写历史。"],
       "related_updates": ["Process153", "Process154", "Process155"],
       "related_tests": ["scripts/release-readiness.test.mjs", "tests/e2e/release-compatibility.spec.ts", "tests/e2e/project-persistence.spec.ts"]
+    },
+    {
+      "id": "KPB-038",
+      "title": "AI 文件整理漏掉表头明确的可选 CPT 字段",
+      "status": "active",
+      "severity": "important",
+      "closure_gate": true,
+      "areas": ["assistant", "import", "field-mapping", "cptu"],
+      "match_groups": [["AI 整理", "漏掉 u2"], ["表头明确", "可选字段"], ["孔隙水压力", "未导入"]],
+      "symptoms": ["模型正确识别深度、qc 和 fs，却把表头明确的 u2 当作可忽略列。", "整理显示成功，但生成草稿比源文件少一个可用测量通道。"],
+      "root_causes": ["模型把可选字段理解为可以随意省略，即使来源表头和单位均已明确。", "提案校验只拒绝错误映射，没有补齐唯一且可证明的显式字段。"],
+      "prevention": ["模型提案后仅对唯一、表头明确且单位明确的 fs/u2 做确定性补充；模糊、重复或无单位字段仍不猜。", "补充只建立字段映射，不修改任何原始测量值。"],
+      "required_checks": ["构造模型漏掉显式 u2 的专业与快捷提案并断言补回。", "重复、模糊或无单位字段不得自动补充。", "额外列与提示注入文本不能改变既有映射。"],
+      "related_updates": ["Process155"],
+      "related_tests": ["tests/e2e/import-assistant-domain.spec.ts", "tests/e2e/quick-plot-domain.spec.ts"]
     }
   ]
 }

@@ -91,6 +91,55 @@ export type ImportCleanupMeasurementAuthorization = {
   cellEditsReviewed?: boolean;
 };
 
+export type ExplicitOptionalMeasurementColumn = {
+  sourceColumnIndex: number;
+  targetField: 'fs' | 'u2';
+  sourceUnit: 'kPa' | 'MPa';
+  headerLabel: string;
+  reason: string;
+};
+
+/**
+ * Complements an AI decision only when a unique source header explicitly names
+ * an optional CPT field and its unit. Ambiguous or unitless columns remain for
+ * the user or AI to decide; no measurement value is changed here.
+ */
+export function explicitOptionalMeasurementColumns(
+  sheet: ImportAssistantSheet,
+  headerRow: number | null,
+  mappedIndexes: ReadonlySet<number>,
+  mappedTargets: ReadonlySet<string>,
+): ExplicitOptionalMeasurementColumn[] {
+  if (headerRow === null) return [];
+  const headerIndex = sheet.displayRowNumbers.indexOf(headerRow);
+  const header = headerIndex >= 0 ? sheet.rows[headerIndex] ?? [] : [];
+  const targetCandidates = (targetField: 'fs' | 'u2') => header.flatMap((rawLabel, sourceColumnIndex) => {
+    if (mappedIndexes.has(sourceColumnIndex)) return [];
+    const headerLabel = String(rawLabel ?? '').trim();
+    const compact = headerLabel.normalize('NFKC').toLocaleLowerCase().replace(/\s+/g, '');
+    const matches = targetField === 'fs'
+      ? /(?:^|[^a-z])fs(?:[^a-z]|$)/i.test(compact)
+        || ['侧摩阻力', '摩阻力', '袖套摩阻力', '套管摩阻力'].some((alias) => compact.includes(alias))
+      : /(?:^|[^a-z])u2(?:[^a-z]|$)/i.test(compact)
+        || ['孔隙水压力', '孔压'].some((alias) => compact.includes(alias));
+    if (!matches) return [];
+    const sourceUnit = /mpa/i.test(headerLabel) ? 'MPa' : /kpa/i.test(headerLabel) ? 'kPa' : null;
+    if (!sourceUnit) return [];
+    return [{
+      sourceColumnIndex,
+      targetField,
+      sourceUnit,
+      headerLabel,
+      reason: `表头已明确标注为 ${targetField}，系统补充该可选字段。`,
+    } satisfies ExplicitOptionalMeasurementColumn];
+  });
+  return (['fs', 'u2'] as const).flatMap((targetField) => {
+    if (mappedTargets.has(targetField)) return [];
+    const candidates = targetCandidates(targetField);
+    return candidates.length === 1 ? candidates : [];
+  });
+}
+
 export async function extractImportAssistantSource(file: File, operationId: string): Promise<ImportAssistantSource> {
   if (file.size > MAX_ASSISTANT_FILE_BYTES) {
     throw new Error('文件超过 30 MB，AI 整理暂不读取；仍可使用普通导入或先拆分工作簿。');
@@ -270,6 +319,17 @@ export function cleanupProposalFromImportTool(
   if (proposal.sourceFingerprint !== source.sourceFingerprint) return { ok: false, problem: 'AI 建议引用了旧来源，请重新整理当前文件。' };
   const sheet = source.sheets.find((candidate) => candidate.sheetName === proposal.sheetName);
   if (!sheet) return { ok: false, problem: 'AI 建议引用了不存在的工作表。' };
+  const mappedIndexes = new Set(proposal.columns.map((column) => column.sourceColumnIndex));
+  const mappedTargets = new Set(proposal.columns.map((column) => column.targetField));
+  proposal.columns = [
+    ...proposal.columns,
+    ...explicitOptionalMeasurementColumns(
+      sheet,
+      proposal.headerRow,
+      mappedIndexes,
+      mappedTargets,
+    ),
+  ];
   if (proposal.headerRow !== null && (!Number.isInteger(proposal.headerRow) || proposal.headerRow < 1 || proposal.headerRow >= sheet.rowCount)) {
     return { ok: false, problem: 'AI 建议的表头行无效。' };
   }
