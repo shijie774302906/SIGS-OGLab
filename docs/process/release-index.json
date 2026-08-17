@@ -12,9 +12,10 @@
     "process_id": "Process155",
     "baseline_commit": "d5bfa74ea032",
     "already_live_through": "Process155",
-    "deployment_status": "deployed-mainland",
+    "deployment_status": "deployed-mainland-and-international",
     "deployment_commit": "a9833fe9eb285eb0134119a1df58a91e0be1767a",
     "deployment_url": "https://sigs-oglabx.com",
+    "international_deployment_url": "https://sigs-oglab.com",
     "include_processes": ["Process155"],
     "pending_processes": [],
     "exclude_processes": [
