@@ -9,14 +9,14 @@
     "site": "https://sigs-oglabx.com"
   },
   "current_release": {
-    "process_id": "Process154",
-    "baseline_commit": "8315cde8adb6",
-    "already_live_through": "Process153",
-    "deployment_status": "verified-ready",
+    "process_id": "Process155",
+    "baseline_commit": "d5bfa74ea032",
+    "already_live_through": "Process154",
+    "deployment_status": "pending-deployment",
     "deployment_commit": null,
     "deployment_url": "https://sigs-oglabx.com",
-    "include_processes": ["Process154"],
-    "pending_processes": ["Process154"],
+    "include_processes": ["Process155"],
+    "pending_processes": ["Process155"],
     "exclude_processes": [
       {
         "id": "Process149",
