@@ -5,8 +5,12 @@ import { resolve } from 'node:path';
 const root = process.cwd();
 const dist = resolve(root, 'dist');
 
-function git(...args) {
-  return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+function gitOrNull(...args) {
+  try {
+    return execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() || null;
+  } catch {
+    return null;
+  }
 }
 
 if (!existsSync(dist)) throw new Error('dist 不存在，请先运行 npm run build。');
@@ -22,8 +26,14 @@ const manifest = {
   product: 'SIGS-OGLab',
   canonicalSite: 'https://sigs-oglabx.com',
   source: {
-    commit: git('rev-parse', 'HEAD'),
-    branch: git('branch', '--show-current') || 'detached',
+    commit: process.env.VERCEL_GIT_COMMIT_SHA
+      || process.env.RELEASE_COMMIT
+      || gitOrNull('rev-parse', 'HEAD')
+      || 'unknown',
+    branch: process.env.VERCEL_GIT_COMMIT_REF
+      || process.env.RELEASE_BRANCH
+      || gitOrNull('branch', '--show-current')
+      || 'detached',
   },
   help: {
     path: '/help/',
