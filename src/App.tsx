@@ -3987,12 +3987,13 @@ function ProjectWorkspaceApp({
     ?? currentJtsRecoveryDiagnosis?.options.find((option) => option.enabled && option.kind === 'automatic')
     ?? currentJtsRecoveryDiagnosis?.options.find((option) => option.enabled)
     ?? null;
-  const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [rightPanelView, setRightPanelView] = useState<'tools' | 'assistant'>('tools');
   const [professionalGuideReplayToken, setProfessionalGuideReplayToken] = useState(0);
   const assistantExecutedCommandIdsRef = useRef(new Set<string>());
   useEffect(() => {
-    if (activeRoute === 'stratification') setRightPanelOpen(false);
+    setRightPanelView('tools');
+    setRightPanelOpen(activeRoute === 'output');
   }, [activeRoute]);
   const [excelParsing, setExcelParsing] = useState(false);
   const [pendingExcelSheetSelection, setPendingExcelSheetSelection] = useState<{ file: File; candidates: ExcelSheetProfileV1[] } | null>(null);

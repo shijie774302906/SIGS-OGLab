@@ -186,7 +186,7 @@ test('DeepSeek mode requires one-session outbound-data consent before sending', 
   await page.getByTestId('new-project-name').fill(`DeepSeek consent ${Date.now()}`);
   await page.getByTestId('project-mode-professional').click();
   await page.getByTestId('create-project-submit').click();
-  await page.getByTestId('right-panel-assistant-tab').click();
+  await openAssistant(page);
   await expect(page.getByTestId('assistant-connect-card')).toContainText('目前仅支持 DeepSeek');
   await expect(page.getByTestId('assistant-input')).toBeDisabled();
   await page.getByTestId('assistant-open-key-dialog').click();
@@ -244,7 +244,7 @@ test('DeepSeek mode requires one-session outbound-data consent before sending', 
   await page.getByTestId('new-project-name').fill(`DeepSeek second scope ${Date.now()}`);
   await page.getByTestId('project-mode-professional').click();
   await page.getByTestId('create-project-submit').click();
-  await page.getByTestId('right-panel-assistant-tab').click();
+  await openAssistant(page);
   await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
   await expect(page.getByTestId('assistant-outbound-consent')).toBeVisible();
   await expect(page.getByTestId('assistant-input')).toBeDisabled();
@@ -318,7 +318,7 @@ test('DeepSeek key stays in tab memory, survives dock switches, and clears on di
   await page.getByTestId('assistant-provider-status').getByRole('button', { name: '断开' }).click();
   await expect(page.getByTestId('assistant-connect-card')).toBeVisible();
   await page.reload();
-  await page.getByTestId('right-panel-assistant-tab').click();
+  await openAssistant(page);
   await expect(page.getByTestId('assistant-connect-card')).toContainText('API Key 仅本次打开有效');
   expect(await browserStorageContainsSecret(page, [validKey, rejectedKey])).toBe(false);
 });
@@ -621,7 +621,7 @@ test('collapsed right dock keeps a direct AI assistant launcher', async ({ page 
   await page.getByTestId('new-project-name').fill(`助手入口 ${Date.now()}`);
   await page.getByTestId('project-mode-professional').click();
   await page.getByTestId('create-project-submit').click();
-  await page.getByTestId('right-panel-hide').click();
+  await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'collapsed');
   await expect(page.getByTestId('right-panel-assistant-shortcut')).toBeVisible();
   await page.getByTestId('right-panel-assistant-shortcut').click();
   await expect(page.getByTestId('professional-assistant-panel')).toBeVisible();

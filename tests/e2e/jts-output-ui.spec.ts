@@ -7,7 +7,7 @@ import { unzipSync } from 'fflate';
 import { generateCurrentStratificationRevision } from './stratification-guide-helpers';
 
 test('PROCESS125 professional PDF and Excel share one source, overwrite together, and retain authority when generation fails', async ({ page }, testInfo) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
   const inputPath = testInfo.outputPath('output-cptu.csv');
   writeFileSync(inputPath, ['Depth(m),qc(MPa),fs(kPa),u2(kPa)', '5.00,1.20,25,300', '5.50,1.24,26,305', '6.00,1.28,27,310'].join('\n'), 'utf8');
   const errors: string[] = [];
@@ -19,6 +19,7 @@ test('PROCESS125 professional PDF and Excel share one source, overwrite together
   await expect.poll(() => readState(page)).toMatchObject({ draftCount: 1 });
   await completePreparationGuide(page);
   await page.getByTestId('explorer-project').click();
+  await page.getByTestId('right-panel-show').click();
   await page.getByTestId('confirm-jts-probe').click();
   await page.getByTestId('water-depth-input').fill('10');
   await page.getByTestId('confirm-water-context').click();
@@ -35,6 +36,7 @@ test('PROCESS125 professional PDF and Excel share one source, overwrite together
   await expect(page.getByTestId('project-storage-workspace-notice')).toHaveCount(0);
   await page.getByTestId('explorer-parameters').click();
   await page.getByTestId('parameter-guide-close').click();
+  await page.getByTestId('right-panel-show').click();
   await page.getByTestId('jts-package-nkt').selectOption('triaxial_cu');
   await page.getByTestId('jts-package-material-scope').selectOption('within_source');
   await page.getByTestId('jts-package-confirm-ocr').check();
@@ -44,6 +46,37 @@ test('PROCESS125 professional PDF and Excel share one source, overwrite together
   await page.getByTestId('parameter-scope-confirm-submit').click();
   await expect(page.getByTestId('project-storage-workspace-notice')).toHaveCount(0);
   await page.getByTestId('explorer-output').click();
+  await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'open');
+  await expect(page.getByTestId('right-panel-tools-tab')).toHaveText('成果工具');
+  const process156EvidenceDir = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process156-output-dock');
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    mkdirSync(process156EvidenceDir, { recursive: true });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.screenshot({ path: path.join(process156EvidenceDir, 'output-tools-open-1440x900.png'), fullPage: true });
+  }
+  await page.getByTestId('right-panel-hide').click();
+  await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'collapsed');
+  await page.waitForTimeout(100);
+  await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'collapsed');
+  await page.getByTestId('explorer-parameters').click();
+  await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'collapsed');
+  await page.getByTestId('explorer-output').click();
+  await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'open');
+  await expect(page.getByTestId('right-panel-tools-tab')).toHaveText('成果工具');
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.screenshot({ path: path.join(process156EvidenceDir, 'output-tools-reopened-1920x1080.png'), fullPage: true });
+    const process156Check = await page.evaluate(() => {
+      const panel = document.querySelector<HTMLElement>('[data-testid="right-panel"]');
+      return {
+        route: document.querySelector('[data-testid="document-output"]') ? 'output' : 'unknown',
+        rightPanelState: panel?.dataset.state ?? null,
+        bodyOverflowX: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+        rightPanelOverflowX: panel ? Math.max(0, panel.scrollWidth - panel.clientWidth) : null,
+      };
+    });
+    writeFileSync(path.join(process156EvidenceDir, 'browser-check.json'), JSON.stringify({ ...process156Check, errors }, null, 2));
+  }
   await expect(page.getByTestId('generate-output')).toBeEnabled();
 
   const firstPair = await generatePairAndSave(page, testInfo, 'a3-atlas-pdf');
@@ -210,7 +243,14 @@ async function generatePairAndSave(page: import('@playwright/test').Page, testIn
 }
 
 async function prepareCurrentPoint(page: import('@playwright/test').Page) {
-  await page.getByTestId('new-project-name').fill('Stage 7 成果输出'); await page.getByTestId('project-mode-professional').click(); await page.getByTestId('create-project-submit').click(); await page.getByTestId('create-point').click(); await page.getByTestId('point-name-input').fill('CPTU-OUTPUT'); await page.getByTestId('confirm-point-command').click(); await page.getByTestId('probe-guide-recommended').click();
+  await page.getByTestId('new-project-name').fill('Stage 7 成果输出');
+  await page.getByTestId('project-mode-professional').click();
+  await page.getByTestId('create-project-submit').click();
+  await page.getByTestId('right-panel-show').click();
+  await page.getByTestId('create-point').click();
+  await page.getByTestId('point-name-input').fill('CPTU-OUTPUT');
+  await page.getByTestId('confirm-point-command').click();
+  await page.getByTestId('probe-guide-recommended').click();
 }
 
 async function readState(page: import('@playwright/test').Page) {

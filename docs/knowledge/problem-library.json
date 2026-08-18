@@ -29,7 +29,7 @@
       "root_causes": ["耗时同步工作发生在同一次点击任务中，浏览器来不及绘制运行态。", "测试预先准备了结果，跳过真实首次运行。"],
       "prevention": ["选择与执行分离，执行只保留一个主要动作。", "运行前先提交可见 busy 状态，并防止双触发。"],
       "required_checks": ["覆盖真实数据首次运行，不得预先生成结果。", "断言 running、disabled、完成或失败恢复状态按顺序出现。"],
-      "related_updates": ["Process086", "Process090", "Process091", "Process092", "Process093", "Process095", "Process104", "Process106", "Process107", "Process108", "Process109", "Process111", "Process113", "Process114", "Process116", "Process117", "Process123", "Process126", "Process127", "Process128", "Process136", "Process138", "Process139", "Process141", "Process142", "Process143", "Process150", "Process154"],
+      "related_updates": ["Process086", "Process090", "Process091", "Process092", "Process093", "Process095", "Process104", "Process106", "Process107", "Process108", "Process109", "Process111", "Process113", "Process114", "Process116", "Process117", "Process123", "Process126", "Process127", "Process128", "Process136", "Process138", "Process139", "Process141", "Process142", "Process143", "Process150", "Process154", "Process156"],
       "related_tests": ["tests/e2e/stratification-workflow-ui.spec.ts"]
     },
     {

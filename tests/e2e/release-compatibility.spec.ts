@@ -18,8 +18,6 @@ test('public-readiness browser smoke keeps the first-run workflow operable and c
   await page.getByTestId('create-project-submit').click();
   await expect(page.getByTestId('workbench-root')).toBeVisible();
   await expect(page.getByTestId('preparation-guide')).toContainText('确认探头');
-  await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'open');
-  await page.getByTestId('right-panel-hide').click();
   await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'collapsed');
   await page.getByTestId('right-panel-show').click();
   await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'open');

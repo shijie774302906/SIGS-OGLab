@@ -45,6 +45,7 @@ test('guided preparation fixes one invalid JTS input without changing the upload
 
   await page.getByTestId('new-project-name').fill('数据准备指南');
   await page.getByTestId('project-mode-professional').click(); await page.getByTestId('create-project-submit').click();
+  await page.getByTestId('right-panel-show').click();
   await page.getByTestId('create-point').click();
   await page.getByTestId('point-name-input').fill('CPTU-GUIDED');
   const guideOpenStarted = Date.now();
@@ -126,6 +127,7 @@ test('guided preparation fixes one invalid JTS input without changing the upload
 
   await page.getByTestId('explorer-project').click();
   await expect(page.getByTestId('project-first-look')).toContainText('数据检查已通过，可进入地层分层');
+  await page.getByTestId('right-panel-show').click();
   await page.getByRole('button', { name: '修改点位基准' }).click();
   await page.getByTestId('confirm-jts-probe').click();
   await page.getByTestId('confirm-water-context').click();
@@ -144,7 +146,6 @@ test('guided preparation fixes one invalid JTS input without changing the upload
   await expect(page.getByTestId('project-first-look')).toContainText('数据检查已通过，可进入地层分层');
   timings.reloadToInteractiveMs = Date.now() - reloadStarted;
   await captureEvidence(page, '06-project-ready-after-reload');
-  await page.getByTestId('right-panel-hide').click();
   await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'collapsed');
   await captureEvidence(page, '07-project-right-panel-hidden');
   await page.getByTestId('right-panel-show').click();
@@ -186,6 +187,7 @@ test('guided keep decision persists after reload', async ({ page }, testInfo) =>
   ].join('\n'), 'utf8');
   await page.getByTestId('new-project-name').fill('保留决定持久化');
   await page.getByTestId('project-mode-professional').click(); await page.getByTestId('create-project-submit').click();
+  await page.getByTestId('right-panel-show').click();
   await page.getByTestId('create-point').click();
   await page.getByTestId('point-name-input').fill('CPT-KEEP');
   await page.getByTestId('confirm-point-command').click();

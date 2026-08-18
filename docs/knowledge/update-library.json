@@ -681,6 +681,14 @@
       "status": "closed",
       "record": "process_logs/Process155.md",
       "problems": ["KPB-001", "KPB-003", "KPB-004", "KPB-009", "KPB-011", "KPB-012", "KPB-015", "KPB-023", "KPB-024", "KPB-037", "KPB-038"]
+    },
+    {
+      "id": "Process156",
+      "date": "2026-08-18",
+      "title": "成果工具默认展开",
+      "status": "closed",
+      "record": "process_logs/Process156.md",
+      "problems": ["KPB-002"]
     }
   ]
 }

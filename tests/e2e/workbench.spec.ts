@@ -63,8 +63,6 @@ test('Flow 1 uploads a generated CSV and supports the first three-page human act
   const pointName = (await page.getByTestId('project-current-point').innerText()).trim();
   await page.getByTestId(`project-point-${pointName}`).click();
   await expect(page.getByTestId('flow-toast')).toContainText(`已选择点位 ${pointName}`);
-  await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'open');
-  await page.getByTestId('right-panel-hide').click();
   await expect(page.getByTestId('right-panel')).toHaveAttribute('data-state', 'collapsed');
   await expect(page.getByTestId('right-panel-show')).toBeVisible();
   await page.getByTestId('right-panel-show').click();
@@ -85,6 +83,7 @@ test('Flow 1 uploads a generated CSV and supports the first three-page human act
   await expect(page.getByTestId('run-data-check')).toHaveText('运行数据检查');
   await expect(page.getByTestId('document-import').locator('.toolbar-button.primary')).toHaveCount(1);
   await page.getByTestId('import-file-input').setInputFiles(csvPath);
+  await page.getByTestId('right-panel-show').click();
 
   await expect(page.getByTestId('flow-toast')).toContainText('导入草稿已生成');
   await expect(page.getByTestId('import-first-look')).toContainText('导入草稿已生成，可进入数据检查');
@@ -111,6 +110,7 @@ test('Flow 1 uploads a generated CSV and supports the first three-page human act
   stepLog.push('upload csv and inspect mapping/preview');
 
   await completePreparationGuide(page);
+  await page.getByTestId('right-panel-show').click();
   await expect(page.getByTestId('document-check')).toHaveAttribute('data-flow-step', 'run-check');
   await expect(page.getByTestId('flow-case-banner')).toContainText('步骤 3/3');
   await expect(page.getByTestId('check-summary')).toContainText('仅提示');

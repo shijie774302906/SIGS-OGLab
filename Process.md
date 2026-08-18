@@ -4,7 +4,14 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process155 AI 文件整理等待与专业界面呈现优化
+## Current - Process156 成果工具默认展开
+- Date: 2026-08-18
+- Status: `closed / implemented / verified / ready for deployment`
+- Result: 专业解译进入成果输出时默认展开成果工具；其他专业页面默认隐藏，手动隐藏在当前成果页不会自动弹回，重新进入成果页会再次展开。
+- Verification: build、成果专项 1/1、相关回归 19/19、双分辨率、无溢出、无浏览器错误和 Known Problem Gate 均通过。
+- Detail: `process_logs/Process156.md`
+
+## Recent - Process155 AI 文件整理等待与专业界面呈现优化
 - Date: 2026-08-18
 - Status: `closed / implemented / verified / ready for deployment`
 - Result: 专业和快捷文件整理使用 Flash、专业问答保留 Pro；最长安全等待、停止/重试、5000 行 CSV/XLSX/无表头处理和专业六页人类可读呈现已经统一。
