@@ -713,6 +713,14 @@
       "status": "closed",
       "record": "process_logs/Process159.md",
       "problems": ["KPB-002", "KPB-004", "KPB-009", "KPB-011", "KPB-012", "KPB-013", "KPB-023", "KPB-025"]
+    },
+    {
+      "id": "Process160",
+      "date": "2026-08-18",
+      "title": "图册图例与版面可读性",
+      "status": "closed",
+      "record": "process_logs/Process160.md",
+      "problems": ["KPB-004", "KPB-006", "KPB-011", "KPB-012", "KPB-013", "KPB-021", "KPB-035"]
     }
   ]
 }

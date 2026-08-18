@@ -443,7 +443,8 @@ function drawText(ctx: CanvasRenderingContext2D, value: string, x: number, y: nu
 function textRows(ctx: CanvasRenderingContext2D, x: number, y: number, rows: string[][], width: number) { rows.forEach((row, index) => { const rowY = y + index * 62; ctx.fillStyle = index % 2 ? '#f7f9fa' : '#ffffff'; ctx.fillRect(x, rowY - 38, width, 54); drawText(ctx, row[0], x + 18, rowY, 24, '#647580', '400', 'left', 'body'); drawText(ctx, row[1], x + 330, rowY, 24, '#14212b', '600', 'left', 'body'); }); }
 function drawTable(ctx: CanvasRenderingContext2D, x: number, y: number, headers: string[], rows: string[][], widths: number[]) {
   const totalWidth = widths.reduce((sum, value) => sum + value, 0);
-  const rowHeight = 54;
+  const bodySize = outputResolvedFontSize(ctx, 18, 'body');
+  const lineHeight = bodySize + 6;
   let px = x;
   headers.forEach((header, index) => {
     ctx.fillStyle = '#edf1f2';
@@ -452,18 +453,33 @@ function drawTable(ctx: CanvasRenderingContext2D, x: number, y: number, headers:
     drawText(ctx, header, px + widths[index] / 2, y - 4, 21, '#172b33', '700', 'center', 'body');
     px += widths[index];
   });
-  rows.forEach((row, rowIndex) => {
+  let rowTop = y + 14;
+  rows.forEach((row) => {
+    setOutputFont(ctx, '500', bodySize);
+    const wrappedCells = row.map((cell, index) => wrapCanvasText(ctx, cell, Math.max(20, widths[index] - 24)));
+    const rowHeight = Math.max(54, Math.max(...wrappedCells.map((lines) => lines.length)) * lineHeight + 18);
     let cx = x;
-    const rowY = y + 56 + rowIndex * rowHeight;
-    row.forEach((cell, index) => {
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(cx, rowY - 40, widths[index], rowHeight);
-      ctx.strokeStyle = '#20282d'; ctx.lineWidth = 1; ctx.strokeRect(cx, rowY - 40, widths[index], rowHeight);
-      setOutputFont(ctx, '500', outputResolvedFontSize(ctx, 18, 'body'));
-      drawText(ctx, truncateCanvasText(ctx, cell, widths[index] - 20), cx + widths[index] / 2, rowY - 5, 18, '#243640', '500', 'center', 'body');
+    wrappedCells.forEach((lines, index) => {
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(cx, rowTop, widths[index], rowHeight);
+      ctx.strokeStyle = '#20282d'; ctx.lineWidth = 1; ctx.strokeRect(cx, rowTop, widths[index], rowHeight);
+      const textBlockHeight = lines.length * lineHeight;
+      const firstBaseline = rowTop + (rowHeight - textBlockHeight) / 2 + bodySize;
+      lines.forEach((line, lineIndex) => drawText(
+        ctx,
+        line,
+        cx + widths[index] / 2,
+        firstBaseline + lineIndex * lineHeight,
+        18,
+        '#243640',
+        '500',
+        'center',
+        'body',
+      ));
       cx += widths[index];
     });
+    rowTop += rowHeight;
   });
-  ctx.strokeStyle = '#20282d'; ctx.lineWidth = 2; ctx.strokeRect(x, y - 42, totalWidth, 56 + rows.length * rowHeight);
+  ctx.strokeStyle = '#20282d'; ctx.lineWidth = 2; ctx.strokeRect(x, y - 42, totalWidth, rowTop - (y - 42));
 }
 function drawDepthPlot(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, snapshot: JtsOutputSnapshotV7, fromOverride?: number, toOverride?: number) {
   const rows = snapshot.measuredRows.filter((row) => row.depthM >= (fromOverride ?? -Infinity) && row.depthM <= (toOverride ?? Infinity));
@@ -519,8 +535,23 @@ function drawDepthPlot(ctx: CanvasRenderingContext2D, x: number, y: number, widt
     ctx.strokeStyle = '#20282d'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(layerX, top); ctx.lineTo(layerX + layerWidth, top); ctx.stroke();
     const layerHeight = bottom - top;
-    if (layerHeight >= 30) drawText(ctx, `L${snapshot.layers.indexOf(layer) + 1} ${layer.name}`, layerX + 14, top + Math.min(24, layerHeight / 2 + 6), 17, colors.ink, '700', 'left', 'body');
-    if (layerHeight >= 54) drawText(ctx, `${layer.depthFromM.toFixed(2)}–${layer.depthToM.toFixed(2)} m`, layerX + 14, top + 49, 15, colors.ink, '500', 'left', 'legend');
+    if (layerHeight >= 30) {
+      const nameFontSize = outputResolvedFontSize(ctx, 17, 'body');
+      const depthFontSize = outputResolvedFontSize(ctx, 15, 'legend');
+      const lineHeight = nameFontSize + 3;
+      const maximumLines = Math.max(1, Math.floor((layerHeight - 10) / lineHeight));
+      const showDepth = layerHeight >= 54 && maximumLines >= 2;
+      setOutputFont(ctx, '700', nameFontSize);
+      const nameLines = wrapCanvasText(ctx, `L${snapshot.layers.indexOf(layer) + 1} ${layer.name}`, Math.max(20, layerWidth - 28));
+      const visibleNameLines = nameLines.slice(0, Math.max(1, maximumLines - (showDepth ? 1 : 0)));
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(layerX + 2, top + 1, layerWidth - 4, Math.max(1, layerHeight - 2));
+      ctx.clip();
+      visibleNameLines.forEach((line, lineIndex) => drawText(ctx, line, layerX + 14, top + nameFontSize + 6 + lineIndex * lineHeight, 17, colors.ink, '700', 'left', 'body'));
+      if (showDepth) drawText(ctx, `${layer.depthFromM.toFixed(2)}–${layer.depthToM.toFixed(2)} m`, layerX + 14, top + nameFontSize + 10 + visibleNameLines.length * lineHeight + depthFontSize, 15, colors.ink, '500', 'left', 'legend');
+      ctx.restore();
+    }
   });
 
   const compactPage = reportCanvasLogicalSize(ctx).width <= 1500;
@@ -590,24 +621,31 @@ function drawClassificationLegend(ctx: CanvasRenderingContext2D, x: number, y: n
   const fontSize = Math.max(13, Math.min(18, width / 100));
   const compactPage = reportCanvasLogicalSize(ctx).width <= 1500;
   const itemsPerRow = compactPage ? Math.min(5, Math.max(1, unique.length)) : Math.max(1, unique.length);
+  const resolvedSize = outputResolvedFontSize(ctx, fontSize, 'legend');
+  const lineHeight = resolvedSize + 5;
   const rowCount = Math.ceil(unique.length / itemsPerRow);
-  const lineHeight = outputResolvedFontSize(ctx, fontSize, 'legend') + 9;
-  unique.forEach((band, index) => {
+  const layouts = unique.map((band, index) => {
     const row = Math.floor(index / itemsPerRow);
     const column = index % itemsPerRow;
     const rowItems = Math.min(itemsPerRow, unique.length - row * itemsPerRow);
-    const prefixWidth = row === 0 ? (compactPage ? 118 : 138) : 0;
+    const prefixWidth = row === 0 ? (compactPage ? 130 : 150) : 0;
     const itemWidth = (width - prefixWidth) / Math.max(1, rowItems);
-    const itemX = x + prefixWidth + column * itemWidth;
-    const itemY = y + row * lineHeight;
-    ctx.fillStyle = band.color;
-    ctx.fillRect(itemX, itemY - 14, 12, 12);
-    setOutputFont(ctx, '600', outputResolvedFontSize(ctx, fontSize, 'legend'));
-    const label = truncateCanvasText(ctx, `${band.classCode} ${band.label}`, itemWidth - 22);
-    drawText(ctx, label, itemX + 18, itemY - 3, fontSize, '#566771', '600', 'left', 'legend');
+    setOutputFont(ctx, '600', resolvedSize);
+    const lines = wrapCanvasText(ctx, `${band.classCode} ${band.label}`, itemWidth - 30);
+    return { band, row, column, prefixWidth, itemWidth, lines };
   });
-  drawText(ctx, '分类图例：', x, y - 3, fontSize, '#33464e', '700', 'left', 'legend');
-  if (hasApproximate) drawText(ctx, '* 近似 CPT 分类（仅使用 Ic）', x + width, y + rowCount * lineHeight + 3, fontSize - 1, '#9a6518', '500', 'right', 'legend');
+  const rowHeights = Array.from({ length: rowCount }, (_, row) => Math.max(lineHeight + 12, ...layouts.filter((layout) => layout.row === row).map((layout) => layout.lines.length * lineHeight + 12)));
+  const rowOffsets = rowHeights.map((_, row) => rowHeights.slice(0, row).reduce((sum, value) => sum + value, 0));
+  drawText(ctx, '分类图例：', x, y, fontSize, '#33464e', '700', 'left', 'legend');
+  layouts.forEach(({ band, row, column, prefixWidth, itemWidth, lines }) => {
+    const itemX = x + prefixWidth + column * itemWidth;
+    const itemY = y - resolvedSize + rowOffsets[row];
+    ctx.fillStyle = band.color;
+    ctx.fillRect(itemX, itemY + 3, 15, 15);
+    lines.forEach((line, lineIndex) => drawText(ctx, line, itemX + 23, itemY + resolvedSize + lineIndex * lineHeight, fontSize, '#566771', '600', 'left', 'legend'));
+  });
+  const legendHeight = rowHeights.reduce((sum, value) => sum + value, 0);
+  if (hasApproximate) drawText(ctx, '* 近似 CPT 分类（仅使用 Ic）', x + width, y + legendHeight + 6, fontSize - 1, '#9a6518', '500', 'right', 'legend');
 }
 
 function drawParameterPage(

@@ -1,6 +1,6 @@
 export const REPORT_FONT_PT_FLOORS = Object.freeze({
   source: 8,
-  legend: 9,
+  legend: 11,
   body: 10,
   title: 12,
 });

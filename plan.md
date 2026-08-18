@@ -2,4 +2,6 @@
 
 Status: `no active slice`
 
-Process159 已关闭并归档到 `process_logs/Process159.md`。等待下一项经确认的工作。
+Process160 已关闭并归档至 `process_logs/Process160.md`。
+
+下一项工作需经过单独确认后再建立新的活动切片。

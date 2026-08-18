@@ -59,7 +59,7 @@
       "root_causes": ["技术异常直接投影为用户提示。", "错误没有明确责任页面和可执行恢复动作。"],
       "prevention": ["错误状态必须包含原因、影响、证据、责任页面和一个推荐动作。", "能在当前流程恢复时保留用户原任务并自动续接。"],
       "required_checks": ["覆盖失败、取消、返回、重试、连续失败和恢复成功。", "验证恢复入口能到达准确位置而非页面顶部。"],
-      "related_updates": ["Process072", "Process073", "Process074", "Process075", "Process083", "Process086", "Process087", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process103", "Process104", "Process107", "Process108", "Process109", "Process111", "Process112", "Process113", "Process114", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process146", "Process147", "Process150", "Process152", "Process154", "Process155", "Process157", "Process159"],
+      "related_updates": ["Process072", "Process073", "Process074", "Process075", "Process083", "Process086", "Process087", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process103", "Process104", "Process107", "Process108", "Process109", "Process111", "Process112", "Process113", "Process114", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process146", "Process147", "Process150", "Process152", "Process154", "Process155", "Process157", "Process159", "Process160"],
       "related_tests": ["tests/e2e/jts-classification-recovery-ui.spec.ts", "tests/e2e/workspace-storage-recovery.spec.ts"]
     },
     {
@@ -89,7 +89,7 @@
       "root_causes": ["错误分类被压扁为通用提示。", "清理只提交空列表，没有删除权威数据库及旧指针。"],
       "prevention": ["写入失败时保留内存编辑和真实错误原因。", "破坏性重置必须覆盖权威数据库、数据块、元数据和旧指针。"],
       "required_checks": ["覆盖配额、不可用、多标签、临时失败和重试。", "重置后验证全部 store、指针和刷新启动状态为空。"],
-      "related_updates": ["Process083", "Process085", "Process090", "Process091", "Process092", "Process093", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process115", "Process121", "Process126", "Process127", "Process128", "Process129", "Process131", "Process132", "Process133", "Process134", "Process138", "Process140", "Process143", "Process146", "Process147", "Process148", "Process150", "Process154"],
+      "related_updates": ["Process083", "Process085", "Process090", "Process091", "Process092", "Process093", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process115", "Process121", "Process126", "Process127", "Process128", "Process129", "Process131", "Process132", "Process133", "Process134", "Process138", "Process140", "Process143", "Process146", "Process147", "Process148", "Process150", "Process154", "Process160"],
       "related_tests": ["tests/e2e/workspace-storage-recovery.spec.ts", "tests/e2e/workspace-database.spec.ts", "tests/e2e/project-persistence.spec.ts"]
     },
     {
@@ -164,7 +164,7 @@
       "root_causes": ["问题责任没有绑定到产生该数据的页面。", "跨页恢复没有保存用户原始意图。"],
       "prevention": ["数据问题由数据检查页治理，工程判断留在当前解释页面。", "跳转前保存意图，复检成功后自动回到准确步骤。"],
       "required_checks": ["覆盖返回责任页、取消修复、修复失败、复检和自动续接。", "断言原始测量不被静默改写。"],
-      "related_updates": ["Process071", "Process072", "Process074", "Process075", "Process082", "Process086", "Process087", "Process090", "Process091", "Process092", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process113", "Process114", "Process116", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process133", "Process134", "Process135", "Process136", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process150", "Process154", "Process155", "Process158", "Process159"],
+      "related_updates": ["Process071", "Process072", "Process074", "Process075", "Process082", "Process086", "Process087", "Process090", "Process091", "Process092", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process113", "Process114", "Process116", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process133", "Process134", "Process135", "Process136", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process150", "Process154", "Process155", "Process158", "Process159", "Process160"],
       "related_tests": ["tests/e2e/jts-classification-recovery-ui.spec.ts", "tests/e2e/preparation-guided-flow.spec.ts"]
     },
     {
@@ -179,7 +179,7 @@
       "root_causes": ["测试使用预生成夹具绕过首次运行。", "断言没有覆盖用户真正看到和判断的证据。"],
       "prevention": ["验收从真实用户动作开始，并断言可见工程对象。", "UI、领域语义、数据权威和性能分别给出证据。"],
       "required_checks": ["至少包含一个失败恢复和一个真实规模流程。", "截图检查标签、单位、选中态、禁用态、溢出和错误日志。"],
-      "related_updates": ["Process070", "Process080", "Process081", "Process084", "Process086", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process105", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process125", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process146", "Process147", "Process148", "Process151", "Process153", "Process154", "Process155", "Process157", "Process158", "Process159"],
+      "related_updates": ["Process070", "Process080", "Process081", "Process084", "Process086", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process105", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process125", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process146", "Process147", "Process148", "Process151", "Process153", "Process154", "Process155", "Process157", "Process158", "Process159", "Process160"],
       "related_tests": ["tests/e2e/preparation-guided-flow.spec.ts", "tests/e2e/check-profile-curves-ui.spec.ts", "tests/e2e/import-pipeline.spec.ts"]
     },
     {
@@ -194,7 +194,7 @@
       "root_causes": ["系统能力按模块展示，而不是按当前判断组织。", "高级审计和默认路径没有分层。"],
       "prevention": ["默认一次只呈现一个当前判断和少量固定选项。", "规则、历史、来源和高级编辑默认折叠。"],
       "required_checks": ["1440 首屏能够看到当前问题、证据和全部主要选择。", "确认中心只有一个最强主要动作。"],
-      "related_updates": ["Process073", "Process075", "Process076", "Process077", "Process078", "Process080", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process095", "Process099", "Process100", "Process101", "Process104", "Process107", "Process109", "Process110", "Process111", "Process112", "Process113", "Process115", "Process116", "Process117", "Process120", "Process126", "Process132", "Process133", "Process134", "Process135", "Process136", "Process141", "Process143", "Process146", "Process147", "Process148", "Process157", "Process159"],
+      "related_updates": ["Process073", "Process075", "Process076", "Process077", "Process078", "Process080", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process095", "Process099", "Process100", "Process101", "Process104", "Process107", "Process109", "Process110", "Process111", "Process112", "Process113", "Process115", "Process116", "Process117", "Process120", "Process126", "Process132", "Process133", "Process134", "Process135", "Process136", "Process141", "Process143", "Process146", "Process147", "Process148", "Process157", "Process159", "Process160"],
       "related_tests": ["tests/e2e/parameter-guided-workflow-ui.spec.ts", "tests/e2e/check-profile-curves-ui.spec.ts"]
     },
     {
@@ -314,7 +314,7 @@
       "root_causes": ["表格单元格使用省略函数绘制，分页只按固定行数而不是实际文字高度。", "验收只构造短说明，没有覆盖单条跨行和多条跨页。"],
       "prevention": ["长说明按真实字体测量逐行换行，行高由内容决定，并允许单条记录跨页。", "分页完成后仍需验证关键信息确实传入绘制调用，不能只检查页数。"],
       "required_checks": ["构造包含源行、失败原因、未满足条件和确认时间的长说明，断言全文片段均被绘制。", "增加足够记录触发新页，并验证 A3/A4 共用同一换行分页实现。"],
-      "related_updates": ["Process125", "Process138", "Process147", "Process151"],
+      "related_updates": ["Process125", "Process138", "Process147", "Process151", "Process160"],
       "related_tests": ["tests/e2e/jts-output-ui.spec.ts"]
     },
     {
@@ -524,7 +524,7 @@
       "root_causes": ["Canvas 绘制函数直接接受 px，没有按页面物理尺寸和导出方向换算 pt。", "网页用容器百分比压缩整页模拟 80%，把图内文字一并压小。", "放大文字后没有重新分配标题、图例和表格空间，造成重叠或截断。"],
       "prevention": ["图册统一定义来源、图例/刻度、正文和标题四种物理字号角色，并按页面宽度换算逻辑像素。", "80% 表示真实页面尺寸缩放；空间不足时由图册舞台滚动，不压缩图内字号。", "文字放不下时优先换行、紧凑标题或增加行高，禁止静默跌破物理字号下限。"],
       "required_checks": ["断言来源不低于 8 pt、图例/刻度不低于 9 pt、正文不低于 10 pt、标题不低于 12 pt，覆盖 A3 横/竖版和 A4。", "在 1440×900、1920×1080 下检查真实 80% 预览、横向滚动、标题/图例/表格重叠与浏览器错误。", "生成专业 A3/A4 代表页和快捷图册代表页，人工确认层名、单位、坐标、分类图例和来源可辨认。"],
-      "related_updates": ["Process151"],
+      "related_updates": ["Process151", "Process160"],
       "related_tests": ["tests/e2e/report-typography.spec.ts", "tests/e2e/report-rendering-ui.spec.ts", "tests/e2e/quick-plot-ui.spec.ts"]
     },
     {

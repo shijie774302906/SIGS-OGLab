@@ -4,7 +4,15 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process159 快捷 AI 自由协商导入
+## Current - Process160 图册图例与版面可读性
+- Date: 2026-08-18
+- Status: `closed / implemented / verified / local only`
+- Result: 快速与专业图册统一采用 11 pt 图例下限、完整换行和稳定留白；长层名表格动态增高，逐页视觉审阅与独立 Agent 复核均无 P0/P1/P2。
+- Verification: build、目标 Playwright 4/4、15 页快捷图册、dense 极端页、专业 A4/A3、双分辨率、80% 预览、Known Problem Gate 与证据 manifest 均通过。
+- Rollback: `94e7285` / `pre-report-layout-process160`
+- Detail: `process_logs/Process160.md`
+
+## Recent - Process159 快捷 AI 自由协商导入
 - Date: 2026-08-18
 - Status: `closed / implemented / verified`
 - Result: 快捷 AI 支持自由只读探索、自然语言协商和最终结构化提交；多工作表由用户先选，AI 只读取所选工作表。

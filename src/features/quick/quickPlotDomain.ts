@@ -800,18 +800,20 @@ function drawMeasuredPortraitPage(ctx: CanvasRenderingContext2D, box: PlotBox, r
 
 function drawNormalizedSbtPairPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows: QuickDerived[]) {
   const gap = 56; const half = (box.width - gap) / 2;
+  const legendHeight = sbtLegendHeight(ctx); const legendY = box.y + box.height - legendHeight; const chartHeight = legendY - (box.y + 40) - 56;
   panelTitle(ctx, box.x, box.y + 12, half, '归一化 SBTn（Robertson 1990）');
-  drawRobertsonZoneChart(ctx, { x: box.x, y: box.y + 40, width: half, height: box.height - 170 }, rows, true);
+  drawRobertsonZoneChart(ctx, { x: box.x, y: box.y + 40, width: half, height: chartHeight }, rows, true);
   const pore = rows.filter((row) => row.bq !== null && row.robertsonQtn !== null);
   panelTitle(ctx, box.x + half + gap, box.y + 12, half, '归一化孔压响应');
-  if (pore.length) drawBqClassificationChart(ctx, { x: box.x + half + gap, y: box.y + 40, width: half, height: box.height - 170 }, pore, true);
-  else drawEmptyPanel(ctx, { x: box.x + half + gap, y: box.y + 40, width: half, height: box.height - 170 }, '缺少可靠 u2，本图未计算');
-  drawSbtLegendGrid(ctx, box.x, box.y + box.height - 78, box.width);
+  if (pore.length) drawBqClassificationChart(ctx, { x: box.x + half + gap, y: box.y + 40, width: half, height: chartHeight }, pore, true);
+  else drawEmptyPanel(ctx, { x: box.x + half + gap, y: box.y + 40, width: half, height: chartHeight }, '缺少可靠 u2，本图未计算');
+  drawSbtLegendGrid(ctx, box.x, legendY, box.width);
 }
 
 function drawSchneider2008Page(ctx: CanvasRenderingContext2D, box: PlotBox, rows: QuickDerived[]) {
   const valid = rows.filter((row) => row.schneider2008 && row.qtNormalized !== null && row.porePressureRatio !== null);
   const gap = 56; const half = (box.width - gap) / 2;
+  const legendCategories = ['1a', '1b', '1c', '2', '3'] as const;
   panelTitle(ctx, box.x, box.y + 12, half, '归一化孔压—锥阻证据');
   panelTitle(ctx, box.x + half + gap, box.y + 12, half, 'Schneider 2008 分类分层');
   if (!valid.length) {
@@ -820,10 +822,14 @@ function drawSchneider2008Page(ctx: CanvasRenderingContext2D, box: PlotBox, rows
     return;
   }
   const { minDepth, maxDepth } = reportDepthDomain(rows);
-  const layers = mergeCategorySamples(rollingCategorySamples(rows, (row) => row.schneider2008?.code ?? null, ['1a', '1b', '1c', '2', '3'] as const));
-  drawSchneiderChart(ctx, { x: box.x, y: box.y + 42, width: half, height: box.height - 90 }, valid, false);
-  drawCategoricalLayerTrack(ctx, { x: box.x + half + gap, y: box.y + 42, width: half, height: box.height - 145 }, layers, minDepth, maxDepth, (code) => REPORT_SCHNEIDER_COLORS[code], (code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code]}`, { depthLabels: true, directLabels: true, labelMinM: 1.2 });
-  drawMethodLegend(ctx, box.x + half + gap, box.y + box.height - 80, half, 'Schneider 2008 五类', ['1a', '1b', '1c', '2', '3'] as const, (code) => REPORT_SCHNEIDER_COLORS[code], (code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code]}`);
+  const layers = mergeCategorySamples(rollingCategorySamples(rows, (row) => row.schneider2008?.code ?? null, legendCategories));
+  const legendHeight = methodLegendHeight(ctx, half, legendCategories, (code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code]}`);
+  const legendY = box.y + box.height - legendHeight;
+  const chartY = box.y + 42;
+  const chartHeight = Math.max(180, legendY - chartY - 32);
+  drawSchneiderChart(ctx, { x: box.x, y: chartY, width: half, height: chartHeight }, valid, false);
+  drawCategoricalLayerTrack(ctx, { x: box.x + half + gap, y: chartY, width: half, height: chartHeight }, layers, minDepth, maxDepth, (code) => REPORT_SCHNEIDER_COLORS[code], (code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code]}`, { depthLabels: true, directLabels: true, labelMinM: 1.2 });
+  drawMethodLegend(ctx, box.x + half + gap, legendY, half, 'Schneider 2008 五类', legendCategories, (code) => REPORT_SCHNEIDER_COLORS[code], (code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code]}`);
 }
 
 function drawSchneiderChart(ctx: CanvasRenderingContext2D, box: PlotBox, rows: QuickDerived[], logX: boolean) {
@@ -1139,8 +1145,9 @@ function drawJtsLayerBarTrack(ctx: CanvasRenderingContext2D, box: PlotBox, layer
 
 function drawReferenceLayerPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows: QuickDerived[]) {
   const { minDepth, maxDepth } = reportDepthDomain(rows); const gap = 20; const weights = [1, 1, 1, 1.05, 1.55]; const total = weights.reduce((sum, value) => sum + value, 0); const usable = box.width - gap * 4;
+  const legendHeight = sbtLegendHeight(ctx); const legendY = box.y + box.height - legendHeight;
   const widths = weights.map((weight) => usable * weight / total); const tracks: PlotBox[] = []; let x = box.x;
-  widths.forEach((width) => { tracks.push({ x, y: box.y + 48, width, height: box.height - 138 }); x += width + gap; });
+  widths.forEach((width) => { tracks.push({ x, y: box.y + 48, width, height: legendY - (box.y + 48) - 54 }); x += width + gap; });
   const trackSpecs: Array<[string, string, string, (row: QuickDerived) => number | null, [number, number]?]> = [
     ['修正锥尖阻力 qt', 'MPa', QUICK_CURVE_COLORS.qc, (row) => row.qtKpa / 1000, [0, 45]],
     ['摩阻比 Rf', '%', QUICK_CURVE_COLORS.fs, (row) => row.rfPercent, [0, 50]],
@@ -1154,12 +1161,12 @@ function drawReferenceLayerPage(ctx: CanvasRenderingContext2D, box: PlotBox, row
   const zoneSamples = rollingZoneSamples(rows); const zoneLayers = mergeCategorySamples(zoneSamples);
   const zoneTrack = tracks[4]; panelTitle(ctx, zoneTrack.x, box.y + 18, zoneTrack.width, '归一化土体行为类型');
   drawJtsLayerBarTrack(ctx, zoneTrack, zoneLayers, zoneSamples, minDepth, maxDepth);
-  drawSbtLegendGrid(ctx, box.x, box.y + box.height - 72, box.width);
+  drawSbtLegendGrid(ctx, box.x, legendY, box.width);
   drawPageNote(ctx, box, '分类层由 1.0 m 深度窗口的最高占比 Zone 生成；相邻同类自动合并，原始曲线未修改。');
 }
 
 function drawRobertson2016DepthPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows: QuickDerived[]) {
-  const { minDepth, maxDepth } = reportDepthDomain(rows); const gap = 24; const width = (box.width - gap * 4) / 5; const y = box.y + 48; const height = box.height - 145;
+  const { minDepth, maxDepth } = reportDepthDomain(rows); const gap = 24; const width = (box.width - gap * 4) / 5; const y = box.y + 48; const legendHeight = robertson2016LegendHeight(ctx); const legendY = box.y + box.height - legendHeight; const height = legendY - y - 44;
   const panel = (index: number): PlotBox => ({ x: box.x + index * (width + gap), y, width, height });
   const tracks: Array<[string, string, string, (row: QuickDerived) => number | null, [number, number]]> = [
     ['归一化锥尖阻力 Qtn', '-', '#68768a', (row) => row.robertsonQtn, [0, 400]],
@@ -1171,46 +1178,87 @@ function drawRobertson2016DepthPage(ctx: CanvasRenderingContext2D, box: PlotBox,
   const layers = mergeCategorySamples(rollingCategorySamples(rows, (row) => row.robertson2016?.code ?? null, ['CCS', 'CC', 'CD', 'TC', 'TD', 'SC', 'SD'] as const));
   panelTitle(ctx, panel(4).x, box.y + 18, width, 'Modified Robertson 2016 七类分层');
   drawCategoricalLayerTrack(ctx, panel(4), layers, minDepth, maxDepth, (code) => REPORT_ROBERTSON_COLORS[code], (code) => `${code} · ${REPORT_ROBERTSON_LABELS[code]}`, { depthLabels: false, directLabels: true, labelMinM: 1.2 });
-  drawRobertson2016Legend(ctx, box.x, box.y + box.height - 72, box.width);
+  drawRobertson2016Legend(ctx, box.x, legendY, box.width);
 }
+
+function robertson2016LegendHeight(ctx: CanvasRenderingContext2D) { return (resolvedReportFontSize(ctx, 11, 'legend') + 9) * 2; }
 
 function drawRobertson2016Legend(ctx: CanvasRenderingContext2D, x: number, y: number, width: number) {
   const entries = Object.entries(ROBERTSON_2016_CLASSES) as Array<[Robertson2016Result['code'], { label: string; color: string }]>;
   const itemWidth = width / 4;
-  entries.forEach(([code], index) => { const left = x + (index % 4) * itemWidth; const top = y + Math.floor(index / 4) * 20; ctx.fillStyle = ROBERTSON_2016_COLORS[code]; ctx.fillRect(left, top, 12, 12); fitLeftText(ctx, `${code} · ${REPORT_ROBERTSON_LABELS[code]}`, left + 18, top + 11, itemWidth - 20, 11, '#263239', '700', 8); });
+  const fontSize = resolvedReportFontSize(ctx, 11, 'legend');
+  const rowHeight = fontSize + 9;
+  entries.forEach(([code], index) => { const left = x + (index % 4) * itemWidth; const top = y + Math.floor(index / 4) * rowHeight; ctx.fillStyle = ROBERTSON_2016_COLORS[code]; ctx.fillRect(left, top + 2, 13, 13); drawWrappedReportText(ctx, `${code} · ${REPORT_ROBERTSON_LABELS[code]}`, left + 20, top + fontSize, itemWidth - 24, 11, '#263239', '700'); });
 }
 
 const REPORT_PARAMETER_COLORS = ['#536789', '#4D9B91', '#C2A35F', '#C8733F', '#7C668A'] as const;
 const REPORT_ROBERTSON_COLORS = Object.freeze({ CCS: QUICK_REPORT_ZONE_COLORS[2], CC: QUICK_REPORT_ZONE_COLORS[3], CD: QUICK_REPORT_ZONE_COLORS[4], TC: QUICK_REPORT_ZONE_COLORS[5], TD: QUICK_REPORT_ZONE_COLORS[6], SC: QUICK_REPORT_ZONE_COLORS[7], SD: QUICK_REPORT_ZONE_COLORS[8] });
 const REPORT_SCHNEIDER_COLORS = Object.freeze({ '1a': REPORT_PARAMETER_COLORS[0], '1b': REPORT_PARAMETER_COLORS[1], '1c': REPORT_PARAMETER_COLORS[2], '2': REPORT_PARAMETER_COLORS[3], '3': REPORT_PARAMETER_COLORS[4] });
 
-function drawMethodLegend<T extends string | number>(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, title: string, categories: T[], color: (category: T) => string, label: (category: T) => string, columns = 1) {
-  fitLeftText(ctx, title, x, y, width, 11, '#26343a', '700', 9);
-  const safeColumns = Math.max(1, columns); const rowsPerColumn = Math.ceil(categories.length / safeColumns); const columnWidth = width / safeColumns;
-  categories.forEach((category, index) => { const column = Math.floor(index / rowsPerColumn); const row = index % rowsPerColumn; const left = x + column * columnWidth; const top = y + 16 + row * 15; ctx.fillStyle = color(category); ctx.fillRect(left, top, 10, 10); fitLeftText(ctx, label(category), left + 15, top + 9, columnWidth - 17, 9, '#33464e', '500', 7); });
+function methodLegendLayout<T extends string | number>(ctx: CanvasRenderingContext2D, width: number, categories: readonly T[], label: (category: T) => string, columns: number) {
+  const safeColumns = Math.max(1, columns);
+  const rowsPerColumn = Math.ceil(categories.length / safeColumns);
+  const columnWidth = width / safeColumns;
+  const fontSize = resolvedReportFontSize(ctx, 11, 'legend');
+  const entries = categories.map((category, index) => {
+    const column = Math.floor(index / rowsPerColumn);
+    const row = index % rowsPerColumn;
+    const wrapped = wrappedReportLines(ctx, label(category), columnWidth - 24, 11, '600', 'legend');
+    return { category, column, row, wrapped };
+  });
+  const rowHeights = Array.from({ length: rowsPerColumn }, (_, row) => Math.max(fontSize + 8, ...entries.filter((entry) => entry.row === row).map((entry) => entry.wrapped.lines.length * entry.wrapped.lineHeight + 6)));
+  const titleHeight = fontSize + 12;
+  return { entries, rowHeights, columnWidth, fontSize, titleHeight, height: titleHeight + rowHeights.reduce((sum, value) => sum + value, 0) };
+}
+
+function methodLegendHeight<T extends string | number>(ctx: CanvasRenderingContext2D, width: number, categories: readonly T[], label: (category: T) => string, columns = 1) {
+  return methodLegendLayout(ctx, width, categories, label, columns).height;
+}
+
+function drawMethodLegend<T extends string | number>(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, title: string, categories: readonly T[], color: (category: T) => string, label: (category: T) => string, columns = 1) {
+  const layout = methodLegendLayout(ctx, width, categories, label, columns);
+  text(ctx, title, x, y + layout.fontSize, 11, '#26343a', '700', 'left', 'legend');
+  const rowOffsets = layout.rowHeights.map((_, row) => layout.titleHeight + layout.rowHeights.slice(0, row).reduce((sum, value) => sum + value, 0));
+  layout.entries.forEach((entry) => {
+    const left = x + entry.column * layout.columnWidth;
+    const top = y + rowOffsets[entry.row];
+    ctx.fillStyle = color(entry.category);
+    ctx.fillRect(left, top + 3, 13, 13);
+    entry.wrapped.lines.forEach((line, lineIndex) => drawReportText(ctx, line, left + 20, top + layout.fontSize + lineIndex * entry.wrapped.lineHeight, entry.wrapped.size, '#33464e', '600', 'left'));
+  });
+  return layout.height;
 }
 
 function drawClassificationLayerComparisonPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows: QuickDerived[]) {
-  const { minDepth, maxDepth } = reportDepthDomain(rows); const gap = 28; const width = (box.width - gap * 4) / 5; const panelY = box.y + 50; const panelHeight = box.height - 190;
-  const panel = (index: number): PlotBox => ({ x: box.x + index * (width + gap), y: panelY, width, height: panelHeight });
+  const { minDepth, maxDepth } = reportDepthDomain(rows); const gap = 28; const width = (box.width - gap * 4) / 5; const panelY = box.y + 50;
   const jtsLayers = mergeCategorySamples(rollingZoneSamples(rows));
   const robertsonLayers = mergeCategorySamples(rollingCategorySamples(rows, (row) => row.robertson2016?.code ?? null, ['CCS', 'CC', 'CD', 'TC', 'TD', 'SC', 'SD'] as const));
   const schneiderLayers = mergeCategorySamples(rollingCategorySamples(rows, (row) => row.schneider2008?.code ?? null, ['1a', '1b', '1c', '2', '3'] as const));
+  const jtsCategories = [...new Set(jtsLayers.map((layer) => Number(layer.category)))];
+  const robertsonCategories = [...new Set(robertsonLayers.map((layer) => String(layer.category)))];
+  const schneiderCategories = [...new Set(schneiderLayers.map((layer) => String(layer.category)))];
+  const jtsName = (zone: number) => `Z${zone} · ${JTS_SOIL_CLASSES.find((soil) => soil.zone === zone)?.label ?? '未定义'}`;
+  const legendHeight = Math.max(
+    methodLegendHeight(ctx, width, jtsCategories, (zone) => jtsName(Number(zone)), 2),
+    methodLegendHeight(ctx, width, robertsonCategories, (code) => `${code} · ${REPORT_ROBERTSON_LABELS[code as keyof typeof REPORT_ROBERTSON_LABELS]}`, 2),
+    methodLegendHeight(ctx, width, schneiderCategories, (code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code as keyof typeof REPORT_SCHNEIDER_LABELS]}`),
+  );
+  const legendY = box.y + box.height - legendHeight;
+  const panelHeight = Math.max(220, legendY - panelY - 34);
+  const panel = (index: number): PlotBox => ({ x: box.x + index * (width + gap), y: panelY, width, height: panelHeight });
   panelTitle(ctx, panel(0).x, box.y + 18, width, 'JTS/T 242—2020 九区分层');
   panelTitle(ctx, panel(1).x, box.y + 18, width, 'Modified Robertson 2016 七类分层');
   panelTitle(ctx, panel(2).x, box.y + 18, width, 'Schneider 2008 五类分层');
   panelTitle(ctx, panel(3).x, box.y + 18, width, '小应变剪切模量 G0 (MPa)');
   panelTitle(ctx, panel(4).x, box.y + 18, width, '静止土压力系数 K0 (-)');
-  const jtsName = (zone: number) => `Z${zone} · ${JTS_SOIL_CLASSES.find((soil) => soil.zone === zone)?.label ?? '未定义'}`;
   drawCategoricalLayerTrack(ctx, panel(0), jtsLayers, minDepth, maxDepth, (zone) => QUICK_REPORT_ZONE_COLORS[Number(zone)], (zone) => jtsName(Number(zone)), { depthLabels: true, directLabels: true, labelMinM: 1.4 });
   drawCategoricalLayerTrack(ctx, panel(1), robertsonLayers, minDepth, maxDepth, (code) => REPORT_ROBERTSON_COLORS[code as keyof typeof REPORT_ROBERTSON_COLORS], (code) => `${code} · ${REPORT_ROBERTSON_LABELS[code as keyof typeof REPORT_ROBERTSON_LABELS]}`, { directLabels: true, labelMinM: 1.4 });
   drawCategoricalLayerTrack(ctx, panel(2), schneiderLayers, minDepth, maxDepth, (code) => REPORT_SCHNEIDER_COLORS[code as keyof typeof REPORT_SCHNEIDER_COLORS], (code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code as keyof typeof REPORT_SCHNEIDER_LABELS]}`, { directLabels: true, labelMinM: 1.4 });
   const drawParameter = (target: PlotBox, read: (row: QuickDerived) => number | null, color: string) => { drawTrackFrame(ctx, target, '', '', minDepth, maxDepth, false); const values = rows.map(read).filter((value): value is number => value !== null && Number.isFinite(value)); if (!values.length) return; const range = quickRobustDisplayRange(values); drawDepthLine(ctx, target, rows, read, range.min, range.max, minDepth, maxDepth, color); text(ctx, formatAxis(range.min), target.x, target.y + target.height + 20, 10, '#65747b'); text(ctx, formatAxis(range.max), target.x + target.width, target.y + target.height + 20, 10, '#65747b', '400', 'right'); };
   drawParameter(panel(3), (row) => row.g0Mpa, REPORT_PARAMETER_COLORS[0]); drawParameter(panel(4), (row) => row.k0, REPORT_PARAMETER_COLORS[1]);
-  const legendY = box.y + box.height - 125;
-  drawMethodLegend(ctx, panel(0).x, legendY, width, 'JTS/T 242—2020', [...new Set(jtsLayers.map((layer) => Number(layer.category)))], (zone) => QUICK_REPORT_ZONE_COLORS[Number(zone)], (zone) => jtsName(Number(zone)), 2);
-  drawMethodLegend(ctx, panel(1).x, legendY, width, 'Modified Robertson 2016', [...new Set(robertsonLayers.map((layer) => String(layer.category)))], (code) => REPORT_ROBERTSON_COLORS[code as keyof typeof REPORT_ROBERTSON_COLORS], (code) => `${code} · ${REPORT_ROBERTSON_LABELS[code as keyof typeof REPORT_ROBERTSON_LABELS]}`, 2);
-  drawMethodLegend(ctx, panel(2).x, legendY, width, 'Schneider 2008', [...new Set(schneiderLayers.map((layer) => String(layer.category)))], (code) => REPORT_SCHNEIDER_COLORS[code as keyof typeof REPORT_SCHNEIDER_COLORS], (code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code as keyof typeof REPORT_SCHNEIDER_LABELS]}`);
+  drawMethodLegend(ctx, panel(0).x, legendY, width, 'JTS/T 242—2020', jtsCategories, (zone) => QUICK_REPORT_ZONE_COLORS[Number(zone)], (zone) => jtsName(Number(zone)), 2);
+  drawMethodLegend(ctx, panel(1).x, legendY, width, 'Modified Robertson 2016', robertsonCategories, (code) => REPORT_ROBERTSON_COLORS[code as keyof typeof REPORT_ROBERTSON_COLORS], (code) => `${code} · ${REPORT_ROBERTSON_LABELS[code as keyof typeof REPORT_ROBERTSON_LABELS]}`, 2);
+  drawMethodLegend(ctx, panel(2).x, legendY, width, 'Schneider 2008', schneiderCategories, (code) => REPORT_SCHNEIDER_COLORS[code as keyof typeof REPORT_SCHNEIDER_COLORS], (code) => `${code} · ${REPORT_SCHNEIDER_LABELS[code as keyof typeof REPORT_SCHNEIDER_LABELS]}`);
 }
 
 function drawCorrectedIndexPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows: QuickDerived[]) {
@@ -1232,8 +1280,8 @@ function drawClayParameterPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows
   const plotBox = { ...box, height: box.height - 12 };
   drawDepthTracks(ctx, plotBox, rows, tracks);
   const depthValues = rows.map((row) => row.depthM); const minDepth = Math.min(...depthValues, 0); const maxDepth = Math.max(...depthValues, 1);
-  const gap = 24; const width = (plotBox.width - gap * 4) / 5; const suBox = { x: plotBox.x + 2 * (width + gap), y: plotBox.y + 48, width, height: plotBox.height - 82 };
-  const peak = rows.flatMap((row) => row.suKpa === null ? [] : [row.suKpa]); if (peak.length) { const range = quickRobustDisplayRange(peak, [0, 1]); drawDepthLine(ctx, suBox, rows, (row) => row.suRemoldedKpa, range.min, range.max, minDepth, maxDepth, '#2f6fb0'); text(ctx, '棕：峰值 · 蓝：重塑后', suBox.x + suBox.width / 2, suBox.y + 18, 12, '#33464e', '600', 'center'); }
+  const gap = 24; const width = (plotBox.width - gap * 4) / 5; const suBox = { x: plotBox.x + 2 * (width + gap), y: plotBox.y + 66, width, height: plotBox.height - 100 };
+  const peak = rows.flatMap((row) => row.suKpa === null ? [] : [row.suKpa]); if (peak.length) { const range = quickRobustDisplayRange(peak, [0, 1]); drawDepthLine(ctx, suBox, rows, (row) => row.suRemoldedKpa, range.min, range.max, minDepth, maxDepth, '#2f6fb0'); fitCenteredText(ctx, '棕：峰值 · 蓝：重塑后', suBox.x + suBox.width / 2, suBox.y - 48, suBox.width, 13, '#7b5c45', '600', 11, 'legend'); }
   drawParameterBasisNote(ctx, box, 'Su(r)=Su/St；空白=不适用/无有效值/数据断点；未补零、未跨段连线。');
 }
 
@@ -1248,12 +1296,13 @@ function drawMeasuredPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows: Qui
 
 function drawSbtAndBqPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows: QuickDerived[]) {
   const gap = 56; const half = (box.width - gap) / 2;
-  drawRobertsonZoneChart(ctx, { x: box.x, y: box.y + 34, width: half, height: box.height - 164 }, rows, false);
+  const legendHeight = sbtLegendHeight(ctx); const legendY = box.y + box.height - legendHeight; const chartHeight = legendY - (box.y + 34) - 56;
+  drawRobertsonZoneChart(ctx, { x: box.x, y: box.y + 34, width: half, height: chartHeight }, rows, false);
   const poreRows = rows.filter((row) => row.bq !== null && row.qtKpa > 0);
-  if (poreRows.length) drawBqClassificationChart(ctx, { x: box.x + half + gap, y: box.y + 34, width: half, height: box.height - 164 }, poreRows, false);
-  else drawEmptyPanel(ctx, { x: box.x + half + gap, y: box.y + 34, width: half, height: box.height - 164 }, '无 u2，本图不生成');
+  if (poreRows.length) drawBqClassificationChart(ctx, { x: box.x + half + gap, y: box.y + 34, width: half, height: chartHeight }, poreRows, false);
+  else drawEmptyPanel(ctx, { x: box.x + half + gap, y: box.y + 34, width: half, height: chartHeight }, '无 u2，本图不生成');
   panelTitle(ctx, box.x, box.y + 12, half, '土体行为类型分类图 SBT'); panelTitle(ctx, box.x + half + gap, box.y + 12, half, '孔压参数 Bq 响应参考图');
-  drawSbtLegendGrid(ctx, box.x, box.y + box.height - 78, box.width);
+  drawSbtLegendGrid(ctx, box.x, legendY, box.width);
 }
 
 function drawNormalizedDepthPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows: QuickDerived[]) {
@@ -1337,7 +1386,7 @@ function drawDepthTracks<T extends { depthM: number; plotBreakBefore?: boolean }
   const depthValues = rows.map((r) => r.depthM).filter(Number.isFinite); const minDepth = Math.min(...depthValues, 0); const maxDepth = Math.max(...depthValues, 1);
   const gap = 24; const bandWidth = soilBand ? 210 : 0; const trackWidth = (box.width - bandWidth - gap * (tracks.length - 1) - (soilBand ? gap : 0)) / tracks.length;
   tracks.forEach(([label, unit, color, getValue, display], index) => {
-    const track = { x: box.x + index * (trackWidth + gap), y: box.y + 48, width: trackWidth, height: box.height - 82 };
+    const track = { x: box.x + index * (trackWidth + gap), y: box.y + 66, width: trackWidth, height: box.height - 100 };
     drawTrackFrame(ctx, track, label, unit, minDepth, maxDepth, index === 0);
     const values = rows.map(getValue); const rawFiniteValues = values.filter((v): v is number => v !== null && Number.isFinite(v)); const logScale = display?.scale === 'log'; const finiteValues = rawFiniteValues.filter((value) => !logScale || value > 0).map((value) => logScale ? Math.log10(value) : value);
     if (!finiteValues.length) return;
@@ -1347,11 +1396,11 @@ function drawDepthTracks<T extends { depthM: number; plotBreakBefore?: boolean }
     const plotValue = logScale ? (row: T) => { const value = getValue(row); return value !== null && value > 0 ? Math.log10(value) : null; } : getValue;
     if (display?.colorByRow) drawDepthLineByRowColor(ctx, track, rows, plotValue, lo, hi, minDepth, maxDepth, display.colorByRow);
     else drawDepthLine(ctx, track, rows, plotValue, lo, hi, minDepth, maxDepth, color);
-    if (range.outsideCount) text(ctx, `${range.outsideCount} 个超范围点已标在边缘`, track.x + track.width - 2, track.y - 34, 12, '#7b5c45', '600', 'right');
+    if (range.outsideCount) fitCenteredText(ctx, `${range.outsideCount} 个超范围点已标在边缘`, track.x + track.width / 2, track.y - 48, track.width, 13, '#7b5c45', '600', 11, 'legend');
     text(ctx, formatAxis(logScale ? 10 ** lo : lo), track.x + 4, track.y + track.height + 24, 13, '#65747b'); text(ctx, formatAxis(logScale ? 10 ** hi : hi), track.x + track.width - 4, track.y + track.height + 24, 13, '#65747b', '400', 'right');
   });
   if (soilBand) {
-    const x = box.x + tracks.length * (trackWidth + gap); const track = { x, y: box.y + 48, width: bandWidth, height: box.height - 82 };
+    const x = box.x + tracks.length * (trackWidth + gap); const track = { x, y: box.y + 66, width: bandWidth, height: box.height - 100 };
     drawTrackFrame(ctx, track, '', '', minDepth, maxDepth, false); drawSoilDepthBand(ctx, track, rows as unknown as QuickDerived[], minDepth, maxDepth, soilBand);
   }
 }
@@ -1495,8 +1544,18 @@ function quantile(ordered: number[], fraction: number) {
 
 function drawSbtLegendGrid(ctx: CanvasRenderingContext2D, x: number, y: number, width: number) {
   const columnWidth = width / 3;
-  JTS_SOIL_CLASSES.forEach((soil, index) => { const left=x+(index%3)*columnWidth,top=y+Math.floor(index/3)*22;ctx.fillStyle=QUICK_REPORT_ZONE_COLORS[soil.zone];ctx.fillRect(left,top,13,13);fitLeftText(ctx,`${soil.zone}. ${soil.label}`,left+19,top+12,columnWidth-23,11,'#263239','600',9); });
+  const fontSize = resolvedReportFontSize(ctx, 11, 'legend');
+  const rowHeight = fontSize + 9;
+  JTS_SOIL_CLASSES.forEach((soil, index) => {
+    const left = x + (index % 3) * columnWidth;
+    const top = y + Math.floor(index / 3) * rowHeight;
+    ctx.fillStyle = QUICK_REPORT_ZONE_COLORS[soil.zone];
+    ctx.fillRect(left, top + 2, 13, 13);
+    drawWrappedReportText(ctx, `${soil.zone}. ${soil.label}`, left + 20, top + fontSize, columnWidth - 24, 11, '#263239', '600');
+  });
 }
+
+function sbtLegendHeight(ctx: CanvasRenderingContext2D) { return (resolvedReportFontSize(ctx, 11, 'legend') + 9) * 3; }
 
 function drawEmptyPanel(ctx: CanvasRenderingContext2D, box: PlotBox, message: string) { ctx.fillStyle = '#f1f4f5'; ctx.fillRect(box.x, box.y, box.width, box.height); reportFrame(ctx, box); text(ctx, message, box.x + box.width / 2, box.y + box.height / 2, 22, '#65747b', '600', 'center'); }
 function drawSoilLegendHorizontal(ctx: CanvasRenderingContext2D, x: number, y: number) { ([['砂土', 'sand'], ['粉土', 'silt'], ['黏土', 'clay']] as const).forEach(([label, major], i) => { const left = x + i * 112; ctx.fillStyle = majorColor(major); ctx.fillRect(left, y, 18, 18); text(ctx, label, left + 27, y + 15, 15, '#33484f', '600'); }); }
@@ -1506,7 +1565,7 @@ function depthColor(depth: number, rows: QuickPlotRowV1[]) { const values = rows
 function formatAxis(value: number) { const abs = Math.abs(value); return abs >= 1000 ? `${(value / 1000).toFixed(1)}k` : abs > 0 && abs < .01 ? value.toExponential(1) : value.toFixed(abs < 10 ? 2 : 0); }
 export const QUICK_REPORT_FONT_PT_FLOORS = Object.freeze({
   source: 8,
-  legend: 9,
+  legend: 11,
   body: 10,
   title: 12,
 });
@@ -1566,6 +1625,31 @@ function fitLeftText(ctx: CanvasRenderingContext2D, value: string, x: number, y:
   const floor = resolvedReportFontSize(ctx, minimumSize, role);
   while (size > floor) { setReportFont(ctx, weight, size); if (ctx.measureText(value).width <= maxWidth) break; size -= 1; }
   drawReportText(ctx, value, x, y, size, color, weight, 'left');
+}
+function wrappedReportLines(ctx: CanvasRenderingContext2D, value: string, maxWidth: number, size: number, weight = '500', role: QuickReportTextRole = 'legend') {
+  const resolvedSize = resolvedReportFontSize(ctx, size, role);
+  setReportFont(ctx, weight, resolvedSize);
+  const tokens = value.match(/[\u3400-\u9fff]|[^\u3400-\u9fff\s]+|\s+/g) ?? [value];
+  const lines: string[] = [];
+  let line = '';
+  const pushLine = () => { const trimmed = line.trim(); if (trimmed) lines.push(trimmed); line = ''; };
+  tokens.forEach((token) => {
+    const next = `${line}${token}`;
+    if (!line || ctx.measureText(next.trim()).width <= maxWidth) { line = next; return; }
+    pushLine();
+    if (ctx.measureText(token.trim()).width <= maxWidth) { line = token.trimStart(); return; }
+    [...token.trim()].forEach((character) => {
+      if (line && ctx.measureText(`${line}${character}`).width > maxWidth) pushLine();
+      line += character;
+    });
+  });
+  pushLine();
+  return { lines: lines.length ? lines : [''], size: resolvedSize, lineHeight: resolvedSize + 4 };
+}
+function drawWrappedReportText(ctx: CanvasRenderingContext2D, value: string, x: number, y: number, maxWidth: number, size: number, color: string, weight = '500', role: QuickReportTextRole = 'legend') {
+  const wrapped = wrappedReportLines(ctx, value, maxWidth, size, weight, role);
+  wrapped.lines.forEach((line, index) => drawReportText(ctx, line, x, y + index * wrapped.lineHeight, wrapped.size, color, weight, 'left'));
+  return wrapped;
 }
 function drawPageNote(ctx: CanvasRenderingContext2D, box: PlotBox, value: string) { fitCenteredText(ctx, value, box.x + box.width / 2, box.y + box.height + 18, box.width, 13, '#596b72', '500', 11); }
 function drawParameterBasisNote(ctx: CanvasRenderingContext2D, box: PlotBox, emptyValue: string) {

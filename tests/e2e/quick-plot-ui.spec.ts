@@ -292,7 +292,7 @@ test('PROCESS117 quick route accepts CPT without u2 and explains unavailable CPT
   await expect(page.getByTestId('quick-page-stage').locator('img')).toHaveAttribute('alt', /Schneider 2008/);
 });
 
-test('PROCESS147 all atlas pages keep readable A3 typography at true 80% page zoom', async ({ page }) => {
+test('PROCESS160 all atlas pages keep readable A3 typography at true 80% page zoom', async ({ page }) => {
   const browserErrors: string[] = [];
   page.on('pageerror', (error) => browserErrors.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(message.text()); });
@@ -312,8 +312,8 @@ test('PROCESS147 all atlas pages keep readable A3 typography at true 80% page zo
   });
   expect(reportTop.headerTop).toBeGreaterThanOrEqual(reportTop.topbarBottom);
   await expect(page.getByLabel('图册页面').locator('button')).toHaveCount(15);
-  const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process147-atlas-rollback');
-  if (process.env.PROCESS147_EVIDENCE === '1') mkdirSync(evidenceDirectory, { recursive: true });
+  const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process160-report-layout');
+  if (process.env.PROCESS160_EVIDENCE === '1') mkdirSync(evidenceDirectory, { recursive: true });
   const pages: Array<{ index: number; width: number; height: number; alt: string }> = [];
   for (let index = 1; index <= 15; index += 1) {
     await page.getByTestId(`quick-page-${index}`).click();
@@ -322,7 +322,7 @@ test('PROCESS147 all atlas pages keep readable A3 typography at true 80% page zo
     const info = await image.evaluate((node: HTMLImageElement) => ({ width: node.naturalWidth, height: node.naturalHeight, alt: node.alt, src: node.src }));
     pages.push({ index, width: info.width, height: info.height, alt: info.alt });
     expect([[1080, 1528], [1920, 1080]]).toContainEqual([info.width, info.height]);
-    if (process.env.PROCESS147_EVIDENCE === '1') writeFileSync(path.join(evidenceDirectory, `atlas-page-${String(index).padStart(2, '0')}.jpg`), Buffer.from(info.src.split(',')[1], 'base64'));
+    if (process.env.PROCESS160_EVIDENCE === '1') writeFileSync(path.join(evidenceDirectory, `atlas-page-${String(index).padStart(2, '0')}.jpg`), Buffer.from(info.src.split(',')[1], 'base64'));
   }
   for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
     await page.setViewportSize(viewport);
@@ -337,11 +337,49 @@ test('PROCESS147 all atlas pages keep readable A3 typography at true 80% page zo
     expect(layout.imageWidth).toBeCloseTo(1536, 0);
     expect(layout.stageScrollWidth).toBeGreaterThan(layout.stageClientWidth);
     expect(layout.zoomActive).toBe(true);
-    if (process.env.PROCESS147_EVIDENCE === '1') await page.screenshot({ path: path.join(evidenceDirectory, `atlas-80-percent-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
+    if (process.env.PROCESS160_EVIDENCE === '1') await page.screenshot({ path: path.join(evidenceDirectory, `atlas-80-percent-${viewport.width}x${viewport.height}.png`), animations: 'disabled' });
   }
   expect(pages).toHaveLength(15);
   expect(browserErrors).toEqual([]);
-  if (process.env.PROCESS147_EVIDENCE === '1') writeFileSync(path.join(evidenceDirectory, 'atlas-browser-check.json'), JSON.stringify({ process: 147, pages, physicalPointFloors: { source: 8, legend: 9, body: 10, title: 12 }, zoom: '80%', browserErrors }, null, 2));
+  if (process.env.PROCESS160_EVIDENCE === '1') writeFileSync(path.join(evidenceDirectory, 'atlas-browser-check.json'), JSON.stringify({ process: 160, pages, physicalPointFloors: { source: 8, legend: 11, body: 10, title: 12 }, zoom: '80%', browserErrors }, null, 2));
+});
+
+test('PROCESS160 dense extreme atlas keeps notices above titles and key legends outside plots', async ({ page }) => {
+  test.setTimeout(90_000);
+  const browserErrors: string[] = [];
+  page.on('pageerror', (error) => browserErrors.push(error.message));
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(message.text()); });
+  await page.getByTestId('new-project-name').fill('高密度极值排版验收');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  const rows = ['深度\tqc\tfs\tu2'];
+  for (let index = 0; index <= 400; index += 1) {
+    const depth = index / 10;
+    const qc = index % 37 === 0 ? 85 + index / 20 : 8 + Math.sin(index / 17) * 4 + depth * .35;
+    const fs = index % 41 === 0 ? 2400 : 35 + Math.cos(index / 13) * 18 + depth * 4;
+    const u2 = index % 43 === 0 ? 5200 : 80 + Math.sin(index / 11) * 120 + depth * 22;
+    rows.push(`${depth.toFixed(2)}\t${qc.toFixed(3)}\t${fs.toFixed(3)}\t${u2.toFixed(3)}`);
+  }
+  await pasteGrid(page, rows.join('\n'));
+  await page.getByTestId('quick-water-depth').fill('8');
+  await page.getByTestId('quick-pressure-basis-confirm').check();
+  await page.getByTestId('quick-input-workspace').evaluate((node) => { node.scrollTop = node.scrollHeight; });
+  await expect(page.getByTestId('quick-generate-report')).toBeEnabled();
+  await page.getByTestId('quick-generate-report').click();
+  await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
+  const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process160-report-layout');
+  if (process.env.PROCESS160_EVIDENCE === '1') mkdirSync(evidenceDirectory, { recursive: true });
+  const keyPages: Array<{ index: number; width: number; height: number; alt: string }> = [];
+  for (const index of [7, 8, 9]) {
+    await page.getByTestId(`quick-page-${index}`).click();
+    const image = page.getByTestId('quick-page-stage').locator('img');
+    const info = await image.evaluate((node: HTMLImageElement) => ({ width: node.naturalWidth, height: node.naturalHeight, alt: node.alt, src: node.src }));
+    keyPages.push({ index, width: info.width, height: info.height, alt: info.alt });
+    if (process.env.PROCESS160_EVIDENCE === '1') writeFileSync(path.join(evidenceDirectory, `dense-extreme-page-${String(index).padStart(2, '0')}.jpg`), Buffer.from(info.src.split(',')[1], 'base64'));
+  }
+  expect(keyPages).toHaveLength(3);
+  expect(browserErrors).toEqual([]);
+  if (process.env.PROCESS160_EVIDENCE === '1') writeFileSync(path.join(evidenceDirectory, 'dense-extreme-check.json'), JSON.stringify({ process: 160, rows: 401, keyPages, browserErrors }, null, 2));
 });
 
 test('PROCESS120 uncertain pore pressure can stay raw-only without stopping the atlas', async ({ page }) => {
