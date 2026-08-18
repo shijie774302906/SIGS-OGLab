@@ -1,0 +1,20 @@
+{
+  "siteLabel": "international",
+  "process": "Process158",
+  "commit": "60e6fa135f8ae038de5ba0d66272ce5e22dc87b3",
+  "protocols": [
+    "sigs.assistant/1",
+    "sigs.ai-import/2"
+  ],
+  "optionalFsBlankPreserved": true,
+  "reportGenerated": true,
+  "excelDownloaded": true,
+  "layout": {
+    "overflowX": 0,
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    }
+  },
+  "browserErrors": []
+}

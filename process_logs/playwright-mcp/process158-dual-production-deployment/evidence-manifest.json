@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "processId": "Process158",
+  "generatedAt": "2026-08-18T04:48:24.808Z",
+  "finalClosure": true,
+  "evidenceDirectory": "process_logs/playwright-mcp/process158-dual-production-deployment",
+  "context": {
+    "path": "process_logs/Process158.md",
+    "size": 3233,
+    "sha256": "93b16a0ed0d10bc9fc7d58ea21e2961cbea1e7059ccbd772ce618d3694407dc5"
+  },
+  "inputs": {
+    "files": [
+      {
+        "path": "docs/process/release-index.json",
+        "size": 1517,
+        "sha256": "28bfda730f9cd2cad41d7a7bd376010440a47742b6f6e019dc60c42274f78f1a"
+      },
+      {
+        "path": "process_logs/knowledge-reviews/Process158.json",
+        "size": 6016,
+        "sha256": "98d944a8367ce9b3a356b7e2a0c5c22055607bc372921f85b202d22b11e59013"
+      },
+      {
+        "path": "scripts/cloudbase-preflight.mjs",
+        "size": 4904,
+        "sha256": "4254f8362cd8d47ce90c7a8f31618755bd6877cb5e6542a5b16c00bd8a47546a"
+      },
+      {
+        "path": "scripts/release-manifest.mjs",
+        "size": 1732,
+        "sha256": "00cec700f8597ff4d4d50e8f397c8667f7a33f3652483c081db6574cea6a5747"
+      },
+      {
+        "path": "scripts/release-parity.mjs",
+        "size": 4813,
+        "sha256": "5690e2293ab0e57eb16a83ca87d8234adaed8b6df4d76a11912fd187a3a83a3a"
+      },
+      {
+        "path": "tests/e2e/process158-production-smoke.spec.ts",
+        "size": 4979,
+        "sha256": "d9eaaa368ad176f2f4b7186de090c8ebd3bc48b0d7cceabc5182eec58d52f42b"
+      }
+    ],
+    "aggregateSha256": "07624dc12e027c2d4262f5a3c4e92c6fad1d58852547b4ffc24ca27e14bf2c24"
+  },
+  "artifacts": {
+    "files": [
+      {
+        "path": "process_logs/playwright-mcp/process158-dual-production-deployment/browser-check.json",
+        "size": 808,
+        "sha256": "063201e05f731a91b5c9d3187e50cef9b0d805a9d6afa6910ed949f6424bb22e"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process158-dual-production-deployment/international-1440x900.json",
+        "size": 403,
+        "sha256": "111a08f557bc8454ff43e434edce4078e5c3a262f44e6cf1db7d73cdb1288392"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process158-dual-production-deployment/international-1440x900.png",
+        "size": 156077,
+        "sha256": "4e25bfd7d8d56685aefe6c680b821e55431debcc5a89b41640e365315852912c"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process158-dual-production-deployment/international-1920x1080.json",
+        "size": 404,
+        "sha256": "a96961cd781732b304e5913e3d338011636b5536e711b3e3b07f4a053ff7abd4"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process158-dual-production-deployment/international-1920x1080.png",
+        "size": 212424,
+        "sha256": "4279cd54f30da60eda31f476f92968080fed44f97d639ca838e27bd6c9498103"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process158-dual-production-deployment/mainland-1440x900.json",
+        "size": 398,
+        "sha256": "c876aa29c12a42fd3dc4e8e78aeb05e5db7e1ff52ecd12e9e8f0f371c9fb1a49"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process158-dual-production-deployment/mainland-1440x900.png",
+        "size": 155263,
+        "sha256": "f6b913bf652e4f47877dede6145716ff974e7ae1a1feb6c123f88e1a02d90f1d"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process158-dual-production-deployment/mainland-1920x1080.json",
+        "size": 399,
+        "sha256": "19f9da46426b4b27ccb6bc02135b361c05fc084cee93db71263f65949d06be69"
+      },
+      {
+        "path": "process_logs/playwright-mcp/process158-dual-production-deployment/mainland-1920x1080.png",
+        "size": 211363,
+        "sha256": "184b34e4b07f88c8a61176a2194f889bc168887e1b3a6d568ac0284b739b8da2"
+      }
+    ],
+    "aggregateSha256": "9ab7306407ef2faee8ac475bf9f61ed8de0f1c2ea4342b162e38f162121b5c5a"
+  },
+  "verificationRuns": [
+    {
+      "command": "npm.cmd run build:release",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run release:parity",
+      "exitCode": 0
+    },
+    {
+      "command": "npm.cmd run cloudbase:preflight",
+      "exitCode": 0
+    },
+    {
+      "command": "Process158 dual-site online Playwright 4/4",
+      "exitCode": 0
+    }
+  ],
+  "seedOrSource": [
+    "3-row public synthetic CPT input; no private data"
+  ],
+  "environment": {
+    "nodeVersion": "v24.18.0",
+    "platform": "win32-x64",
+    "playwrightVersion": "1.61.1",
+    "browser": {
+      "engine": "chromium",
+      "revision": "1228",
+      "browserVersion": "149.0.7827.55"
+    }
+  }
+}

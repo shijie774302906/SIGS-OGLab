@@ -697,6 +697,14 @@
       "status": "closed",
       "record": "process_logs/Process157.md",
       "problems": ["KPB-001", "KPB-002", "KPB-004", "KPB-008", "KPB-009", "KPB-012", "KPB-013", "KPB-023"]
+    },
+    {
+      "id": "Process158",
+      "date": "2026-08-18",
+      "title": "双正式站安全发布与线上验收",
+      "status": "closed",
+      "record": "process_logs/Process158.md",
+      "problems": ["KPB-011", "KPB-012", "KPB-037"]
     }
   ]
 }

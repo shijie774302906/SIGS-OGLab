@@ -164,7 +164,7 @@
       "root_causes": ["问题责任没有绑定到产生该数据的页面。", "跨页恢复没有保存用户原始意图。"],
       "prevention": ["数据问题由数据检查页治理，工程判断留在当前解释页面。", "跳转前保存意图，复检成功后自动回到准确步骤。"],
       "required_checks": ["覆盖返回责任页、取消修复、修复失败、复检和自动续接。", "断言原始测量不被静默改写。"],
-      "related_updates": ["Process071", "Process072", "Process074", "Process075", "Process082", "Process086", "Process087", "Process090", "Process091", "Process092", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process113", "Process114", "Process116", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process133", "Process134", "Process135", "Process136", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process150", "Process154", "Process155"],
+      "related_updates": ["Process071", "Process072", "Process074", "Process075", "Process082", "Process086", "Process087", "Process090", "Process091", "Process092", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process113", "Process114", "Process116", "Process120", "Process121", "Process122", "Process123", "Process124", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process133", "Process134", "Process135", "Process136", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process150", "Process154", "Process155", "Process158"],
       "related_tests": ["tests/e2e/jts-classification-recovery-ui.spec.ts", "tests/e2e/preparation-guided-flow.spec.ts"]
     },
     {
@@ -179,7 +179,7 @@
       "root_causes": ["测试使用预生成夹具绕过首次运行。", "断言没有覆盖用户真正看到和判断的证据。"],
       "prevention": ["验收从真实用户动作开始，并断言可见工程对象。", "UI、领域语义、数据权威和性能分别给出证据。"],
       "required_checks": ["至少包含一个失败恢复和一个真实规模流程。", "截图检查标签、单位、选中态、禁用态、溢出和错误日志。"],
-      "related_updates": ["Process070", "Process080", "Process081", "Process084", "Process086", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process105", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process125", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process146", "Process147", "Process148", "Process151", "Process153", "Process154", "Process155", "Process157"],
+      "related_updates": ["Process070", "Process080", "Process081", "Process084", "Process086", "Process087", "Process088", "Process090", "Process091", "Process092", "Process093", "Process094", "Process095", "Process099", "Process100", "Process101", "Process102", "Process103", "Process104", "Process105", "Process106", "Process107", "Process108", "Process109", "Process110", "Process111", "Process112", "Process113", "Process114", "Process115", "Process116", "Process117", "Process118", "Process119", "Process120", "Process121", "Process122", "Process123", "Process124", "Process125", "Process126", "Process127", "Process128", "Process129", "Process130", "Process131", "Process132", "Process133", "Process134", "Process135", "Process136", "Process137", "Process138", "Process139", "Process140", "Process141", "Process142", "Process143", "Process146", "Process147", "Process148", "Process151", "Process153", "Process154", "Process155", "Process157", "Process158"],
       "related_tests": ["tests/e2e/preparation-guided-flow.spec.ts", "tests/e2e/check-profile-curves-ui.spec.ts", "tests/e2e/import-pipeline.spec.ts"]
     },
     {
@@ -554,7 +554,7 @@
       "root_causes": ["发布检查只按原始文件扩展名或固定目录排除，没有检查派生数据和最终构建包。", "测试和运行时 fixture 直接依赖私有工程结果，导致删除原始文件后仍无法移除派生内容。"],
       "prevention": ["运行时和公开测试只使用从零生成的通用合成数据或已明确授权的公开案例。", "发布审计同时检查受控路径、私有名称模式和最终 dist 资源；私有派生 fixture 与专属测试不得进入发布候选。", "Git 历史扫描与当前发布树扫描分开记录；需要重写历史时必须单独确认。"],
       "required_checks": ["扫描 git ls-files，确认没有私有原始文件、派生 fixture、专属测试、密钥和临时页面。", "构建后扫描 dist，确认项目名、点位名、私有样本名和密钥模式均不存在。", "用合成数据完成 build、领域测试、隔离 UI 测试和真实规模串行测试，证明替换不会破坏工作流。", "记录 origin/main 历史扫描结果；若历史仍含派生文件，在公开仓库前单独决定是否重写历史。"],
-      "related_updates": ["Process153", "Process154", "Process155"],
+      "related_updates": ["Process153", "Process154", "Process155", "Process158"],
       "related_tests": ["scripts/release-readiness.test.mjs", "tests/e2e/release-compatibility.spec.ts", "tests/e2e/project-persistence.spec.ts"]
     },
     {

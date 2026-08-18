@@ -6,9 +6,10 @@ Detailed closure records live in `process_logs/ProcessNNN.md`. The complete form
 
 ## Current - Process158 双正式站安全发布
 - Date: 2026-08-18
-- Status: `active / confirmed`
-- Goal: 将 Process157 的快捷 AI 导入 v2 与分项解译安全发布到国际站和国内站，并完成线上版本、接口和双分辨率验收。
-- Active plan: `plan.md`
+- Status: `closed / verified / deployed`
+- Result: Process156/157 已由同一发布提交部署到国际站与国内站；国内 API 经灰度验证后切换到 v2，两个站点均完成快捷部分解译与 Excel 下载线上验收。
+- Verification: release audit、build、release parity、CloudBase preflight、API v2、访问统计和双站双分辨率 Playwright 4/4 passed；无横向溢出和浏览器错误。
+- Detail: `process_logs/Process158.md`
 
 ## Recent - Process157 快捷 AI 导入 v2 与分项解译
 - Date: 2026-08-18

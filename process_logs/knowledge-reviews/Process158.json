@@ -1,0 +1,207 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-18T04:46:40.646Z",
+  "context_files": [
+    "process_logs/Process158.md"
+  ],
+  "context_hash": "8c727d1bf40e0b924c3e23381baa645ae50d334fcc078a51ad45a3c84a1a0963",
+  "library_hash": "8d81ccf46c45885920cb0f710cf50e3fa3affe6ae5df9762e4ebdf38b6ac24e6",
+  "status": "reviewed",
+  "matches": [
+    {
+      "problem_id": "KPB-011",
+      "title": "问题没有回到责任页面处理并续接原任务",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "恢复",
+          "继续"
+        ]
+      ],
+      "related_updates": [
+        "Process071",
+        "Process072",
+        "Process074",
+        "Process075",
+        "Process082",
+        "Process086",
+        "Process087",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process113",
+        "Process114",
+        "Process116",
+        "Process120",
+        "Process121",
+        "Process122",
+        "Process123",
+        "Process124",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process130",
+        "Process131",
+        "Process133",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process138",
+        "Process139",
+        "Process140",
+        "Process141",
+        "Process142",
+        "Process143",
+        "Process150",
+        "Process154",
+        "Process155",
+        "Process158"
+      ],
+      "required_checks": [
+        "覆盖返回责任页、取消修复、修复失败、复检和自动续接。",
+        "断言原始测量不被静默改写。"
+      ],
+      "disposition": "not-applicable",
+      "note": "本切片只发布已经由 Process157 验证的版本，没有改变用户问题修复或跨页续接逻辑；部署恢复由 CloudBase 保留旧版本与 Vercel 回滚能力承担。",
+      "evidence": [
+        "process_logs/Process158.md#回滚与安全"
+      ]
+    },
+    {
+      "problem_id": "KPB-012",
+      "title": "验收只证明状态存在，没有证明工程语义正确",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "验收",
+          "真实"
+        ]
+      ],
+      "related_updates": [
+        "Process070",
+        "Process080",
+        "Process081",
+        "Process084",
+        "Process086",
+        "Process087",
+        "Process088",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process094",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process105",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process114",
+        "Process115",
+        "Process116",
+        "Process117",
+        "Process118",
+        "Process119",
+        "Process120",
+        "Process121",
+        "Process122",
+        "Process123",
+        "Process124",
+        "Process125",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process130",
+        "Process131",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process137",
+        "Process138",
+        "Process139",
+        "Process140",
+        "Process141",
+        "Process142",
+        "Process143",
+        "Process146",
+        "Process147",
+        "Process148",
+        "Process151",
+        "Process153",
+        "Process154",
+        "Process155",
+        "Process157",
+        "Process158"
+      ],
+      "required_checks": [
+        "至少包含一个失败恢复和一个真实规模流程。",
+        "截图检查标签、单位、选中态、禁用态、溢出和错误日志。"
+      ],
+      "disposition": "covered",
+      "note": "国际站和国内站分别在 1440×900、1920×1080 完成真实浏览器流程，验证粘贴、缺失 fs 保留、图册生成、Excel 下载、无横向溢出与无浏览器错误。",
+      "evidence": [
+        "process_logs/playwright-mcp/process158-dual-production-deployment/browser-check.json",
+        "tests/e2e/process158-production-smoke.spec.ts"
+      ]
+    },
+    {
+      "problem_id": "KPB-037",
+      "title": "只排除私有原始文件但派生样例仍进入前端发布包",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "发布",
+          "营口"
+        ]
+      ],
+      "related_updates": [
+        "Process153",
+        "Process154",
+        "Process155",
+        "Process158"
+      ],
+      "required_checks": [
+        "扫描 git ls-files，确认没有私有原始文件、派生 fixture、专属测试、密钥和临时页面。",
+        "构建后扫描 dist，确认项目名、点位名、私有样本名和密钥模式均不存在。",
+        "用合成数据完成 build、领域测试、隔离 UI 测试和真实规模串行测试，证明替换不会破坏工作流。",
+        "记录 origin/main 历史扫描结果；若历史仍含派生文件，在公开仓库前单独决定是否重写历史。"
+      ],
+      "disposition": "covered",
+      "note": "发布前执行 release audit 与 CloudBase preflight，排除私有工程数据、密钥、环境文件、Agent Lab 和临时页面；线上验收只使用三行公开合成数据。",
+      "evidence": [
+        "process_logs/Process158.md#边界",
+        "process_logs/playwright-mcp/process158-dual-production-deployment/browser-check.json"
+      ]
+    }
+  ]
+}
