@@ -6,10 +6,11 @@ Detailed closure records live in `process_logs/ProcessNNN.md`. The complete form
 
 ## Current - Process161 双站图册可读性发布
 - Date: 2026-08-18
-- Status: `confirmed / in progress`
-- Goal: 将 Process159/160 以同一构建发布到国际站与国内站，并完成双站双分辨率线上验收。
-- Scope: 发布门禁、双站部署、版本一致性、快捷/专业图册线上可读性；不含独立 AI 实验室、私有数据、密钥或工程算法变更。
-- Detail: `plan.md`
+- Status: `closed / verified / deployed`
+- Result: Process159/160 已由同一构建发布到国际站与国内站；两站 manifest 一致，双站双分辨率线上流程 4/4 通过。
+- Verification: build、release audit、release parity 16/16、CloudBase 16/16、assistant 45/45、线上 4/4、无溢出和浏览器错误；国际站跨境超时重试恢复通过。
+- Deployment: `b630d7fc812439d6c24f01fd6dfc6232e01f4c76` / `sigs-oglab.com` / `sigs-oglabx.com`
+- Detail: `process_logs/Process161.md`
 
 ## Recent - Process160 图册图例与版面可读性
 - Date: 2026-08-18
