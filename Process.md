@@ -4,7 +4,14 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process160 图册图例与版面可读性
+## Current - Process161 双站图册可读性发布
+- Date: 2026-08-18
+- Status: `confirmed / in progress`
+- Goal: 将 Process159/160 以同一构建发布到国际站与国内站，并完成双站双分辨率线上验收。
+- Scope: 发布门禁、双站部署、版本一致性、快捷/专业图册线上可读性；不含独立 AI 实验室、私有数据、密钥或工程算法变更。
+- Detail: `plan.md`
+
+## Recent - Process160 图册图例与版面可读性
 - Date: 2026-08-18
 - Status: `closed / implemented / verified / local only`
 - Result: 快速与专业图册统一采用 11 pt 图例下限、完整换行和稳定留白；长层名表格动态增高，逐页视觉审阅与独立 Agent 复核均无 P0/P1/P2。

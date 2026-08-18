@@ -67,7 +67,7 @@ check('无禁止发布文件', forbiddenTracked.length === 0, forbiddenTracked.j
 const distManifestPath = resolve(root, 'dist/release-manifest.json');
 if (existsSync(distManifestPath)) {
   const manifest = JSON.parse(readFileSync(distManifestPath, 'utf8'));
-  check('构建清单 Process', manifest.process === 'Process158', `process=${manifest.process}`);
+  check('构建清单 Process', manifest.process === 'Process161', `process=${manifest.process}`);
   check('构建清单域名', manifest.canonicalSite === 'https://sigs-oglabx.com', `site=${manifest.canonicalSite}`);
   check('构建清单排除实验室', manifest.capabilities?.standaloneAgentLab === false, `standaloneAgentLab=${manifest.capabilities?.standaloneAgentLab}`);
   check('构建内含手册', existsSync(resolve(root, 'dist/help/index.html')), 'dist/help/index.html');

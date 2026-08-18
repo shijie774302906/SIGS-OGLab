@@ -22,7 +22,7 @@ const helpMetadata = existsSync(helpMetadataPath)
 
 const manifest = {
   schemaVersion: 1,
-  process: 'Process158',
+  process: 'Process161',
   product: 'SIGS-OGLab',
   canonicalSite: 'https://sigs-oglabx.com',
   source: {
