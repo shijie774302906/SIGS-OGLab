@@ -1,11 +1,40 @@
-# Active Plan
+# Active Plan - Process158
 
-Status: `no active slice`
+Status: `active / confirmed`
 
-Last closed: `Process157`
+Theme: `Process157 双正式站安全发布与线上验收`
 
-Archive: `process_logs/Process157.md`
+## Confirmation Card
 
-Process157 已完成快捷 AI 导入协议 v2、共同/独立深度映射、最多 6 轮固定选择、可编辑数据表、分项解译、直接 qt 语义、统一图册/Excel 结果包，以及真实工作簿只读、5000 行、双分辨率和知识门禁验证。
+- 功能定义：把已经关闭并验证的 Process157 发布到国际站 `sigs-oglab.com` 和国内站 `sigs-oglabx.com`，重点验证快捷 AI 导入 v2、最多 6 轮固定选择、可编辑表格、部分解译与 Excel 同源输出。
+- 页面设计：不新增页面或改版；只发布当前已验证界面。国际站由 Vercel 承载，国内站由 CloudBase 静态托管承载；两个站点使用相同前端构建。
+- 数据与接口：只发布仓库允许的源码、静态构建和既有服务端；私有工作簿、API 密钥、`.env`、AI 实验室、临时领导页和本机测试产物不得进入提交或构建包。国内站继续使用同源 `/api`，国际站继续使用 Vercel API。
+- 验收方式：发布前完成 release audit、build、核心回归、release parity 与 CloudBase preflight；发布后分别检查两个域名的首页、快捷输入、AI 能力接口、访问统计、部分解译、Excel 导出、控制台错误、横向溢出和版本标识。
+- 不做什么：不修改工程公式、数据格式、数据库结构、域名/DNS、SSL、配额或生产密钥；不发布独立 AI 实验室和任何私有数据。
 
-下一轮工作开始前，应创建新的 Process 并重新填写确认卡、覆盖门禁与验收方式。
+## Feature Coverage Gate
+
+| 用户动作 | 对象生命周期 | 可能事件 | 状态变化 | 页面/服务承接 | 验收证据 |
+| --- | --- | --- | --- | --- | --- |
+| 打开两个正式站 | 发布版本创建与切换 | 正常、旧缓存、构建失败、域名不可达 | 旧版本保持或新版本生效 | Vercel、CloudBase 静态托管 | 域名截图、构建标识、HTTP 状态 |
+| 上传并让 AI 整理 | 文件只读识别会话 | 成功、超时、失败、重试、取消 | 等待、可恢复失败、提案 | 快捷输入与 AI 右栏 | 线上交互、能力接口、错误日志 |
+| 编辑并生成图册 | 本地输入与结果包 | 必填无效、可选缺失、修复、重复生成 | 禁用、恢复、部分解译、完成 | 快捷表格与图册 | 代表值、状态、无溢出 |
+| 导出 Excel | 统一结果包消费 | 完整、部分解译、下载失败 | 生成或保留当前结果 | 图册工具栏 | Sheet2 字段、未计算原因 |
+| 发布失败 | 托管版本回退 | Vercel/CloudBase 任一失败 | 保持旧生产版本，不切换失败版本 | 托管控制台与 CLI | 部署日志、线上旧版仍可用 |
+
+## Acceptance Contract
+
+- 两个站点必须来自同一提交和同一前端构建语义；发布索引记录准确提交与部署结果。
+- 正式构建不得包含私有工作簿、密钥、`.env`、`/agent-lab`、Process149 或本机临时产物。
+- 国内站 `/healthz`、`/api/assistant/capabilities`、`/api/visits` 可访问；国际站对应能力接口可访问。
+- 快捷输入能编辑单元格；深度/qc 无效会禁用，fs/u2 缺失仍可生成；AI 问询上限为 6。
+- 1440×900 与 1920×1080 无横向溢出和浏览器错误；部署失败时不破坏当前可用站点。
+
+## Todos
+
+- [ ] 运行 Known Problem Check 并纳入 required checks。
+- [ ] 完成发布审计、构建、核心回归、release parity 与 CloudBase preflight。
+- [ ] 推送经过验证的发布提交并部署 Vercel 国际站。
+- [ ] 部署 CloudBase 国内站前端；后端无代码/配置必要变更时保持现有健康版本。
+- [ ] 对两个正式域名执行功能、接口、双分辨率和版本一致性验收。
+- [ ] 更新发布索引、知识库、证据 manifest 并归档 Process158。

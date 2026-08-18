@@ -62,7 +62,7 @@ if (fs.existsSync(distPath)) {
     ? JSON.parse(fs.readFileSync(releaseManifestPath, 'utf8'))
     : null;
   check('构建清单存在', Boolean(releaseManifest), 'dist/release-manifest.json');
-  check('构建清单指向国内正式站', releaseManifest?.process === 'Process155' && releaseManifest?.canonicalSite === 'https://sigs-oglabx.com', releaseManifest ? `${releaseManifest.process} / ${releaseManifest.canonicalSite}` : 'missing');
+  check('构建清单指向国内正式站', releaseManifest?.process === 'Process158' && releaseManifest?.canonicalSite === 'https://sigs-oglabx.com', releaseManifest ? `${releaseManifest.process} / ${releaseManifest.canonicalSite}` : 'missing');
   check('构建清单排除实验智能体', releaseManifest?.capabilities?.standaloneAgentLab === false, `standaloneAgentLab=${releaseManifest?.capabilities?.standaloneAgentLab}`);
   check('构建内含国内手册', fs.existsSync(path.join(distPath, 'help/index.html')), 'dist/help/index.html');
 } else {
