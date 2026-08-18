@@ -44,6 +44,7 @@ import {
 import {
   buildQuickPlotRowsFromProposal,
   QUICK_PLOT_IMPORT_PROTOCOL,
+  QUICK_PLOT_MAX_AI_QUESTIONS,
   quickPlotFieldLabel,
   quickPlotDecisionFromTool,
   quickPlotQuestionOptionLabel,
@@ -220,6 +221,7 @@ export function QuickPlotAssistantPanel({
   const [correctionOpen, setCorrectionOpen] = useState(false);
   const [correctionCategory, setCorrectionCategory] = useState('字段对应不对');
   const [correctionText, setCorrectionText] = useState('');
+  const [replaceReady, setReplaceReady] = useState(false);
   const [connectionDialogOpen, setConnectionDialogOpen] = useState(false);
   const [connectionProblem, setConnectionProblem] = useState('');
   const [showKey, setShowKey] = useState(false);
@@ -228,6 +230,8 @@ export function QuickPlotAssistantPanel({
   const requestAbortRef = useRef<AbortController | null>(null);
   const fileGenerationRef = useRef(0);
   const correctionCountRef = useRef(0);
+  const questionCountRef = useRef(0);
+  const automaticRepairCountRef = useRef(0);
   const decisionHistoryRef = useRef<string[]>([]);
   const ambiguityConfirmationsRef = useRef<QuickPlotAmbiguityConfirmation[]>([]);
   const commitLockRef = useRef(false);
@@ -272,10 +276,13 @@ export function QuickPlotAssistantPanel({
     setQuestion(null);
     setProposal(null);
     correctionCountRef.current = 0;
+    questionCountRef.current = 0;
+    automaticRepairCountRef.current = 0;
     decisionHistoryRef.current = [];
     ambiguityConfirmationsRef.current = [];
     setCorrectionOpen(false);
     setCorrectionText('');
+    setReplaceReady(false);
     setProblem('');
     setStatus('idle');
     lastReportQuestionRef.current = '';
@@ -287,11 +294,14 @@ export function QuickPlotAssistantPanel({
     fileGenerationRef.current = fileGeneration;
     requestAbortRef.current?.abort('quick-source-changed');
     correctionCountRef.current = 0;
+    questionCountRef.current = 0;
+    automaticRepairCountRef.current = 0;
     decisionHistoryRef.current = [];
     ambiguityConfirmationsRef.current = [];
     setTurns([]);
     setQuestion(null);
     setProposal(null);
+    setReplaceReady(false);
     setMessages([]);
     setProblem('');
     setStatus('parsing');
@@ -318,6 +328,8 @@ export function QuickPlotAssistantPanel({
   function resetInputSession(note?: string) {
     requestAbortRef.current?.abort('quick-session-reset');
     correctionCountRef.current = 0;
+    questionCountRef.current = 0;
+    automaticRepairCountRef.current = 0;
     decisionHistoryRef.current = [];
     ambiguityConfirmationsRef.current = [];
     setTurns([]);
@@ -325,6 +337,7 @@ export function QuickPlotAssistantPanel({
     setProposal(null);
     setCorrectionOpen(false);
     setCorrectionText('');
+    setReplaceReady(false);
     setProblem('');
     setStatus('idle');
     setMessages(note ? [{ id: messageId('reset'), role: 'system', content: note }] : []);
@@ -333,14 +346,17 @@ export function QuickPlotAssistantPanel({
   async function startOrganizing() {
     if (!source || status !== 'idle') return;
     correctionCountRef.current = 0;
+    questionCountRef.current = 0;
+    automaticRepairCountRef.current = 0;
     decisionHistoryRef.current = [];
     setQuestion(null);
     setProposal(null);
+    setReplaceReady(false);
     setCorrectionOpen(false);
     setProblem('');
     const userTurn: AssistantWireTurn = {
       role: 'user',
-      content: '请判断当前文件用于快速出图的数据表、是否有表头、数据起止行，以及 depth、qc、可选 fs、可选 u2 的列和单位。请优先给出一份完整最佳判断；只有无法形成完整判断时才问一个问题。不要修改任何测量值。',
+      content: '请判断当前文件用于快速出图的数据表、是否有表头、数据起止行、共用或独立深度布局，以及 depth、qc/qt、可选 fs、可选 u2 的列和单位。请优先给出一份完整最佳判断；只有无法形成完整判断时才问一个问题。不要修改任何测量值。',
     };
     setTurns([userTurn]);
     setMessages((current) => [...current, {
@@ -412,7 +428,29 @@ export function QuickPlotAssistantPanel({
             requestId,
             contextHash: context.scope.authorityHash,
           }, ambiguityConfirmationsRef.current);
-          if (!validation.ok) throw new Error(validation.problem);
+          if (!validation.ok) {
+            if (automaticRepairCountRef.current < 1) {
+              automaticRepairCountRef.current += 1;
+              const repairTurn: AssistantWireTurn = {
+                role: 'tool',
+                toolCallId: call.id,
+                content: JSON.stringify({
+                  status: 'invalid-proposal',
+                  problem: validation.problem,
+                  instruction: '请修正结构并重新提交一份完整判断。',
+                }),
+              };
+              activeTurns = [...activeTurns, assistantTurn, repairTurn];
+              setTurns(activeTurns);
+              setMessages((current) => [...current, {
+                id: messageId('repair'),
+                role: 'system',
+                content: 'AI 的第一份判断格式不完整，正在自动修正一次。',
+              }]);
+              continue;
+            }
+            throw new Error(validation.problem);
+          }
           const fingerprint = validation.decision.kind === 'question'
             ? `q:${validation.decision.question.questionId}:${JSON.stringify(validation.decision.question.options)}`
             : `p:${validation.decision.proposal.proposalHash}`;
@@ -423,12 +461,34 @@ export function QuickPlotAssistantPanel({
           }
           setTurns([...activeTurns, assistantTurn]);
           if (validation.decision.kind === 'question') {
+            if (questionCountRef.current >= QUICK_PLOT_MAX_AI_QUESTIONS) {
+              throw new Error(`已经完成 ${QUICK_PLOT_MAX_AI_QUESTIONS} 轮选择，仍不能形成可靠判断。文件没有改变，请使用手动粘贴或高级手动映射。`);
+            }
+            questionCountRef.current += 1;
             setQuestion({ call, question: validation.decision.question });
             return;
           }
           const proposalDecision = validation.decision.proposal;
           const built = buildQuickPlotRowsFromProposal(proposalDecision, source);
-          if ('problem' in built) throw new Error(built.problem);
+          if ('problem' in built) {
+            if (automaticRepairCountRef.current < 1) {
+              automaticRepairCountRef.current += 1;
+              const repairTurn: AssistantWireTurn = {
+                role: 'tool',
+                toolCallId: call.id,
+                content: JSON.stringify({
+                  status: 'proposal-cannot-build',
+                  problem: built.problem,
+                  instruction: '请重新读取必要证据并修正为可生成预览的完整判断。',
+                }),
+              };
+              activeTurns = [...activeTurns, assistantTurn, repairTurn];
+              setTurns(activeTurns);
+              continue;
+            }
+            throw new Error(built.problem);
+          }
+          setReplaceReady(false);
           setProposal({ call, proposal: proposalDecision, result: built });
           setMessages((current) => [...current, {
             id: messageId('proposal'),
@@ -559,6 +619,8 @@ export function QuickPlotAssistantPanel({
   async function startOrganizingFromSource(currentSource: ImportAssistantSource) {
     if (status === 'reading' || status === 'saving') return;
     correctionCountRef.current = 0;
+    questionCountRef.current = 0;
+    automaticRepairCountRef.current = 0;
     decisionHistoryRef.current = [];
     const userTurn: AssistantWireTurn = {
       role: 'user',
@@ -575,6 +637,15 @@ export function QuickPlotAssistantPanel({
 
   async function confirmImport() {
     if (!proposal || !source || commitLockRef.current) return;
+    if (workspace.rows.length && !replaceReady) {
+      setReplaceReady(true);
+      setMessages((current) => [...current, {
+        id: messageId('replace-preview'),
+        role: 'system',
+        content: `请再确认一次：将用 ${proposal.result.rows.length} 行新数据替换当前 ${workspace.rows.length} 行。`,
+      }]);
+      return;
+    }
     commitLockRef.current = true;
     const commitContextKey = contextKeyRef.current;
     const commitSourceIdentity = `${source.operationId}:${source.sourceFingerprint}`;
@@ -868,7 +939,7 @@ export function QuickPlotAssistantPanel({
             <article className="quick-ai-proposal" data-testid="quick-ai-proposal">
               <span>{status === 'success' ? `已导入 ${proposal.result.rows.length.toLocaleString('zh-CN')} 行并保存` : 'AI 判断，请你确认'}</span>
               <h3>{proposal.proposal.sheetName} · {proposal.proposal.headerMode === 'present' ? `表头第 ${proposal.proposal.headerRow} 行` : '没有表头'}</h3>
-              <p>读取第 {proposal.proposal.dataStartRow}–{proposal.proposal.dataEndRow} 行。确认后只读取这些列并换算单位。</p>
+              <p>读取第 {proposal.proposal.dataStartRow}–{proposal.proposal.dataEndRow} 行。{proposal.proposal.layout === 'independent-series' ? '各曲线使用自己的深度列，并按 qc 深度对齐。' : '各曲线共用同一深度列。'}</p>
               {proposal.proposal.warnings.length ? <div className="quick-ai-proposal-warning">{proposal.proposal.warnings.map((warning) => <p key={warning}>{warning}</p>)}</div> : null}
               <div className="quick-ai-mapping">
                 {proposal.proposal.columns.map((column) => {
@@ -881,7 +952,7 @@ export function QuickPlotAssistantPanel({
                   return <div key={column.targetField}>
                     <span>{sourceHeader(source, proposal.proposal, column.sourceColumnIndex)}</span>
                     <strong>{quickPlotFieldLabel(column.targetField)}　{column.sourceUnit} → {quickPlotStandardUnit(column.targetField)}</strong>
-                    <small>{evidence}{sample ? ` · 样例 ${sample.sourceValues.join('、')} → ${sample.normalizedValues.join('、')}` : ''}</small>
+                    <small>{evidence}{column.depthSourceColumnIndex !== undefined ? ` · 深度来自 ${sourceHeader(source, proposal.proposal, column.depthSourceColumnIndex)}` : ''}{sample ? ` · 样例 ${sample.sourceValues.join('、')} → ${sample.normalizedValues.join('、')}` : ''}</small>
                   </div>;
                 })}
               </div>
@@ -890,13 +961,14 @@ export function QuickPlotAssistantPanel({
                 <div><dt>不能读取</dt><dd>{proposal.result.ledger.rejectedRows.length} 行</dd></div>
                 <div><dt>未使用列</dt><dd>{proposal.result.ignoredColumns.length} 项</dd></div>
               </dl>
+              {proposal.proposal.layout === 'independent-series' ? <p className="quick-ai-replace-note">按 qc 主深度对齐：fs 插值 {proposal.result.ledger.alignment.fsAligned} 点，u2 插值 {proposal.result.ledger.alignment.u2Aligned} 点；大空档和范围外保持空白。</p> : null}
               {(proposal.result.ledger.rejectedRows.length || proposal.result.ledger.duplicateDepthRows.length || proposal.result.ledger.nonMonotonicRows.length) ? <details><summary>查看需要注意的行</summary><ul>
                 {proposal.result.ledger.rejectedRows.slice(0, 20).map((row) => <li key={`rejected-${row.displayRowNumber}`}><b>第 {row.displayRowNumber} 行</b><span>{row.reason}</span></li>)}
-                {proposal.result.ledger.duplicateDepthRows.length ? <li><b>重复深度</b><span>第 {proposal.result.ledger.duplicateDepthRows.slice(0, 12).join('、')} 行</span></li> : null}
+                {proposal.result.ledger.duplicateDepthRows.length ? <li><b>重复深度</b><span>第 {proposal.result.ledger.duplicateDepthRows.slice(0, 12).join('、')} 行；同一曲线的同深度值按中位数整理。</span></li> : null}
                 {proposal.result.ledger.nonMonotonicRows.length ? <li><b>深度回退</b><span>第 {proposal.result.ledger.nonMonotonicRows.slice(0, 12).join('、')} 行；导入顺序不改动。</span></li> : null}
               </ul></details> : null}
               {proposal.result.ignoredColumns.length ? <details><summary>查看未使用的列</summary><ul>{proposal.result.ignoredColumns.map((column) => <li key={column.sourceColumnIndex}><b>{column.headerLabel}</b><span>{column.reason}</span></li>)}</ul></details> : null}
-              {workspace.rows.length && status !== 'success' ? <p className="quick-ai-replace-note">确认后将用 {proposal.result.rows.length} 行新数据替换当前 {workspace.rows.length} 行；已有图册需要重新生成。</p> : null}
+              {workspace.rows.length && status !== 'success' ? <p className="quick-ai-replace-note">{replaceReady ? '请确认替换。替换后已有图册需要重新生成。' : `先预览新数据；下一步将确认是否用 ${proposal.result.rows.length} 行替换当前 ${workspace.rows.length} 行。`}</p> : null}
             </article>
           ) : null}
           {problem ? <article className="assistant-error" data-testid="quick-ai-error"><strong>{mode === 'input' ? '本次判断未完成' : '本次解读未完成'}</strong><p>{problem}</p>{mode === 'input' && source ? <div><button type="button" className="toolbar-button" onClick={() => void retryCurrentJudgement()}><RotateCcw />重新判断当前文件</button><button type="button" className="toolbar-button" onClick={() => resetInputSession('已保留文件，可以重新开始。')}>保留文件，暂不判断</button></div> : <div><button type="button" className="toolbar-button primary" data-testid="quick-ai-retry-report" disabled={!lastReportQuestionRef.current} onClick={() => void askReport(lastReportQuestionRef.current, true)}><RotateCcw />重新解读</button><button type="button" className="toolbar-button" onClick={() => setProblem('')}>关闭</button></div>}</article> : null}
@@ -907,7 +979,7 @@ export function QuickPlotAssistantPanel({
             <label><span>哪里不对？</span><select value={correctionCategory} onChange={(event) => setCorrectionCategory(event.target.value)}><option>工作表不对</option><option>表头或数据范围不对</option><option>字段对应不对</option><option>单位不对</option><option>fs 或 u2 不需要</option><option>其他</option></select></label>
             <textarea rows={2} value={correctionText} onChange={(event) => setCorrectionText(event.target.value)} placeholder="可补充：例如“第 3 列才是 fs”" />
             <div><button type="button" className="toolbar-button" onClick={() => setCorrectionOpen(false)}>返回判断</button><button type="button" className="toolbar-button primary" onClick={() => void submitCorrection()}>让 AI 重新判断</button></div>
-          </div> : <><button type="button" className="toolbar-button" disabled={status === 'saving'} onClick={() => setCorrectionOpen(true)}>判断不对</button><button type="button" className="toolbar-button primary" disabled={status === 'saving'} onClick={() => void confirmImport()} data-testid="quick-ai-confirm-import">{status === 'saving' ? '正在保存…' : workspace.rows.length ? `确认并替换为 ${proposal.result.rows.length} 行` : `确认并导入 ${proposal.result.rows.length} 行`}</button></>}
+          </div> : <><button type="button" className="toolbar-button" disabled={status === 'saving'} onClick={() => { setReplaceReady(false); setCorrectionOpen(true); }}>判断不对</button><button type="button" className="toolbar-button primary" disabled={status === 'saving'} onClick={() => void confirmImport()} data-testid="quick-ai-confirm-import">{status === 'saving' ? '正在保存…' : workspace.rows.length ? replaceReady ? '替换当前数据' : '确认这份整理结果' : `确认并导入 ${proposal.result.rows.length} 行`}</button></>}
         </div> : null}
 
         {mode === 'input' && !proposal && !question && source ? (

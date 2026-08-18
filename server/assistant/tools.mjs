@@ -298,7 +298,7 @@ export const ASSISTANT_TOOLS = Object.freeze([
         ],
         additionalProperties: false,
         properties: {
-          protocolVersion: { type: 'string', enum: ['sigs.ai-import/1'] },
+          protocolVersion: { type: 'string', enum: ['sigs.ai-import/2'] },
           requestId: { type: 'string', minLength: 1, maxLength: 160 },
           operationId: { type: 'string', minLength: 1, maxLength: 160 },
           sourceFingerprint: { type: 'string', minLength: 32, maxLength: 96 },
@@ -352,6 +352,7 @@ export const ASSISTANT_TOOLS = Object.freeze([
             additionalProperties: false,
             required: [
               'proposalId',
+              'layout',
               'sheetName',
               'headerMode',
               'headerRow',
@@ -364,6 +365,7 @@ export const ASSISTANT_TOOLS = Object.freeze([
             ],
             properties: {
               proposalId: { type: 'string', minLength: 1, maxLength: 120 },
+              layout: { type: 'string', enum: ['shared-depth', 'independent-series'] },
               sheetName: { type: 'string', minLength: 1, maxLength: 120 },
               headerMode: { type: 'string', enum: ['present', 'absent'] },
               headerRow: { type: ['integer', 'null'] },
@@ -382,6 +384,9 @@ export const ASSISTANT_TOOLS = Object.freeze([
                     sourceColumnIndex: { type: 'integer', minimum: 0 },
                     targetField: { type: 'string', enum: ['depthM', 'qc', 'fs', 'u2'] },
                     sourceUnit: { type: 'string', enum: ['m', 'cm', 'mm', 'kPa', 'MPa'] },
+                    depthSourceColumnIndex: { type: 'integer', minimum: 0 },
+                    depthSourceUnit: { type: 'string', enum: ['m', 'cm', 'mm'] },
+                    tipResistanceKind: { type: 'string', enum: ['qc', 'qt'] },
                     headerLabel: { type: 'string', maxLength: 80 },
                     reason: { type: 'string', minLength: 1, maxLength: 240 },
                     evidenceKind: {

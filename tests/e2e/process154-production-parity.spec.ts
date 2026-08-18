@@ -143,7 +143,7 @@ test('PROCESS154 professional assistant renders readable Markdown and drops raw 
         serviceId: 'sigs-oglab-assistant',
         buildId: 'process154-markdown',
         instanceId: 'process154-markdown',
-        protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+        protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
         serviceAvailable: true,
         provider: 'mock',
         model: 'deterministic-mock',

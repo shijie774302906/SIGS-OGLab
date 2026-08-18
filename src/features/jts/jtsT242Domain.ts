@@ -61,6 +61,8 @@ export interface JtsMeasuredRow {
   qcKpa: number;
   fsKpa: number;
   u2Kpa?: number | null;
+  /** Optional already-corrected cone resistance supplied by the source. */
+  qtKpa?: number | null;
 }
 
 type JtsSeriesContextBase = {
@@ -205,6 +207,7 @@ export function deriveJtsSeries(rows: JtsMeasuredRow[], context: JtsSeriesContex
 }
 
 export function calculateJtsCorrectedQtKpa(row: JtsMeasuredRow, context: JtsSeriesContext | JtsPartialSeriesContext) {
+  if (Number.isFinite(row.qtKpa)) return row.qtKpa as number;
   if (context.route === 'approximate_cpt' || !Number.isFinite(row.u2Kpa)) return row.qcKpa;
   const normalizedU2Kpa = (row.u2Kpa as number)
     + (context.u2HydrostaticDatum === 'u2_mudline_relative'

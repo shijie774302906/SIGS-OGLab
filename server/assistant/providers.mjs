@@ -375,6 +375,7 @@ export async function requestMockTurn({ turns, context }) {
             kind: 'proposal',
             proposal: {
               proposalId: `mock-proposal-${Date.now()}`,
+              layout: 'shared-depth',
               sheetName: toolResult.sheetName || context.importSource.sheets[0]?.sheetName || 'CSV',
               headerMode: header ? 'present' : 'absent',
               headerRow: header ? Number(header.displayRowNumber) : null,

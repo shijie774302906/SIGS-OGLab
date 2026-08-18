@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-18T02:31:16.483Z",
+  "context_files": [
+    "process_logs/Process157.md"
+  ],
+  "context_hash": "377acb70aa54bd3359df26cbf0806eeff893c09497c400a01cd3cddb347b9892",
+  "library_hash": "1ecc96b051507654f5637c1bd657d2915d3f316baa442dfd3ea554cc30919168",
+  "status": "reviewed",
+  "matches": [
+    {
+      "problem_id": "KPB-001",
+      "title": "完成状态不等于结果真正可见",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "结果",
+          "曲线"
+        ]
+      ],
+      "related_updates": [
+        "Process079",
+        "Process080",
+        "Process088",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process114",
+        "Process115",
+        "Process116",
+        "Process117",
+        "Process119",
+        "Process120",
+        "Process122",
+        "Process126",
+        "Process136",
+        "Process137",
+        "Process138",
+        "Process147",
+        "Process155",
+        "Process157"
+      ],
+      "required_checks": [
+        "断言真实 SVG path、canvas marks 或表格代表值可见。",
+        "覆盖有效、不可用、缺失、切换和刷新状态。"
+      ],
+      "disposition": "covered",
+      "note": "快捷表、部分解译结果和图册均断言真实可见值，并覆盖缺失字段后的可用/不可用结果。",
+      "evidence": [
+        "quick-plot-domain 57/57；quick-plot-ui 27/27；browser-check.json reportGenerated=true"
+      ]
+    },
+    {
+      "problem_id": "KPB-002",
+      "title": "点击动作没有及时反馈",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "选择",
+          "执行"
+        ]
+      ],
+      "related_updates": [
+        "Process086",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process095",
+        "Process104",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process111",
+        "Process113",
+        "Process114",
+        "Process116",
+        "Process117",
+        "Process123",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process136",
+        "Process138",
+        "Process139",
+        "Process141",
+        "Process142",
+        "Process143",
+        "Process150",
+        "Process154",
+        "Process156",
+        "Process157"
+      ],
+      "required_checks": [
+        "覆盖真实数据首次运行，不得预先生成结果。",
+        "断言 running、disabled、完成或失败恢复状态按顺序出现。"
+      ],
+      "disposition": "covered",
+      "note": "AI 整理和生成均从空结果开始，运行、禁用、失败重试与完成状态由界面回归覆盖。",
+      "evidence": [
+        "quick-plot-ui：AI failure/retry、duplicate send、5000-row quick import passed"
+      ]
+    },
+    {
+      "problem_id": "KPB-009",
+      "title": "缺失或无效测量被绘制成有效证据",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "缺失",
+          "曲线"
+        ]
+      ],
+      "related_updates": [
+        "Process071",
+        "Process076",
+        "Process080",
+        "Process087",
+        "Process088",
+        "Process091",
+        "Process092",
+        "Process099",
+        "Process102",
+        "Process107",
+        "Process109",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process114",
+        "Process115",
+        "Process116",
+        "Process117",
+        "Process118",
+        "Process119",
+        "Process120",
+        "Process122",
+        "Process126",
+        "Process138",
+        "Process146",
+        "Process155",
+        "Process157"
+      ],
+      "required_checks": [
+        "覆盖完整 CPTU、无 u2、单点缺失和真实深度间断。",
+        "断言不存在补零、跨缺口连接或伪造定位点。"
+      ],
+      "disposition": "covered",
+      "note": "缺失和负 fs 保持缺失，实测 0 保留；独立曲线只在覆盖内且不跨越大缺口插值。",
+      "evidence": [
+        "quick-plot-domain：missing or zero fs、independent series；private workbook read-only 1/1"
+      ]
+    },
+    {
+      "problem_id": "KPB-011",
+      "title": "问题没有回到责任页面处理并续接原任务",
+      "severity": "important",
+      "closure_gate": true,
+      "matched_groups": [
+        [
+          "恢复",
+          "继续"
+        ]
+      ],
+      "related_updates": [
+        "Process071",
+        "Process072",
+        "Process074",
+        "Process075",
+        "Process082",
+        "Process086",
+        "Process087",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process102",
+        "Process103",
+        "Process104",
+        "Process106",
+        "Process107",
+        "Process108",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process113",
+        "Process114",
+        "Process116",
+        "Process120",
+        "Process121",
+        "Process122",
+        "Process123",
+        "Process124",
+        "Process126",
+        "Process127",
+        "Process128",
+        "Process129",
+        "Process130",
+        "Process131",
+        "Process133",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process138",
+        "Process139",
+        "Process140",
+        "Process141",
+        "Process142",
+        "Process143",
+        "Process150",
+        "Process154",
+        "Process155"
+      ],
+      "required_checks": [
+        "覆盖返回责任页、取消修复、修复失败、复检和自动续接。",
+        "断言原始测量不被静默改写。"
+      ],
+      "disposition": "not-applicable",
+      "note": "快捷输入没有跨责任页面修复：所有字段问题都在同一张可编辑表内原位定位和恢复，因此不存在返回其他页面再续接。",
+      "evidence": [
+        "quick-plot-ui：required qc invalid and inline recovery"
+      ]
+    },
+    {
+      "problem_id": "KPB-013",
+      "title": "默认页面信息过多但不能直接行动",
+      "severity": "advisory",
+      "closure_gate": false,
+      "matched_groups": [
+        [
+          "固定",
+          "选择"
+        ]
+      ],
+      "related_updates": [
+        "Process073",
+        "Process075",
+        "Process076",
+        "Process077",
+        "Process078",
+        "Process080",
+        "Process087",
+        "Process088",
+        "Process090",
+        "Process091",
+        "Process092",
+        "Process093",
+        "Process095",
+        "Process099",
+        "Process100",
+        "Process101",
+        "Process104",
+        "Process107",
+        "Process109",
+        "Process110",
+        "Process111",
+        "Process112",
+        "Process113",
+        "Process115",
+        "Process116",
+        "Process117",
+        "Process120",
+        "Process126",
+        "Process132",
+        "Process133",
+        "Process134",
+        "Process135",
+        "Process136",
+        "Process141",
+        "Process143",
+        "Process146",
+        "Process147",
+        "Process148",
+        "Process157"
+      ],
+      "required_checks": [
+        "1440 首屏能够看到当前问题、证据和全部主要选择。",
+        "确认中心只有一个最强主要动作。"
+      ],
+      "disposition": "covered",
+      "note": "1440 首屏以可编辑数据表和一个生成入口为主，AI 整理收进右栏，问题直接落在单元格。",
+      "evidence": [
+        "editable-input-1440x900.png；browser-check overflowX=0/errors=[]"
+      ]
+    }
+  ]
+}

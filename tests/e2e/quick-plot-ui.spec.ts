@@ -53,6 +53,60 @@ test('PROCESS140 quick plot loads, cancels and confirms synthetic demo input wit
   }
 });
 
+test('PROCESS157 quick table accepts optional blanks and blocks only invalid depth or qc', async ({ page }) => {
+  const browserErrors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
+  page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.getByTestId('new-project-name').fill('快捷表格手动修正');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await pasteGrid(page, '深度\tqc\tfs\n1\t2\t20\n2\t2.2\t22\n3\t2.4\t24');
+  const fs = page.getByLabel('fs 1 m');
+  await fs.fill('');
+  await fs.blur();
+  await expect(fs).toHaveValue('');
+  await expect(page.getByText('已更新表格；图册将在你点击生成时重新计算。')).toBeVisible();
+  await expect(page.getByTestId('quick-generate-report')).toBeEnabled();
+
+  const qc = page.getByLabel('qc 1 m');
+  await qc.fill('');
+  await qc.blur();
+  await expect(qc).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByTestId('quick-generate-report')).toBeDisabled();
+  await expect(page.getByRole('alert')).toContainText('1 个单元格需要修正');
+
+  await qc.fill('2.1');
+  await qc.blur();
+  await expect(qc).toHaveAttribute('aria-invalid', 'false');
+  await expect(page.getByTestId('quick-generate-report')).toBeEnabled();
+  const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process157-quick-ai-import-v2');
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    mkdirSync(evidenceDirectory, { recursive: true });
+    await page.screenshot({ path: path.join(evidenceDirectory, 'editable-input-1440x900.png'), fullPage: true });
+  }
+  await page.getByTestId('quick-generate-report').click();
+  await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  const layout = await page.evaluate(() => ({
+    viewport: { width: innerWidth, height: innerHeight },
+    overflowX: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+  }));
+  expect(layout.overflowX).toBe(0);
+  expect(browserErrors).toEqual([]);
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    await page.screenshot({ path: path.join(evidenceDirectory, 'partial-result-1920x1080.png'), fullPage: true });
+    writeFileSync(path.join(evidenceDirectory, 'browser-check.json'), JSON.stringify({
+      process: 'Process157',
+      optionalFsBlankPreserved: true,
+      requiredQcRecovered: true,
+      reportGenerated: true,
+      layout,
+      browserErrors,
+    }, null, 2), 'utf8');
+  }
+});
+
 test('PROCESS141 quick input owns vertical scrolling with long data and an open AI panel', async ({ page }) => {
   await page.route('**/api/visits', (route) => route.fulfill({
     status: 200,
@@ -217,7 +271,7 @@ test('PROCESS117 quick project generates the 15-page mixed-orientation atlas wit
   await excel.saveAs(excelPath);
   const archive = unzipSync(new Uint8Array(readFileSync(excelPath)));
   expect(strFromU8(archive['xl/workbook.xml'])).toContain('name="快捷解译结果"');
-  expect(strFromU8(archive['xl/worksheets/sheet2.xml'])).toContain('本行无有效解译结果');
+  expect(strFromU8(archive['xl/worksheets/sheet2.xml'])).toContain('深度或 qc 无效');
   await page.reload();
   await expect(page.getByTestId('quick-report-workspace')).toBeVisible({ timeout: 45_000 });
 });
@@ -496,14 +550,14 @@ test('PROCESS132 quick AI organizes synonym columns, excludes extras, imports on
 
   await page.getByTestId('quick-ai-confirm-import').click();
   await expect(page.getByText(/3 行 · 中文非标准字段\.csv/)).toBeVisible();
-  await expect(page.getByTestId('quick-paste-grid')).toContainText('0.01');
-  await expect(page.getByTestId('quick-paste-grid')).toContainText('2.5');
+  await expect(page.getByLabel('深度 0.01')).toHaveValue('0.01');
+  await expect(page.getByLabel('qc 0.02 m')).toHaveValue('2.5');
   await expect(assistant).toContainText('已导入 3 行');
 
   await page.reload();
   await expect(page.getByText(/3 行 · 中文非标准字段\.csv/)).toBeVisible();
-  await expect(page.getByTestId('quick-paste-grid')).toContainText('0.01');
-  await expect(page.getByTestId('quick-paste-grid')).toContainText('2.5');
+  await expect(page.getByLabel('深度 0.01')).toHaveValue('0.01');
+  await expect(page.getByLabel('qc 0.02 m')).toHaveValue('2.5');
 
   await page.getByTestId('quick-pressure-basis-confirm').check();
   await page.getByTestId('quick-generate-report').click();
@@ -609,20 +663,19 @@ test('PROCESS134 headerless AI proposal replaces existing rows once and remains 
       await page.screenshot({ path: path.join(evidenceDirectory, `proposal-${viewport.width}x${viewport.height}.png`), fullPage: true });
     }
   }
-  await page.getByTestId('quick-ai-confirm-import').evaluate((button: HTMLButtonElement) => {
-    button.click();
-    button.click();
-  });
+  await page.getByTestId('quick-ai-confirm-import').click();
+  await expect(page.getByTestId('quick-ai-confirm-import')).toHaveText('替换当前数据');
+  await page.getByTestId('quick-ai-confirm-import').click();
   await expect(assistant).toContainText('已导入 3 行');
   await expect(page.getByText(/3 行 · 无表头\.csv/)).toBeVisible();
-  await expect(page.getByTestId('quick-paste-grid')).toContainText('0.1');
-  await expect(page.getByTestId('quick-paste-grid')).toContainText('2.3');
-  await expect(page.getByTestId('quick-paste-grid')).not.toContainText('11');
+  await expect(page.getByLabel('深度 0.1')).toHaveValue('0.1');
+  await expect(page.getByLabel('qc 0.3 m')).toHaveValue('2.3');
+  expect(await page.locator('.quick-cell-input').evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value))).not.toContain('11');
 
   await page.reload();
   await expect(page.getByText(/3 行 · 无表头\.csv/)).toBeVisible();
-  await expect(page.getByTestId('quick-paste-grid')).toContainText('0.1');
-  await expect(page.getByTestId('quick-paste-grid')).toContainText('2.3');
+  await expect(page.getByLabel('深度 0.1')).toHaveValue('0.1');
+  await expect(page.getByLabel('qc 0.3 m')).toHaveValue('2.3');
   expect(browserErrors).toEqual([]);
   if (process.env.MILESTONE_EVIDENCE === '1') {
     writeFileSync(path.join(evidenceDirectory, 'browser-check.json'), JSON.stringify({
@@ -1222,7 +1275,7 @@ async function installQuickAssistantMock(
         serviceId: 'sigs-oglab-assistant',
         buildId: 'process134-ai-import-v1',
         instanceId: 'quick-ui-mock-instance',
-        protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+        protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
         serviceAvailable: true,
         provider: 'mock',
         model: 'deterministic-mock',
@@ -1233,7 +1286,7 @@ async function installQuickAssistantMock(
   await page.route('**/api/assistant/turn', async (route) => {
     const serviceMeta = {
       serviceInstanceId: 'quick-ui-mock-instance',
-      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
     };
     if (shouldFail?.()) {
       await route.fulfill({
@@ -1384,6 +1437,7 @@ async function installQuickAssistantMock(
               kind: 'proposal',
               proposal: {
                 proposalId: 'quick-import-proposal-v1',
+                layout: 'shared-depth',
                 sheetName: 'CSV',
                 headerMode: headerless ? 'absent' : 'present',
                 headerRow: headerless ? null : fullCptu ? 2 : 1,

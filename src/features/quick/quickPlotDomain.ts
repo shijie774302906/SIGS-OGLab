@@ -45,6 +45,10 @@ export type QuickPlotRowV1 = {
   qcMpa: number;
   fsKpa: number | null;
   u2Kpa: number | null;
+  /** Optional import/edit provenance. Older saved workspaces remain valid. */
+  valueOrigins?: Partial<Record<'depthM' | 'qc' | 'fs' | 'u2', 'observed' | 'aligned' | 'manual' | 'missing'>>;
+  /** `qt` means the uploaded value is already pore-pressure corrected. */
+  tipResistanceKind?: 'qc' | 'qt';
 };
 
 export type QuickPlotSettingsV1 = {
@@ -106,6 +110,7 @@ export type QuickPlotPdfOptions = {
 };
 
 export type QuickDerived = JtsDerivedRow & {
+  tipResistanceKind: 'qc' | 'qt';
   plotBreakBefore: boolean;
   zone: number | null;
   robertsonSbtnZone: number | null;
@@ -139,6 +144,32 @@ export type QuickDerived = JtsDerivedRow & {
   waterContentPercent: number | null;
   dryUnitWeight: number | null;
   porosity: number | null;
+  sourceFsKpa: number | null;
+  sourceU2Kpa: number | null;
+  fsState: 'observed' | 'aligned' | 'manual' | 'missing';
+  u2State: 'observed' | 'aligned' | 'manual' | 'missing';
+  unavailableReasons: string[];
+};
+
+export type QuickPlotResultRowV1 = {
+  source: QuickPlotRowV1;
+  derived: QuickDerived | null;
+  status: 'complete' | 'partial' | 'invalid';
+  reasons: string[];
+};
+
+export type QuickPlotResultPackageV1 = {
+  inputHash: string;
+  sourceRows: QuickPlotRowV1[];
+  derivedRows: QuickDerived[];
+  rows: QuickPlotResultRowV1[];
+  counts: {
+    source: number;
+    derived: number;
+    partial: number;
+    missingFs: number;
+    missingU2: number;
+  };
 };
 
 export type QuickFuzzyMembershipV1 = {
@@ -455,8 +486,9 @@ export function quickPlotPdfAuthority(workspace: QuickPlotWorkspaceV1) {
 }
 
 function prepareQuickPlotReport(workspace: QuickPlotWorkspaceV1) {
-  const rows = [...workspace.rows].sort((a, b) => a.depthM - b.depthM);
-  const derived = deriveQuickPlotRows(rows, workspace.settings);
+  const resultPackage = createQuickPlotResultPackage(workspace);
+  const rows = resultPackage.sourceRows;
+  const derived = resultPackage.derivedRows;
   const builders: Array<(ctx: CanvasRenderingContext2D, box: PlotBox) => void> = [
     (ctx, box) => drawMeasuredPortraitPage(ctx, box, rows),
     (ctx, box) => drawSbtAndBqPage(ctx, box, derived),
@@ -493,7 +525,7 @@ function prepareQuickPlotReport(workspace: QuickPlotWorkspaceV1) {
     (ctx, box) => drawReferencesPage(ctx, box, workspace.settings, derived),
   ];
   const methodIds = [['实测'], ['R11'], ['R01', 'R02'], ['R09'], ['R08'], ['R06'], ['R01', 'R06'], ['R10'], ['R06', 'R07', 'R09', 'R10', 'A02'], ['R03', 'R05', 'R06'], ['R06', 'A02'], ['R02', 'R06', 'R07', 'A02'], ['R03', 'R06', 'A01'], ['R02', 'R06', 'A02'], ['索引页']];
-  return { builders, methodIds };
+  return { builders, methodIds, resultPackage };
 }
 
 function renderQuickPlotPage(
@@ -553,14 +585,24 @@ export function deriveQuickPlotRows(rows: QuickPlotRowV1[], settings: QuickPlotS
   const sortedRows = [...rows].sort((left, right) => left.depthM - right.depthM);
   const rawIndex = new Map(sortedRows.map((row, index) => [row.rowId, index]));
   const seenDepths = new Set<number>();
-  const usable = rows.filter((row) => {
-    if (row.depthM < 0 || row.qcMpa <= 0 || (row.fsKpa ?? 0) <= 0 || seenDepths.has(row.depthM)) return false;
-    const correctedQtKpa = row.qcMpa * 1000 + (hasU2 && row.u2Kpa !== null ? (1 - settings.effectiveAreaRatio) * row.u2Kpa : 0);
+  const usable = sortedRows.filter((row) => {
+    if (!Number.isFinite(row.depthM) || !Number.isFinite(row.qcMpa) || row.depthM < 0 || row.qcMpa <= 0 || seenDepths.has(row.depthM)) return false;
+    const correctedQtKpa = row.tipResistanceKind === 'qt'
+      ? row.qcMpa * 1000
+      : row.qcMpa * 1000 + (hasU2 && row.u2Kpa !== null ? (1 - settings.effectiveAreaRatio) * row.u2Kpa : 0);
     if (!Number.isFinite(correctedQtKpa) || correctedQtKpa <= 0) return false;
     seenDepths.add(row.depthM);
     return true;
   });
-  const measured = usable.map((row) => ({ sourceRowId: row.rowId, depthM: row.depthM, qcKpa: row.qcMpa * 1000, fsKpa: row.fsKpa!, u2Kpa: row.u2Kpa }));
+  const sourceById = new Map(usable.map((row) => [row.rowId, row]));
+  const measured = usable.map((row) => ({
+    sourceRowId: row.rowId,
+    depthM: row.depthM,
+    qcKpa: row.qcMpa * 1000,
+    fsKpa: row.fsKpa !== null && Number.isFinite(row.fsKpa) && row.fsKpa >= 0 ? row.fsKpa : 0,
+    u2Kpa: row.u2Kpa,
+    qtKpa: row.tipResistanceKind === 'qt' ? row.qcMpa * 1000 : null,
+  }));
   if (measured.length < 2) return [];
   const result = deriveJtsSeries(measured, hasU2 ? {
     route, effectiveAreaRatio: settings.effectiveAreaRatio, waterDepthM: settings.waterDepthM,
@@ -569,24 +611,31 @@ export function deriveQuickPlotRows(rows: QuickPlotRowV1[], settings: QuickPlotS
   if (!result.ok) return [];
   let previousSourceIndex: number | null = null;
   return result.rows.map((row): QuickDerived => {
+    const source = sourceById.get(row.sourceRowId)!;
+    const sourceFsKpa = source.fsKpa !== null && Number.isFinite(source.fsKpa) && source.fsKpa >= 0 ? source.fsKpa : null;
+    const sourceU2Kpa = source.u2Kpa !== null && Number.isFinite(source.u2Kpa) ? source.u2Kpa : null;
+    const fsState = sourceFsKpa === null ? 'missing' : source.valueOrigins?.fs ?? 'observed';
+    const u2State = sourceU2Kpa === null ? 'missing' : source.valueOrigins?.u2 ?? 'observed';
     const sourceIndex = rawIndex.get(row.sourceRowId) ?? null;
     const plotBreakBefore = previousSourceIndex !== null && (sourceIndex === null || sourceIndex !== previousSourceIndex + 1);
     previousSourceIndex = sourceIndex;
-    const classification = row.icClassification;
+    const interpretedRfPercent = sourceFsKpa === null ? null : row.rfPercent;
+    const interpretedFrPercent = sourceFsKpa === null ? null : row.frPercent;
+    const classification = sourceFsKpa === null ? null : row.icClassification;
     const zone = classification?.zone ?? null;
-    const robertsonSbtnZone = quickRobertsonSbtnZone(row.qtNormalized, row.frPercent);
+    const robertsonSbtnZone = quickRobertsonSbtnZone(row.qtNormalized, interpretedFrPercent);
     const rawNormalizedTip = row.qcKpa > 0 ? row.qcKpa / 100 : null;
-    const rawFrictionRatio = row.qcKpa > 0 ? row.fsKpa / row.qcKpa * 100 : null;
+    const rawFrictionRatio = row.qcKpa > 0 && sourceFsKpa !== null && sourceFsKpa > 0 ? sourceFsKpa / row.qcKpa * 100 : null;
     const robertson2010Zone = rawNormalizedTip === null ? null : quickRobertson2010SbtZone(rawNormalizedTip, rawFrictionRatio);
     const robertson2010Index = rawNormalizedTip !== null && rawFrictionRatio !== null && rawFrictionRatio > 0
       ? Math.sqrt((3.47 - Math.log10(rawNormalizedTip)) ** 2 + (1.22 + Math.log10(rawFrictionRatio)) ** 2)
       : null;
-    const robertsonNormalized = row.frPercent === null ? null : deriveRobertsonQtn(row.qnetKpa, row.sigmaV0EffectiveKpa, row.frPercent);
-    const robertson2016 = robertsonNormalized && row.frPercent !== null ? classifyRobertson2016(robertsonNormalized.qtn, row.frPercent) : null;
+    const robertsonNormalized = interpretedFrPercent === null || interpretedFrPercent <= 0 ? null : deriveRobertsonQtn(row.qnetKpa, row.sigmaV0EffectiveKpa, interpretedFrPercent);
+    const robertson2016 = robertsonNormalized && interpretedFrPercent !== null ? classifyRobertson2016(robertsonNormalized.qtn, interpretedFrPercent) : null;
     const schneider2008 = hasU2 && row.qtNormalized !== null && row.porePressureRatio !== null
       ? classifySchneider2008(row.qtNormalized, row.porePressureRatio)
       : null;
-    const fuzzyRfPercent = row.qcKpa > 0 ? row.fsKpa / row.qcKpa * 100 : null;
+    const fuzzyRfPercent = row.qcKpa > 0 && sourceFsKpa !== null && sourceFsKpa > 0 ? sourceFsKpa / row.qcKpa * 100 : null;
     const fuzzy = quickFuzzyMembership(row.qcKpa / 1000, fuzzyRfPercent);
     const major = zone === null ? 'unknown' : zone >= 7 ? 'sand' : zone === 6 ? 'silt' : 'clay';
     const context = { route: row.route, soilClassId: classification?.soilClassId, materialScope: 'within_source' as const, coefficientConfirmed: false };
@@ -599,7 +648,7 @@ export function deriveQuickPlotRows(rows: QuickPlotRowV1[], settings: QuickPlotS
     const g0Mpa = row.ic === null || row.qnetKpa <= 0 ? null : 0.0188 * (row.qnetKpa / 1000) * 10 ** (0.55 * row.ic + 1.68);
     const suKpa = major === 'clay' && row.qnetKpa > 0 ? row.qnetKpa / 15.5 : null;
     const ocr = major === 'clay' && row.qtNormalized !== null && row.qtNormalized > 0 ? 0.16 * row.qtNormalized : null;
-    const sensitivity = major === 'clay' && row.frPercent !== null && row.frPercent > 0 ? 6.3 / row.frPercent : null;
+    const sensitivity = major === 'clay' && interpretedFrPercent !== null && interpretedFrPercent > 0 ? 6.3 / interpretedFrPercent : null;
     const suRemoldedKpa = suKpa !== null && sensitivity !== null && sensitivity > 0 ? suKpa / sensitivity : null;
     const qtnCs = robertsonNormalized === null ? null : robertsonNormalized.qtn * cleanSandCorrection(robertsonNormalized.ic);
     const stateParameter = quickSandStateParameter(major, robertsonNormalized?.ic ?? null, qtnCs);
@@ -615,8 +664,15 @@ export function deriveQuickPlotRows(rows: QuickPlotRowV1[], settings: QuickPlotS
     const sinPhi = k0PhiDeg === null ? null : Math.sin(k0PhiDeg * Math.PI / 180);
     const k0 = sinPhi === null || ocr === null ? null : (1 - sinPhi) * ocr ** sinPhi;
     const physical = quickSaturatedPhysicalIndices(row.gammaSatKnM3);
+    const unavailableReasons = [
+      ...(sourceFsKpa === null ? ['fs 缺失：未计算 Rf、Fr、Ic 及依赖摩阻的分类和参数。'] : sourceFsKpa === 0 ? ['fs 实测为 0：保留原值；需要正 Rf 或 log(Rf) 的方法未计算。'] : []),
+      ...(sourceU2Kpa === null ? ['u2 缺失：未计算该行 Bq、Schneider 及孔压依赖结果。'] : []),
+      ...row.issues,
+    ];
     return {
-      ...row, plotBreakBefore, zone, robertsonSbtnZone, robertson2010Zone, robertson2010Index: finite(robertson2010Index),
+      ...row, rfPercent: interpretedRfPercent, frPercent: interpretedFrPercent, icClassification: classification,
+      tipResistanceKind: source.tipResistanceKind ?? 'qc',
+      plotBreakBefore, zone, robertsonSbtnZone, robertson2010Zone, robertson2010Index: finite(robertson2010Index),
       robertsonQtn: robertsonNormalized?.qtn ?? null,
       robertsonIc: robertsonNormalized?.ic ?? null,
       robertsonExponentN: robertsonNormalized?.exponentN ?? null,
@@ -625,9 +681,34 @@ export function deriveQuickPlotRows(rows: QuickPlotRowV1[], settings: QuickPlotS
       jtsCompressionModulusMpa: valueOf(mResult), g0Mpa: finite(g0FromVsMpa ?? g0Mpa), suKpa, suRemoldedKpa: finite(suRemoldedKpa), suRatio: suKpa !== null && row.sigmaV0EffectiveKpa > 0 ? suKpa / row.sigmaV0EffectiveKpa : null,
       residualStrengthRatio: suRemoldedKpa !== null && row.sigmaV0EffectiveKpa > 0 ? suRemoldedKpa / row.sigmaV0EffectiveKpa : null,
       ocr: finite(ocr), vsMps: finite(vsMps), k0: finite(k0), qtnCs: finite(qtnCs), stateParameter: finite(stateParameter), sensitivity: finite(sensitivity),
-      ...physical,
+      ...physical, sourceFsKpa, sourceU2Kpa, fsState, u2State, unavailableReasons: [...new Set(unavailableReasons)],
     };
   });
+}
+
+export function createQuickPlotResultPackage(workspace: QuickPlotWorkspaceV1): QuickPlotResultPackageV1 {
+  const sourceRows = [...workspace.rows].sort((left, right) => left.depthM - right.depthM);
+  const derivedRows = deriveQuickPlotRows(sourceRows, workspace.settings);
+  const derivedBySource = new Map(derivedRows.map((row) => [row.sourceRowId, row]));
+  const rows = sourceRows.map((source): QuickPlotResultRowV1 => {
+    const derived = derivedBySource.get(source.rowId) ?? null;
+    if (!derived) return { source, derived: null, status: 'invalid', reasons: ['深度或 qc 无效，或与其他行深度重复。'] };
+    const reasons = derived.unavailableReasons;
+    return { source, derived, status: reasons.length ? 'partial' : 'complete', reasons };
+  });
+  return {
+    inputHash: quickPlotInputHash(workspace),
+    sourceRows,
+    derivedRows,
+    rows,
+    counts: {
+      source: sourceRows.length,
+      derived: derivedRows.length,
+      partial: rows.filter((row) => row.status === 'partial').length,
+      missingFs: sourceRows.filter((row) => row.fsKpa === null || !Number.isFinite(row.fsKpa) || row.fsKpa < 0).length,
+      missingU2: sourceRows.filter((row) => row.u2Kpa === null || !Number.isFinite(row.u2Kpa)).length,
+    },
+  };
 }
 
 export function quickPlotClassificationEvidence(workspace: QuickPlotWorkspaceV1) {
@@ -1157,8 +1238,9 @@ function drawClayParameterPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows
 }
 
 function drawMeasuredPage(ctx: CanvasRenderingContext2D, box: PlotBox, rows: QuickPlotRowV1[]) {
+  const allDirectQt = rows.length > 0 && rows.every((row) => row.tipResistanceKind === 'qt');
   drawDepthTracks(ctx, box, rows, [
-    ['锥尖阻力 qc', 'MPa', QUICK_CURVE_COLORS.qc, (r) => r.qcMpa],
+    [allDirectQt ? '修正锥尖阻力 qt（来源）' : '锥尖阻力 qc', 'MPa', QUICK_CURVE_COLORS.qc, (r) => r.qcMpa],
     ['侧壁摩阻力（套筒摩阻力） fs', 'kPa', QUICK_CURVE_COLORS.fs, (r) => r.fsKpa],
     ['孔隙水压力 u2', 'kPa', QUICK_CURVE_COLORS.u2, (r) => r.u2Kpa],
   ]);
@@ -1189,14 +1271,21 @@ function drawParameterDepthPage(ctx: CanvasRenderingContext2D, box: PlotBox, row
 
 export function quickPlotFormulaAudit(_settings: QuickPlotSettingsV1, rows: QuickDerived[]) {
   const count = (...readers: Array<(row: QuickDerived) => number | null>) => Math.max(...readers.map((read) => rows.filter((row) => { const value = read(row); return value !== null && Number.isFinite(value); }).length), 0);
-  const hasPoreCorrectedRows = rows.some((row) => row.route === 'full_cptu');
-  const hasApproximateRows = rows.some((row) => row.route === 'approximate_cpt');
-  const qtFormulas = hasPoreCorrectedRows
-    ? [`qt(kPa) = qc(kPa) + u2(kPa)(1-a)${hasApproximateRows ? '（有 u2 行）' : ''}  [R06]`, ...(hasApproximateRows ? ['缺失 u2 行：qt(kPa) = qc(kPa)  [A02]'] : [])]
-    : ['本次未使用 u2：qt(kPa) = qc(kPa)  [A02]'];
-  const basicApplicability = hasPoreCorrectedRows
-    ? hasApproximateRows ? '全部有效 qc、fs 行；有 u2 行修正，缺失行 qt=qc' : '全部有效 qc、fs、u2 行；逐行进行孔压修正'
-    : '全部有效 qc、fs 行；本次未使用 u2，qt=qc';
+  const hasDirectQtRows = rows.some((row) => row.tipResistanceKind === 'qt');
+  const hasPoreCorrectedRows = rows.some((row) => row.tipResistanceKind === 'qc' && row.route === 'full_cptu');
+  const hasApproximateRows = rows.some((row) => row.tipResistanceKind === 'qc' && row.route === 'approximate_cpt');
+  const qtFormulas = [
+    ...(hasDirectQtRows ? ['来源已提供 qt：直接使用，不再进行有效面积修正  [A02]'] : []),
+    ...(hasPoreCorrectedRows ? [`qt(kPa) = qc(kPa) + u2(kPa)(1-a)${hasApproximateRows ? '（有 u2 行）' : ''}  [R06]`] : []),
+    ...(hasApproximateRows ? [`${hasPoreCorrectedRows ? '缺失 u2 行' : '本次未使用 u2'}：qt(kPa) = qc(kPa)  [A02]`] : []),
+  ];
+  const basicApplicability = [
+    '有效 qc 或直接 qt 行',
+    hasDirectQtRows ? '直接 qt 不重复修正' : '',
+    hasPoreCorrectedRows ? 'qc 且有 u2 的行逐行修正' : '',
+    hasApproximateRows ? 'qc 且缺失 u2 的行取 qt=qc' : '',
+    'fs 缺失仅停止摩阻相关结果',
+  ].filter(Boolean).join('；');
   const vsCount = count((row) => row.vsMps), g0Count = count((row) => row.g0Mpa), suCount = count((row) => row.suKpa), residualCount = count((row) => row.residualStrengthRatio);
   const ocrCount = count((row) => row.ocr), k0Count = count((row) => row.k0), cleanSandCount = count((row) => row.qtnCs), stateCount = count((row) => row.stateParameter);
   const robertsonCount = count((row) => row.robertsonQtn), robertson2016Count = count((row) => row.robertson2016?.ib ?? null), schneiderCount = count((row) => row.schneider2008?.q ?? null);
@@ -1237,7 +1326,7 @@ function drawReferencesPage(ctx: CanvasRenderingContext2D, box: PlotBox, setting
   const formulaBox = { x: box.x, y: coefficientBox.y + coefficientBox.height + 18, width: box.width, height: 744 }; const columnGap = 18; const columnWidth = (formulaBox.width - columnGap) / 2; const columns = [groups.slice(0, 8), groups.slice(8)];
   columns.forEach((columnGroups, columnIndex) => { const left = formulaBox.x + columnIndex * (columnWidth + columnGap); const rowHeight = formulaBox.height / Math.max(1, columnGroups.length); columnGroups.forEach((group, index) => { const y = formulaBox.y + index * rowHeight; ctx.fillStyle = index % 2 ? '#f8f9f9' : '#fff'; ctx.fillRect(left, y, columnWidth, rowHeight - 2); ctx.fillStyle = '#9d6c45'; ctx.fillRect(left, y, 4, rowHeight - 2); reportFrame(ctx, { x: left, y, width: columnWidth, height: rowHeight - 2 }); fitLeftText(ctx, group.title, left + 12, y + 17, columnWidth - 120, 11, '#111719', '700', 9, 'body'); text(ctx, `${group.validCount.toLocaleString('zh-CN')} 个值`, left + columnWidth - 10, y + 17, 9, '#65747b', '500', 'right', 'body'); fitLeftText(ctx, `适用：${group.applicability}`, left + 12, y + 32, columnWidth - 24, 8, '#6a777c', '500', 7, 'body'); group.formulas.forEach((formula, formulaIndex) => fitLeftText(ctx, formula, left + 12, y + 49 + formulaIndex * 14, columnWidth - 24, 8, '#26343a', '500', 6.2, 'body')); }); });
   const usedIds = audit.formulaIds;
-  const referenceMap = new Map<string, string>(QUICK_PLOT_REFERENCES as unknown as Array<readonly [string, string]>); referenceMap.set('A02', '快捷方法包实现约定：未使用或缺失 u2 的行取 qt=qc；Su(rem)=Su/St；K0 的黏性土 φ′ 缺失时采用 30° 预设。');
+  const referenceMap = new Map<string, string>(QUICK_PLOT_REFERENCES as unknown as Array<readonly [string, string]>); referenceMap.set('A02', '快捷方法包实现约定：来源为直接 qt 时不再进行有效面积修正；qc 未使用或缺失 u2 的行取 qt=qc；Su(rem)=Su/St；K0 的黏性土 φ′ 缺失时采用 30° 预设。');
   const referenceY = formulaBox.y + formulaBox.height + 26; text(ctx, '参考来源', box.x, referenceY, 13, '#111719', '700'); reportLine(ctx, box.x, referenceY + 10, box.x + box.width, referenceY + 10, 'axis');
   const refColumns = [usedIds.filter((_, index) => index % 2 === 0), usedIds.filter((_, index) => index % 2 === 1)];
   refColumns.forEach((ids, columnIndex) => ids.forEach((id, index) => { const left = box.x + columnIndex * (box.width / 2 + 9); const top = referenceY + 30 + index * 62; text(ctx, id, left, top, 10, '#9d6c45', '700', 'left', 'source'); drawWrappedLines(ctx, referenceMap.get(id) ?? '来源条目缺失', left + 34, top, box.width / 2 - 48, 9, 12, '#33464e', 4, 'source'); }));

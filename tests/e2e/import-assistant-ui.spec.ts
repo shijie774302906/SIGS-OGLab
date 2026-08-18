@@ -1,4 +1,4 @@
-﻿import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page, type TestInfo } from './fixtures/isolatedTest';
 import { generateProcess129CsvCases, PROCESS129_CSV_SEED } from '../support/process129CsvCases';
@@ -132,7 +132,7 @@ test('PROCESS155 professional import stays active beyond 55 seconds and then sho
       serviceId: 'sigs-oglab-assistant',
       buildId: 'process155-slow-import',
       instanceId: 'playwright-mock-instance',
-      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
       serviceAvailable: true,
       provider: 'mock',
       model: 'deepseek-v4-pro',
@@ -625,7 +625,7 @@ test(`Process129 sends five generated 100-row CSV layouts through the AI review 
       serviceId: 'sigs-oglab-assistant',
       buildId: 'process134-ai-import-v1',
       instanceId: 'playwright-mock-instance',
-      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
       serviceAvailable: true,
       provider: 'mock',
       model: 'deepseek-v4-pro',
@@ -791,7 +791,7 @@ test('Process129 turns an unusable AI operation into plain recovery choices', as
       serviceId: 'sigs-oglab-assistant',
       buildId: 'process134-ai-import-v1',
       instanceId: 'playwright-mock-instance',
-      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
       serviceAvailable: true,
       provider: 'mock',
       model: 'deepseek-v4-pro',
@@ -846,7 +846,7 @@ async function installImportAssistantMock(
         serviceId: 'sigs-oglab-assistant',
         buildId: 'process134-ai-import-v1',
         instanceId: 'playwright-mock-instance',
-        protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+        protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
         serviceAvailable: true,
         provider: 'mock',
         model: 'deterministic-mock',

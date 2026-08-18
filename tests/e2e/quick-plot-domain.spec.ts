@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { strFromU8, unzipSync } from 'fflate';
-import { createQuickPlotRevision, createQuickPlotWorkspace, deriveQuickPlotRows, parseQuickPlotClipboard, QUICK_BQ_REFERENCE_POLYGONS, QUICK_PARAMETER_CLASSIFICATION_BASIS, QUICK_PARAMETER_COMPARISON_ROLE, QUICK_PDF_A3_PIXELS, QUICK_PDF_DPI, QUICK_REPORT_AXIS_LABELS, QUICK_REPORT_FONT_PT_FLOORS, QUICK_REPORT_PAGE_SPECS, QUICK_REPORT_STYLE, QUICK_REPORT_ZONE_COLORS, QUICK_SOIL_COLORS, quickCrossCorrelation, quickFuzzyMembership, quickFuzzyMembershipFromU, quickPermeabilityFromIc, quickPlotAssistantPageEvidence, quickPlotClassificationEvidence, quickPlotFormulaAudit, quickPlotInputHash, quickPlotPdfAuthority, quickPlotReadiness, quickPlotRoute, quickRelativeDensityPercent, quickReportLogicalPixelsForPoints, quickReportResolvedFontSize, quickRobertson2010SbtZone, quickRobertsonSbtnZone, quickRobustDisplayRange, quickRowsFromTable, quickSandStateParameter, quickSaturatedPhysicalIndices } from '../../src/features/quick/quickPlotDomain';
+import { createQuickPlotResultPackage, createQuickPlotRevision, createQuickPlotWorkspace, deriveQuickPlotRows, parseQuickPlotClipboard, QUICK_BQ_REFERENCE_POLYGONS, QUICK_PARAMETER_CLASSIFICATION_BASIS, QUICK_PARAMETER_COMPARISON_ROLE, QUICK_PDF_A3_PIXELS, QUICK_PDF_DPI, QUICK_REPORT_AXIS_LABELS, QUICK_REPORT_FONT_PT_FLOORS, QUICK_REPORT_PAGE_SPECS, QUICK_REPORT_STYLE, QUICK_REPORT_ZONE_COLORS, QUICK_SOIL_COLORS, quickCrossCorrelation, quickFuzzyMembership, quickFuzzyMembershipFromU, quickPermeabilityFromIc, quickPlotAssistantPageEvidence, quickPlotClassificationEvidence, quickPlotFormulaAudit, quickPlotInputHash, quickPlotPdfAuthority, quickPlotReadiness, quickPlotRoute, quickRelativeDensityPercent, quickReportLogicalPixelsForPoints, quickReportResolvedFontSize, quickRobertson2010SbtZone, quickRobertsonSbtnZone, quickRobustDisplayRange, quickRowsFromTable, quickSandStateParameter, quickSaturatedPhysicalIndices } from '../../src/features/quick/quickPlotDomain';
 import { classifyRobertson2016, classifySchneider2008, deriveRobertsonQtn, schneider2008Boundaries } from '../../src/features/quick/quickClassificationDomain';
 import { createQuickPlotXlsx } from '../../src/features/quick/quickPlotWorkbook';
-import { buildQuickPlotRowsFromProposal, QUICK_PLOT_IMPORT_PROTOCOL, quickPlotDecisionFromTool, quickPlotProposalFromTool, quickPlotQuestionOptionLabel } from '../../src/features/quick/quickPlotAssistantDomain';
+import { alignSeriesToDepths, buildQuickPlotRowsFromProposal, QUICK_PLOT_IMPORT_PROTOCOL, QUICK_PLOT_MAX_AI_QUESTIONS, quickPlotDecisionFromTool, quickPlotProposalFromTool, quickPlotQuestionOptionLabel, type QuickPlotImportProposal } from '../../src/features/quick/quickPlotAssistantDomain';
 import { buildQuickReportExplanation, executeQuickReportReadTool, hasQuickReportEvidenceForQuestion, QUICK_REPORT_HISTORY_ANSWER_LIMIT, quickReportSourceDetail, trimQuickReportTurns } from '../../src/features/quick/QuickPlotAssistantPanel';
 import type { AssistantContextSnapshot, AssistantWireTurn } from '../../src/features/assistant/assistantTypes';
 import type { ImportAssistantSource } from '../../src/features/import/importAssistantDomain';
@@ -121,6 +121,144 @@ test('PROCESS113 clipboard parser keeps readable negative values and only skips 
   expect(parsed.rows[2]).toMatchObject({ depthM: 0.03, qcMpa: 3, fsKpa: null, u2Kpa: -5 });
 });
 
+test('PROCESS157 independent series aligns only inside measured coverage and short gaps', () => {
+  const alignment = alignSeriesToDepths(
+    [0, 0.5, 2, 3, 6, 10, 11],
+    [
+      { depthM: 0, value: 0 },
+      { depthM: 1, value: 10 },
+      { depthM: 2, value: 20 },
+      { depthM: 10, value: 100 },
+    ],
+  );
+  expect(alignment.typicalSpacing).toBe(1);
+  expect(alignment.maxGap).toBe(5);
+  expect(alignment.values).toEqual([
+    { value: 0, state: 'observed' },
+    { value: 5, state: 'aligned' },
+    { value: 20, state: 'observed' },
+    { value: null, state: 'missing' },
+    { value: null, state: 'missing' },
+    { value: 100, state: 'observed' },
+    { value: null, state: 'missing' },
+  ]);
+  expect(alignment).toMatchObject({ aligned: 1, gapMissing: 2 });
+});
+
+test('PROCESS157 independent-depth workbook uses qc as the master axis and preserves direct qt', () => {
+  const source: ImportAssistantSource = {
+    operationId: 'process157-independent',
+    sourceFingerprint: '7'.repeat(64),
+    fileName: 'independent-series.xlsx',
+    fileType: 'XLSX',
+    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    sizeBytes: 1024,
+    sheets: [{
+      sheetName: 'Raw Data',
+      rowCount: 7,
+      columnCount: 6,
+      rows: [
+        ['Cone qt', 'Depth', 'PWP u2', 'Depth', 'Sleeve fs', 'Depth'],
+        ['MPa', 'm', 'kPa', 'm', 'kPa', 'm'],
+        ['2.0', '0', '10', '0', '20', '0'],
+        ['2.2', '1', '30', '2', '30', '2'],
+        ['2.4', '2', '50', '4', '40', '4'],
+        ['2.6', '3', '', '', '', ''],
+        ['2.8', '4', '', '', '', ''],
+      ],
+      displayRowNumbers: [1, 2, 3, 4, 5, 6, 7],
+    }],
+  };
+  const proposal: QuickPlotImportProposal = {
+    protocolVersion: QUICK_PLOT_IMPORT_PROTOCOL,
+    requestId: 'request-process157',
+    operationId: source.operationId,
+    sourceFingerprint: source.sourceFingerprint,
+    contextHash: 'context-process157',
+    proposalId: 'proposal-process157',
+    proposalHash: '',
+    layout: 'independent-series',
+    sheetName: 'Raw Data',
+    headerMode: 'present',
+    headerRow: 1,
+    dataStartRow: 3,
+    dataEndRow: 7,
+    summary: '三条曲线使用各自深度列。',
+    columns: [
+      { sourceColumnIndex: 0, targetField: 'qc', sourceUnit: 'MPa', depthSourceColumnIndex: 1, depthSourceUnit: 'm', tipResistanceKind: 'qt', reason: 'Cone qt 与右侧 Depth 配对。' },
+      { sourceColumnIndex: 2, targetField: 'u2', sourceUnit: 'kPa', depthSourceColumnIndex: 3, depthSourceUnit: 'm', reason: 'u2 与右侧 Depth 配对。' },
+      { sourceColumnIndex: 4, targetField: 'fs', sourceUnit: 'kPa', depthSourceColumnIndex: 5, depthSourceUnit: 'm', reason: 'fs 与右侧 Depth 配对。' },
+    ],
+    ignoredColumns: [],
+    warnings: [],
+    ambiguityConfirmations: [],
+  };
+  const result = buildQuickPlotRowsFromProposal(proposal, source);
+  expect('problem' in result).toBe(false);
+  if ('problem' in result) return;
+  expect(result.rows).toHaveLength(5);
+  expect(result.rows.map((row) => row.depthM)).toEqual([0, 1, 2, 3, 4]);
+  expect(result.rows.map((row) => row.fsKpa)).toEqual([20, 25, 30, 35, 40]);
+  expect(result.rows.map((row) => row.u2Kpa)).toEqual([10, 20, 30, 40, 50]);
+  expect(result.rows[1]).toMatchObject({
+    tipResistanceKind: 'qt',
+    valueOrigins: { depthM: 'observed', qc: 'observed', fs: 'aligned', u2: 'aligned' },
+  });
+  expect(result.ledger.alignment).toMatchObject({ layout: 'independent-series', fsAligned: 2, u2Aligned: 2 });
+
+  const workspace = createQuickPlotWorkspace('direct-qt');
+  workspace.rows = result.rows;
+  workspace.settings.pressureBasisConfirmed = true;
+  workspace.settings.u2Usage = 'total';
+  const derived = deriveQuickPlotRows(workspace.rows, workspace.settings);
+  expect(derived[0].qtKpa).toBe(2000);
+  expect(derived[0].qtKpa).not.toBe(2002);
+  expect(derived.every((row) => row.tipResistanceKind === 'qt')).toBe(true);
+  const audit = quickPlotFormulaAudit(workspace.settings, derived);
+  expect(audit.groups.flatMap((group) => group.formulas)).toContain('来源已提供 qt：直接使用，不再进行有效面积修正  [A02]');
+  expect(audit.groups.flatMap((group) => group.formulas).join('\n')).not.toContain('qt(kPa) = qc(kPa) + u2(kPa)(1-a)');
+});
+
+test('PROCESS157 constrained AI negotiation allows six questions before manual fallback', () => {
+  expect(QUICK_PLOT_MAX_AI_QUESTIONS).toBe(6);
+});
+
+test('PROCESS157 missing or zero fs keeps qc-derived results without inventing friction classifications', async () => {
+  const workspace = createQuickPlotWorkspace('partial-fs');
+  workspace.rows = [
+    { rowId: 'missing-fs', depthM: 1, qcMpa: 2, fsKpa: null, u2Kpa: 15 },
+    { rowId: 'zero-fs', depthM: 2, qcMpa: 2.2, fsKpa: 0, u2Kpa: 18 },
+    { rowId: 'valid-fs', depthM: 3, qcMpa: 2.4, fsKpa: 22, u2Kpa: null },
+  ];
+  workspace.settings.pressureBasisConfirmed = true;
+  workspace.settings.u2Usage = 'total';
+  const resultPackage = createQuickPlotResultPackage(workspace);
+  expect(resultPackage.derivedRows).toHaveLength(3);
+  expect(resultPackage.rows.map((row) => row.status)).toEqual(['partial', 'partial', 'partial']);
+  expect(resultPackage.rows[0].derived).toMatchObject({
+    sourceFsKpa: null,
+    rfPercent: null,
+    frPercent: null,
+    ic: null,
+    zone: null,
+    fuzzy: null,
+  });
+  expect(resultPackage.rows[0].derived?.qnetKpa).toBeGreaterThan(0);
+  expect(resultPackage.rows[0].reasons.join(' ')).toContain('fs 缺失');
+  expect(resultPackage.rows[1].derived).toMatchObject({ sourceFsKpa: 0, rfPercent: 0, ic: null, zone: null });
+  expect(resultPackage.rows[1].reasons.join(' ')).toContain('fs 实测为 0');
+  expect(resultPackage.rows[2].derived?.sourceU2Kpa).toBeNull();
+  expect(resultPackage.rows[2].reasons.join(' ')).toContain('u2 缺失');
+
+  const revision = createQuickPlotRevision(workspace, '2026-08-18T00:00:00.000Z');
+  const workbook = unzipSync(await createQuickPlotXlsx(workspace, revision));
+  const resultSheet = strFromU8(workbook['xl/worksheets/sheet2.xml']);
+  expect(resultSheet).toContain('部分解译');
+  expect(resultSheet).toContain('fs 缺失');
+  expect(resultSheet).toContain('u2 缺失');
+  expect(resultSheet).not.toContain('本行无有效解译结果');
+});
+
 test('PROCESS132 AI quick import accepts Chinese synonyms, converts units, and excludes unrelated columns', () => {
   const source: ImportAssistantSource = {
     operationId: 'quick-ai-1',
@@ -170,8 +308,8 @@ test('PROCESS132 AI quick import accepts Chinese synonyms, converts units, and e
   expect('problem' in result).toBe(false);
   if ('problem' in result) return;
   expect(result.rows).toEqual([
-    { rowId: 'quick-ai-row-000003', depthM: 0.01, qcMpa: 2, fsKpa: 12, u2Kpa: null },
-    { rowId: 'quick-ai-row-000004', depthM: 0.02, qcMpa: 3.5, fsKpa: 14, u2Kpa: 4 },
+    expect.objectContaining({ rowId: 'quick-ai-row-000003', depthM: 0.01, qcMpa: 2, fsKpa: 12, u2Kpa: null }),
+    expect.objectContaining({ rowId: 'quick-ai-row-000004', depthM: 0.02, qcMpa: 3.5, fsKpa: 14, u2Kpa: 4 }),
   ]);
   expect(result.ignoredColumns.map((column) => column.headerLabel)).toEqual(['倾角', '温度']);
 });
@@ -359,6 +497,7 @@ test('PROCESS134 versioned AI decision keeps the first numeric row in a headerle
       kind: 'proposal',
       proposal: {
         proposalId: 'proposal-headerless',
+        layout: 'shared-depth',
         sheetName: 'CSV',
         headerMode: 'absent',
         headerRow: null,
@@ -424,6 +563,7 @@ test('quick import supplements a uniquely explicit optional u2 header omitted by
       kind: 'proposal',
       proposal: {
         proposalId: 'proposal-explicit-u2',
+        layout: 'shared-depth',
         sheetName: 'CSV',
         headerMode: 'present',
         headerRow: 1,
@@ -488,6 +628,7 @@ test('quick optional-field fallback leaves unitless fs and ambiguous u2 choices 
       kind: 'proposal',
       proposal: {
         proposalId: 'proposal-ambiguous',
+        layout: 'shared-depth',
         sheetName: 'CSV',
         headerMode: 'present',
         headerRow: 1,
@@ -535,6 +676,7 @@ test('PROCESS134 unknown labels may be model-inferred, while stale identity and 
     kind: 'proposal',
     proposal: {
       proposalId: 'proposal-unknown',
+      layout: 'shared-depth',
       sheetName: 'CSV',
       headerMode: 'present',
       headerRow: 1,

@@ -273,6 +273,7 @@ test('PROCESS155 5000-row quick import ignores hostile extras, preserves blanks 
       kind: 'proposal',
       proposal: {
         proposalId: 'process155-proposal',
+        layout: 'shared-depth',
         sheetName: 'CSV',
         headerMode: 'present',
         headerRow: 3,
@@ -333,7 +334,7 @@ test('PROCESS155 professional UI turns a 5000-row upload into a reviewable draft
       serviceId: 'sigs-oglab-assistant',
       buildId: 'process155-scale-ui',
       instanceId: 'playwright-mock-instance',
-      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
       serviceAvailable: true,
       provider: 'mock',
       model: 'deepseek-v4-pro',

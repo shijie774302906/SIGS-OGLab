@@ -21,7 +21,7 @@ export class AssistantRequestError extends Error {
 
 const ASSISTANT_ENDPOINT = '/api/assistant';
 const REQUIRED_ASSISTANT_SERVICE = 'sigs-oglab-assistant';
-const REQUIRED_ASSISTANT_PROTOCOLS = ['sigs.assistant/1', 'sigs.ai-import/1'];
+const REQUIRED_ASSISTANT_PROTOCOLS = ['sigs.assistant/1', 'sigs.ai-import/2'];
 // CloudBase Run allows about 60 seconds per HTTP request. The browser waits
 // slightly longer so it can receive the server's controlled timeout response.
 const ASSISTANT_TURN_TIMEOUT_MS = 70_000;

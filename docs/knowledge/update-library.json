@@ -689,6 +689,14 @@
       "status": "closed",
       "record": "process_logs/Process156.md",
       "problems": ["KPB-002"]
+    },
+    {
+      "id": "Process157",
+      "date": "2026-08-18",
+      "title": "快捷 AI 导入 v2 与分项解译",
+      "status": "closed",
+      "record": "process_logs/Process157.md",
+      "problems": ["KPB-001", "KPB-002", "KPB-004", "KPB-008", "KPB-009", "KPB-012", "KPB-013", "KPB-023"]
     }
   ]
 }

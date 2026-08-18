@@ -76,7 +76,7 @@ try {
     },
     importSource: {
       operationId: 'quick-smoke-operation',
-      protocolVersion: 'sigs.ai-import/1',
+      protocolVersion: 'sigs.ai-import/2',
       requestId: 'quick-smoke-request',
       contextHash: 'quick-smoke-authority',
       sourceFingerprint: '7'.repeat(64),
@@ -151,7 +151,7 @@ try {
   }
   const quickDecision = JSON.parse(quickResult.calls[0].arguments);
   if (
-    quickDecision.protocolVersion !== 'sigs.ai-import/1'
+    quickDecision.protocolVersion !== 'sigs.ai-import/2'
     || quickDecision.requestId !== quickContext.importSource.requestId
     || quickDecision.operationId !== quickContext.importSource.operationId
     || !['question', 'proposal'].includes(quickDecision.kind)

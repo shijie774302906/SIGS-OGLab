@@ -59,6 +59,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
   const [guideReplayToken, setGuideReplayToken] = useState(0);
   const [pendingSheet, setPendingSheet] = useState<{ file: File; candidates: ExcelSheetProfileV1[] } | null>(null);
   const [demoReplacePending, setDemoReplacePending] = useState(false);
+  const [invalidCells, setInvalidCells] = useState<Set<string>>(() => new Set());
   const fileRef = useRef<HTMLInputElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const pasteGridRef = useRef<HTMLDivElement>(null);
@@ -77,7 +78,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
   const classificationEvidence = useMemo(() => quickPlotClassificationEvidence(workspace), [workspace]);
   const formulaEvidence = useMemo(() => { const audit = quickPlotFormulaAudit(workspace.settings, deriveQuickPlotRows(workspace.rows, workspace.settings)); return { formulaIds: audit.formulaIds, formulas: audit.groups.flatMap((group) => group.formulas) }; }, [workspace]);
   const pressureBasisConfirmed = !hasU2Data || Boolean(workspace.settings.u2Usage) || Boolean(workspace.settings.pressureBasisConfirmed);
-  const canGenerate = readiness.ready && pressureBasisConfirmed;
+  const canGenerate = readiness.ready && pressureBasisConfirmed && invalidCells.size === 0;
   const pdfButtonLabel = exporting === 'pdf'
     ? pdfProgress?.phase === 'packaging'
       ? '正在打包 15/15'
@@ -116,6 +117,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
   }
 
   function acceptRows(rows: QuickPlotWorkspaceV1['rows'], sourceName: string, skipped = 0) {
+    setInvalidCells(new Set());
     reflectAcceptedRows(sourceName, skipped);
     setPdfExportFailed(false);
     updateQuick((current) => ({ ...current, rows, sourceName, settings: { ...current.settings, pressureBasisConfirmed: quickPlotRoute(rows) === 'approximate_cpt', u2Usage: undefined } }));
@@ -135,7 +137,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
 
   function clearInputRows() {
     if (!workspace.rows.length) return;
-    setProblem(''); setSuccessNote(''); setPasteNote('数据和已生成图册已清空，可以重新粘贴或导入。'); setPendingSheet(null); setPages([]); setSelectedPage(0); setGenerateFailed(false); setPdfExportFailed(false); setView('input');
+    setProblem(''); setSuccessNote(''); setPasteNote('数据和已生成图册已清空，可以重新粘贴或导入。'); setPendingSheet(null); setPages([]); setSelectedPage(0); setGenerateFailed(false); setPdfExportFailed(false); setView('input'); setInvalidCells(new Set());
     if (fileRef.current) fileRef.current.value = '';
     updateQuick((current) => ({
       ...current,
@@ -153,6 +155,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
     reflectAcceptedRows(SYNTHETIC_CPTU_DEMO_NAME);
     setPendingSheet(null);
     setDemoReplacePending(false);
+    setInvalidCells(new Set());
     setPasteNote('系统生成演示数据，仅用于体验功能。');
     updateQuick((current) => ({
       ...current,
@@ -210,6 +213,41 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
     if (!rows.length) { setProblem('这个数据表里没有可出图的数据。请至少确认“深度”和“qc”两列。'); return; }
     acceptRows(rows, fileName);
     updateQuick((current) => ({ ...current, rows, sourceName: fileName, settings: { ...current.settings, pointName: result.metadata.pointName || current.settings.pointName, waterDepthM: result.metadata.waterDepthM, effectiveAreaRatio: result.metadata.coneAreaRatio ?? current.settings.effectiveAreaRatio, pressureBasisConfirmed: false, u2Usage: undefined } }));
+  }
+
+  function editCell(rowId: string, field: 'depthM' | 'qcMpa' | 'fsKpa' | 'u2Kpa', raw: string) {
+    const cellKey = `${rowId}:${field}`;
+    const trimmed = raw.trim();
+    const optional = field === 'fsKpa' || field === 'u2Kpa';
+    const parsed = trimmed === '' ? null : Number(trimmed.replace(/,/g, ''));
+    const invalidRequired = !optional && (parsed === null || !Number.isFinite(parsed) || (field === 'depthM' ? parsed < 0 : parsed <= 0));
+    if (invalidRequired || (parsed !== null && !Number.isFinite(parsed))) {
+      setInvalidCells((current) => new Set(current).add(cellKey));
+      setProblem(`${field === 'depthM' ? '深度' : field === 'qcMpa' ? 'qc' : field === 'fsKpa' ? 'fs' : 'u2'} 需要有效数字；修正后即可继续。`);
+      return false;
+    }
+    if (field === 'depthM' && parsed !== null && workspace.rows.some((row) => row.rowId !== rowId && row.depthM === parsed)) {
+      setInvalidCells((current) => new Set(current).add(cellKey));
+      setProblem('深度不能与另一行重复；请修改后再生成。');
+      return false;
+    }
+    const nextValue = field === 'fsKpa' && parsed !== null && parsed < 0 ? null : parsed;
+    const previousValue = workspace.rows.find((row) => row.rowId === rowId)?.[field] ?? null;
+    if (Object.is(previousValue, nextValue) && !invalidCells.has(cellKey)) return true;
+    setInvalidCells((current) => { const next = new Set(current); next.delete(cellKey); return next; });
+    setProblem(''); setPages([]); setGenerateFailed(false); setPdfExportFailed(false);
+    updateQuick((current) => ({
+      ...current,
+      rows: current.rows.map((row) => {
+        if (row.rowId !== rowId) return row;
+        const originField = field === 'qcMpa' ? 'qc' : field === 'fsKpa' ? 'fs' : field === 'u2Kpa' ? 'u2' : 'depthM';
+        return { ...row, [field]: nextValue, valueOrigins: { ...row.valueOrigins, [originField]: nextValue === null ? 'missing' : 'manual' } };
+      }),
+      revisions: [],
+      activeRevisionId: null,
+    }));
+    setPasteNote('已更新表格；图册将在你点击生成时重新计算。');
+    return true;
   }
 
   async function generate() {
@@ -319,7 +357,12 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
         <div className="quick-card-heading"><div><h2>数据</h2><span>{workspace.rows.length ? `${workspace.rows.length.toLocaleString('zh-CN')} 行 · ${workspace.sourceName}` : '等待粘贴'}</span></div><div className="quick-card-actions"><button type="button" className="quick-secondary" disabled={!workspace.rows.length} onClick={clearInputRows} data-testid="quick-clear-input" title="清空当前数据和已生成图册"><Trash2 size={16} />清空数据</button><button type="button" className="quick-secondary" onClick={() => workspace.rows.length ? setDemoReplacePending(true) : applyDemoRows()} data-testid="quick-use-demo-data">试用演示数据</button><input ref={fileRef} type="file" accept=".xlsx,.xls" hidden onChange={(event) => void onFile(event.target.files?.[0] ?? null)} /><button type="button" className="quick-secondary" onClick={() => fileRef.current?.click()} data-testid="quick-import-excel"><Upload size={16} />从 Excel 导入</button></div></div>
         <div ref={pasteGridRef} className={`quick-paste-grid${workspace.rows.length ? ' has-data' : ''}`} tabIndex={0} onPaste={onPaste} data-testid="quick-paste-grid">
           <table><thead><tr><th>深度 <small>m · 必填</small></th><th>qc <small>MPa · 必填</small></th><th>fs <small>kPa · 可空</small></th><th>u2 <small>kPa · 可空</small></th></tr></thead>
-          <tbody>{visibleRows.length ? visibleRows.map((row) => <tr key={row.rowId}><td>{row.depthM}</td><td>{row.qcMpa}</td><td>{row.fsKpa ?? ''}</td><td>{row.u2Kpa ?? ''}</td></tr>) : <tr><td colSpan={4}><div className="quick-paste-empty"><FileSpreadsheet /><strong>点击这里，按 Ctrl + V 粘贴</strong><span>第一列深度，第二列 qc，第三列 fs，第四列 u2</span></div></td></tr>}</tbody></table>
+          <tbody>{visibleRows.length ? visibleRows.map((row) => <tr key={row.rowId}>
+            <td><QuickEditableCell value={row.depthM} invalid={invalidCells.has(`${row.rowId}:depthM`)} label={`深度 ${row.depthM}`} onCommit={(value) => editCell(row.rowId, 'depthM', value)} /></td>
+            <td><QuickEditableCell value={row.qcMpa} invalid={invalidCells.has(`${row.rowId}:qcMpa`)} label={`qc ${row.depthM} m`} onCommit={(value) => editCell(row.rowId, 'qcMpa', value)} /></td>
+            <td><QuickEditableCell value={row.fsKpa} invalid={invalidCells.has(`${row.rowId}:fsKpa`)} label={`fs ${row.depthM} m`} onCommit={(value) => editCell(row.rowId, 'fsKpa', value)} /></td>
+            <td><QuickEditableCell value={row.u2Kpa} invalid={invalidCells.has(`${row.rowId}:u2Kpa`)} label={`u2 ${row.depthM} m`} onCommit={(value) => editCell(row.rowId, 'u2Kpa', value)} /></td>
+          </tr>) : <tr><td colSpan={4}><div className="quick-paste-empty"><FileSpreadsheet /><strong>点击这里，按 Ctrl + V 粘贴</strong><span>第一列深度，第二列 qc，第三列 fs，第四列 u2</span></div></td></tr>}</tbody></table>
           {workspace.rows.length > visibleRows.length ? <div className="quick-row-limit">已显示前 {visibleRows.length} 行，共 {workspace.rows.length.toLocaleString('zh-CN')} 行</div> : null}
         </div>
         {pasteNote ? <p className="quick-note" role="status">{pasteNote}</p> : null}
@@ -335,7 +378,7 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
         </div>
         {hasU2Data ? <fieldset className="quick-basis-confirm"><legend>u2 怎么使用？</legend><label><input type="radio" name="quick-u2-usage" checked={workspace.settings.u2Usage === 'total' || (!workspace.settings.u2Usage && workspace.settings.pressureBasisConfirmed)} onChange={() => updateQuick((current) => ({ ...current, settings: { ...current.settings, pressureBasisConfirmed: true, u2Usage: 'total' } }))} data-testid="quick-pressure-basis-confirm" /><span><b>按总孔压计算</b>　确认深度从泥面向下，u2 包含静水压力；缺失行只跳过孔压方法。</span></label><label><input type="radio" name="quick-u2-usage" checked={workspace.settings.u2Usage === 'raw_only'} onChange={() => updateQuick((current) => ({ ...current, settings: { ...current.settings, pressureBasisConfirmed: true, u2Usage: 'raw_only' } }))} data-testid="quick-pressure-raw-only" /><span><b>不确定，只展示原始 u2</b>　仍生成图册，但不计算 Schneider、Bq 等孔压方法。</span></label></fieldset> : <p className="quick-cpt-route">u2 少于 2 个有效点，将按 CPT 近似路线出图；Schneider、Bq 和孔压相关结果不生成。</p>}
       </section>
-      {problem ? <p className="quick-problem" role="alert">{problem}</p> : null}
+       {invalidCells.size ? <p className="quick-problem" role="alert">有 {invalidCells.size} 个单元格需要修正；fs、u2 留空不会阻止生成。</p> : problem ? <p className="quick-problem" role="alert">{problem}</p> : null}
       <section className={`quick-ready-bar ${canGenerate && !stale ? 'ready' : ''}${stale ? ' stale' : ''}`} data-testid="quick-ready-bar"><div><strong>{stale ? '图册需要更新' : activeRevision ? '当前图册仍可查看' : generateFailed ? '图册没有生成' : canGenerate ? '数据已准备好' : readiness.ready && !pressureBasisConfirmed ? '请选择 u2 的使用方式' : '粘贴数据后即可生成'}</strong><span>{stale ? '孔位或数据已改变；当前预览已失效，请重新生成后再预览或导出。' : activeRevision ? '输入没有变化，不需要重复生成。' : generateFailed ? '数据仍在当前页面，可以直接重试。' : readiness.ready ? `${workspace.settings.pointName}${fullCptu ? ` · 水深 ${workspace.settings.waterDepthM.toFixed(1)} m` : ' · CPT 近似'} · 不会改动你粘贴的数据。` : readiness.message}</span></div><button type="button" className="quick-primary" disabled={!canGenerate || generating} onClick={() => activeRevision && !stale ? setView('report') : void generate()} data-testid="quick-generate-report">{generating ? '正在生成图册…' : activeRevision && !stale ? '返回当前图册' : stale ? '重新生成图册' : generateFailed ? '重试生成图册' : '确认并生成图册'}<ArrowLeft className="quick-forward" size={18} /></button></section>
     </main>
     <QuickPlotFirstUseGuide key="quick-input-guide" mode="input" hasRows={workspace.rows.length > 0} hasU2Data={hasU2Data} replayToken={guideReplayToken} />
@@ -379,3 +422,26 @@ export function QuickPlotWorkspace({ project, onUpdateProject, onOpenProjectHub,
 }
 
 function safeName(value: string) { return value.trim().replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, '-') || 'CPT'; }
+
+function QuickEditableCell({ value, invalid, label, onCommit }: {
+  value: number | null;
+  invalid: boolean;
+  label: string;
+  onCommit: (value: string) => boolean;
+}) {
+  const [draft, setDraft] = useState(value === null ? '' : String(value));
+  useEffect(() => setDraft(value === null ? '' : String(value)), [value]);
+  return <input
+    className={`quick-cell-input${invalid ? ' is-invalid' : ''}`}
+    value={draft}
+    inputMode="decimal"
+    aria-label={label}
+    aria-invalid={invalid}
+    onChange={(event) => setDraft(event.target.value)}
+    onBlur={() => { if (onCommit(draft)) setDraft(draft.trim()); }}
+    onKeyDown={(event) => {
+      if (event.key === 'Enter') event.currentTarget.blur();
+      if (event.key === 'Escape') { setDraft(value === null ? '' : String(value)); event.currentTarget.blur(); }
+    }}
+  />;
+}

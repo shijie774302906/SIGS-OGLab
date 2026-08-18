@@ -122,7 +122,7 @@ test('PROCESS140 exhausted public quota stops public turns while a personal key 
     serviceId: 'sigs-oglab-assistant',
     buildId: 'test',
     instanceId: 'test-instance',
-    protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+    protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
   };
   expect(getAssistantTurnAccessProblem({
     capability,

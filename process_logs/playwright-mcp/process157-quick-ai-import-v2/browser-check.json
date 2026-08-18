@@ -1,0 +1,14 @@
+{
+  "process": "Process157",
+  "optionalFsBlankPreserved": true,
+  "requiredQcRecovered": true,
+  "reportGenerated": true,
+  "layout": {
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "overflowX": 0
+  },
+  "browserErrors": []
+}

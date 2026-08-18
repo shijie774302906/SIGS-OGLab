@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto';
 
 export const ASSISTANT_SERVICE_ID = 'sigs-oglab-assistant';
-export const ASSISTANT_BUILD_ID = 'process134-ai-import-v1';
+export const ASSISTANT_BUILD_ID = 'process157-quick-ai-import-v2';
 export const ASSISTANT_PROTOCOL_VERSIONS = Object.freeze([
   'sigs.assistant/1',
-  'sigs.ai-import/1',
+  'sigs.ai-import/2',
 ]);
 export const ASSISTANT_INSTANCE_ID = randomUUID();
 

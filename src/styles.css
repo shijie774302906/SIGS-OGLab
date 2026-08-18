@@ -9922,6 +9922,10 @@ p {
 .quick-paste-grid th small { float: right; color: #74838a; font-weight: 400; }
 .quick-paste-grid td { height: 31px; padding: 0 13px; border-right: 1px solid #e4e9eb; border-bottom: 1px solid #e6ebed; color: #33474f; font-variant-numeric: tabular-nums; font-size: 12px; }
 .quick-paste-grid tbody tr:nth-child(even) td { background: #fafbfb; }
+.quick-cell-input { width: 100%; height: 28px; margin: 0; padding: 0 4px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: inherit; font: inherit; font-variant-numeric: tabular-nums; }
+.quick-cell-input:hover { border-color: #cfd8dc; background: #fff; }
+.quick-cell-input:focus { border-color: #8f7bf3; background: #fff; outline: 2px solid rgba(143,123,243,.14); }
+.quick-cell-input.is-invalid { border-color: #d85656; background: #fff2f2; }
 .quick-paste-empty { height: 350px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; color: #819097; }
 .quick-paste-empty svg { width: 34px; height: 34px; color: #9c87f4; }
 .quick-paste-empty strong { color: #344951; font-size: 15px; }

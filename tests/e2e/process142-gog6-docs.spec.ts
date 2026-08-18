@@ -36,7 +36,7 @@ async function installCapabilities(page: Page) {
       serviceId: 'sigs-oglab-assistant',
       buildId: 'process142-gog6-docs',
       instanceId: 'process142-gog6-docs',
-      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/1'],
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
       serviceAvailable: true,
       provider: 'mock',
       model: 'deterministic-mock',

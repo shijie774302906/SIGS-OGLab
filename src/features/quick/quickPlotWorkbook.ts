@@ -1,11 +1,12 @@
 import { strToU8, zipSync } from 'fflate';
 import {
-  deriveQuickPlotRows,
+  createQuickPlotResultPackage,
   QUICK_PLOT_FORMULAS,
   QUICK_PLOT_REFERENCES,
   quickPlotInputHash,
   quickPlotRoute,
   type QuickDerived,
+  type QuickPlotResultRowV1,
   type QuickPlotRevisionV1,
   type QuickPlotWorkspaceV1,
 } from './quickPlotDomain';
@@ -19,25 +20,27 @@ export async function createQuickPlotXlsx(workspace: QuickPlotWorkspaceV1, revis
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(() => resolve());
     else setTimeout(resolve, 0);
   });
-  const derived = deriveQuickPlotRows(workspace.rows, workspace.settings);
-  const derivedBySource = new Map(derived.map((row) => [row.sourceRowId, row]));
+  const resultPackage = createQuickPlotResultPackage(workspace);
+  const derived = resultPackage.derivedRows;
   return buildSimpleWorkbook([
     { name: '原始数据', rows: [
       ['源行ID', '深度(m)', 'qc(MPa)', 'fs(kPa)', 'u2(kPa)'],
       ...workspace.rows.map((row) => [row.rowId, row.depthM, row.qcMpa, row.fsKpa, row.u2Kpa]),
     ] },
     { name: '快捷解译结果', rows: [
-      ['源行ID', '深度(m)', '状态', '路线', 'qt(kPa)', 'qnet(kPa)', 'Rf(%)', 'Fr(%)', 'JTS Qtn* (-)', 'Bq (-)', 'JTS Ic (-)', 'JTS Zone (-)', 'Robertson Qtn (-)', 'Robertson Ic (-)', 'Robertson n (-)', 'Modified Robertson 2016', 'IB (-)', 'CD (-)', 'Schneider 2008', '土类大类', 'k(m/s)', 'N(击/0.30m)', 'Es(R05)(MPa)', 'Dr(%)', 'φ′(°)', 'Es(JTS 7.2.8)(MPa)', 'G0(MPa)', 'Su峰值(kPa)', 'Su重塑后(kPa)', 'Su/σ′v0 (-)', 'Su(r)/σ′v0 (-)', 'OCR (-)', 'Vs(m/s)', 'K0 (-)', 'Qtn,cs (-)', 'ψ (-)', 'St (-)', 'γsat(kN/m³)', 'e (-)', 'w(%)', 'γd(kN/m³)', 'n (-)'],
-      ...workspace.rows.map((row) => interpretationRow(row.rowId, row.depthM, derivedBySource.get(row.rowId) ?? null)),
+      ['源行ID', '深度(m)', '状态', '未计算说明', '路线', 'qt(kPa)', 'qnet(kPa)', 'Rf(%)', 'Fr(%)', 'JTS Qtn* (-)', 'Bq (-)', 'JTS Ic (-)', 'JTS Zone (-)', 'Robertson Qtn (-)', 'Robertson Ic (-)', 'Robertson n (-)', 'Modified Robertson 2016', 'IB (-)', 'CD (-)', 'Schneider 2008', '土类大类', 'k(m/s)', 'N(击/0.30m)', 'Es(R05)(MPa)', 'Dr(%)', 'φ′(°)', 'Es(JTS 7.2.8)(MPa)', 'G0(MPa)', 'Su峰值(kPa)', 'Su重塑后(kPa)', 'Su/σ′v0 (-)', 'Su(r)/σ′v0 (-)', 'OCR (-)', 'Vs(m/s)', 'K0 (-)', 'Qtn,cs (-)', 'ψ (-)', 'St (-)', 'γsat(kN/m³)', 'e (-)', 'w(%)', 'γd(kN/m³)', 'n (-)'],
+      ...resultPackage.rows.map(interpretationRow),
     ] },
     { name: '设置与方法', rows: settingsAndMethods(workspace, revision, derived.length) },
   ]);
 }
 
-function interpretationRow(sourceRowId: string, depthM: number, row: QuickDerived | null): Cell[] {
-  if (!row) return [sourceRowId, depthM, '本行无有效解译结果', null];
+function interpretationRow(result: QuickPlotResultRowV1): Cell[] {
+  const { source, derived: row } = result;
+  if (!row) return [source.rowId, source.depthM, '未解译', result.reasons.join('；'), null];
   return [
-    sourceRowId, depthM, '已解译', row.route === 'full_cptu' ? 'CPTU（该行 u2 有效）' : 'CPT（该行未使用 u2）', row.qtKpa, row.qnetKpa,
+    source.rowId, source.depthM, result.status === 'complete' ? '已解译' : '部分解译', result.reasons.join('；') || null,
+    row.route === 'full_cptu' ? 'CPTU（该行 u2 有效）' : 'CPT（该行未使用 u2）', row.qtKpa, row.qnetKpa,
     row.rfPercent, row.frPercent, row.qtn, row.bq, row.ic, row.zone,
     row.robertsonQtn, row.robertsonIc, row.robertsonExponentN, row.robertson2016?.code ?? null, row.robertson2016?.ib ?? null, row.robertson2016?.cd ?? null, row.schneider2008?.code ?? null,
     majorLabel(row.major), row.permeability,

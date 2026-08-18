@@ -6,7 +6,8 @@ import {
 } from '../import/importAssistantDomain';
 import type { QuickPlotRowV1 } from './quickPlotDomain';
 
-export const QUICK_PLOT_IMPORT_PROTOCOL = 'sigs.ai-import/1' as const;
+export const QUICK_PLOT_IMPORT_PROTOCOL = 'sigs.ai-import/2' as const;
+export const QUICK_PLOT_MAX_AI_QUESTIONS = 6;
 
 export type QuickPlotAssistantField = 'depthM' | 'qc' | 'fs' | 'u2';
 export type QuickPlotAssistantUnit = 'm' | 'cm' | 'mm' | 'kPa' | 'MPa';
@@ -16,6 +17,10 @@ export type QuickPlotAssistantColumn = {
   sourceColumnIndex: number;
   targetField: QuickPlotAssistantField;
   sourceUnit: QuickPlotAssistantUnit;
+  /** Independent-series layout: depth column paired with this measurement. */
+  depthSourceColumnIndex?: number;
+  depthSourceUnit?: Extract<QuickPlotAssistantUnit, 'm' | 'cm' | 'mm'>;
+  tipResistanceKind?: 'qc' | 'qt';
   headerLabel?: string;
   reason: string;
   evidenceKind?: 'source-explicit' | 'model-inferred' | 'user-corrected';
@@ -44,6 +49,7 @@ export type QuickPlotImportProposal = {
   contextHash: string;
   proposalId: string;
   proposalHash: string;
+  layout: 'shared-depth' | 'independent-series';
   sheetName: string;
   headerMode: QuickPlotHeaderMode;
   headerRow: number | null;
@@ -113,6 +119,13 @@ export type QuickPlotRowLedger = {
   duplicateDepthRows: number[];
   nonMonotonicRows: number[];
   optionalMissing: { fs: number; u2: number };
+  alignment: {
+    layout: 'shared-depth' | 'independent-series';
+    fsAligned: number;
+    u2Aligned: number;
+    fsGapMissing: number;
+    u2GapMissing: number;
+  };
 };
 
 export type QuickPlotImportBuildResult = {
@@ -180,9 +193,13 @@ export function quickPlotDecisionFromTool(
   const parsedColumns = parseColumns(proposalArgs.columns);
   const parsedIgnoredColumns = parseIgnoredColumns(proposalArgs.ignoredColumns);
   const proposalSheetName = boundedString(proposalArgs.sheetName, 120);
+  const proposalLayout = proposalArgs.layout === 'shared-depth' || proposalArgs.layout === 'independent-series'
+    ? proposalArgs.layout
+    : null;
+  if (!proposalLayout) return { ok: false, problem: 'AI 没有说明数据是共用深度还是各曲线独立深度。' };
   const proposalHeaderRow = proposalArgs.headerRow === null ? null : Number(proposalArgs.headerRow);
   const proposalSheet = source.sheets.find((candidate) => candidate.sheetName === proposalSheetName);
-  const explicitOptionalColumns = proposalSheet
+  const explicitOptionalColumns = proposalSheet && proposalLayout === 'shared-depth'
     ? explicitOptionalMeasurementColumns(
         proposalSheet,
         proposalHeaderRow,
@@ -199,6 +216,7 @@ export function quickPlotDecisionFromTool(
     contextHash: common.identity.contextHash,
     proposalId: boundedString(proposalArgs.proposalId, 120) || call.id,
     proposalHash: '',
+    layout: proposalLayout,
     sheetName: proposalSheetName,
     headerMode: proposalArgs.headerMode as QuickPlotHeaderMode,
     headerRow: proposalHeaderRow,
@@ -252,6 +270,7 @@ export function quickPlotProposalFromTool(
     contextHash: '',
     proposalId: call.id,
     proposalHash: '',
+    layout: 'shared-depth',
     sheetName: boundedString(args.sheetName, 120),
     headerMode: 'present',
     headerRow,
@@ -277,7 +296,10 @@ export function buildQuickPlotRowsFromProposal(
     .filter(({ displayRowNumber }) => (
       displayRowNumber >= proposal.dataStartRow && displayRowNumber <= proposal.dataEndRow
     ));
-  const decisions = new Map(proposal.columns.map((column) => [column.targetField, column]));
+  const decisions = new Map(validation.proposal.columns.map((column) => [column.targetField, column]));
+  if (validation.proposal.layout === 'independent-series') {
+    return buildIndependentQuickPlotRows(validation.proposal, sheet, rowsInRange);
+  }
   const depth = decisions.get('depthM')!;
   const qc = decisions.get('qc')!;
   const fs = decisions.get('fs');
@@ -323,8 +345,10 @@ export function buildQuickPlotRowsFromProposal(
       rowId: `quick-ai-row-${String(displayRowNumber).padStart(6, '0')}`,
       depthM: normalizedDepth,
       qcMpa: convertResistance(qcValue, qc.sourceUnit, 'MPa'),
-      fsKpa: fsValue === null || !fs ? null : convertResistance(fsValue, fs.sourceUnit, 'kPa'),
+      fsKpa: fsValue === null || !fs || fsValue < 0 ? null : convertResistance(fsValue, fs.sourceUnit, 'kPa'),
       u2Kpa: u2Value === null || !u2 ? null : convertResistance(u2Value, u2.sourceUnit, 'kPa'),
+      tipResistanceKind: qc.tipResistanceKind ?? 'qc',
+      valueOrigins: { depthM: 'observed', qc: 'observed', fs: fsValue === null || fsValue < 0 ? 'missing' : 'observed', u2: u2Value === null ? 'missing' : 'observed' },
     });
   });
   if (rows.length < 2 || new Set(rows.map((row) => row.depthM)).size < 2) {
@@ -338,6 +362,7 @@ export function buildQuickPlotRowsFromProposal(
     duplicateDepthRows,
     nonMonotonicRows,
     optionalMissing: { fs: optionalFsMissing, u2: optionalU2Missing },
+    alignment: { layout: 'shared-depth', fsAligned: 0, u2Aligned: 0, fsGapMissing: 0, u2GapMissing: 0 },
   };
   return {
     rows,
@@ -365,6 +390,136 @@ export function buildQuickPlotRowsFromProposal(
       };
     }),
   };
+}
+
+type SourceWindowRow = { cells: string[]; displayRowNumber: number };
+type NumericSeriesPoint = { depthM: number; value: number; displayRowNumber: number };
+
+function buildIndependentQuickPlotRows(
+  proposal: QuickPlotImportProposal,
+  sheet: ImportAssistantSheet,
+  rowsInRange: SourceWindowRow[],
+): QuickPlotImportBuildResult | { problem: string } {
+  const columns = new Map(proposal.columns.map((column) => [column.targetField, column]));
+  const qc = columns.get('qc')!;
+  const qcRead = readIndependentSeries(rowsInRange, qc);
+  const qcSeries = qcRead.points;
+  if (qcSeries.length < 2) return { problem: 'qc 主曲线没有至少 2 个不同深度的有效点。' };
+  const fsColumn = columns.get('fs');
+  const u2Column = columns.get('u2');
+  const fsRead = fsColumn ? readIndependentSeries(rowsInRange, fsColumn) : { points: [], duplicateDepthRows: [] };
+  const u2Read = u2Column ? readIndependentSeries(rowsInRange, u2Column) : { points: [], duplicateDepthRows: [] };
+  const fsSeries = fsRead.points.filter((point) => point.value >= 0);
+  const u2Series = u2Read.points;
+  const fsAlignment = alignSeriesToDepths(qcSeries.map((point) => point.depthM), fsSeries);
+  const u2Alignment = alignSeriesToDepths(qcSeries.map((point) => point.depthM), u2Series);
+  const rows = qcSeries.map((point, index): QuickPlotRowV1 => ({
+    rowId: `quick-ai-row-${String(point.displayRowNumber).padStart(6, '0')}`,
+    depthM: point.depthM,
+    qcMpa: convertResistance(point.value, qc.sourceUnit, 'MPa'),
+    fsKpa: fsColumn && fsAlignment.values[index].value !== null
+      ? convertResistance(fsAlignment.values[index].value as number, fsColumn.sourceUnit, 'kPa')
+      : null,
+    u2Kpa: u2Column && u2Alignment.values[index].value !== null
+      ? convertResistance(u2Alignment.values[index].value as number, u2Column.sourceUnit, 'kPa')
+      : null,
+    tipResistanceKind: qc.tipResistanceKind ?? 'qc',
+    valueOrigins: {
+      depthM: 'observed',
+      qc: 'observed',
+      fs: fsAlignment.values[index].state,
+      u2: u2Alignment.values[index].state,
+    },
+  }));
+  const optionalFsMissing = rows.filter((row) => row.fsKpa === null).length;
+  const optionalU2Missing = rows.filter((row) => row.u2Kpa === null).length;
+  const ledger: QuickPlotRowLedger = {
+    sourceRows: rowsInRange.filter(({ cells }) => cells.some((cell) => cell.trim())).length,
+    blankRows: rowsInRange.filter(({ cells }) => !cells.some((cell) => cell.trim())).length,
+    acceptedRows: rows.length,
+    rejectedRows: [],
+    duplicateDepthRows: [...new Set([...qcRead.duplicateDepthRows, ...fsRead.duplicateDepthRows, ...u2Read.duplicateDepthRows])].sort((left, right) => left - right),
+    nonMonotonicRows: [],
+    optionalMissing: { fs: optionalFsMissing, u2: optionalU2Missing },
+    alignment: {
+      layout: 'independent-series',
+      fsAligned: fsAlignment.aligned,
+      u2Aligned: u2Alignment.aligned,
+      fsGapMissing: fsAlignment.gapMissing,
+      u2GapMissing: u2Alignment.gapMissing,
+    },
+  };
+  return {
+    rows,
+    skippedRows: 0,
+    sourceRows: ledger.sourceRows,
+    ignoredColumns: proposal.ignoredColumns,
+    sheet,
+    ledger,
+    samples: proposal.columns.map((column) => {
+      const sourceValues = rowsInRange.map(({ cells }) => cells[column.sourceColumnIndex]?.trim() ?? '').filter(Boolean).slice(0, 3);
+      return {
+        targetField: column.targetField,
+        sourceValues,
+        normalizedValues: sourceValues.map((value) => {
+          const parsed = numericCell(value);
+          if (parsed === null) return '—';
+          return formatNumber(convertResistance(parsed, column.sourceUnit, column.targetField === 'qc' ? 'MPa' : 'kPa'));
+        }),
+      };
+    }),
+  };
+}
+
+function readIndependentSeries(rows: SourceWindowRow[], column: QuickPlotAssistantColumn) {
+  const depthColumn = column.depthSourceColumnIndex;
+  const depthUnit = column.depthSourceUnit;
+  if (!Number.isInteger(depthColumn) || !depthUnit) return { points: [] as NumericSeriesPoint[], duplicateDepthRows: [] as number[] };
+  const grouped = new Map<number, NumericSeriesPoint[]>();
+  rows.forEach(({ cells, displayRowNumber }) => {
+    const depth = numericCell(cells[depthColumn as number]);
+    const value = numericCell(cells[column.sourceColumnIndex]);
+    if (depth === null || value === null) return;
+    const depthM = convertDepth(depth, depthUnit);
+    if (!Number.isFinite(depthM) || depthM < 0) return;
+    const group = grouped.get(depthM) ?? [];
+    group.push({ depthM, value, displayRowNumber });
+    grouped.set(depthM, group);
+  });
+  const duplicateDepthRows = [...grouped.values()].flatMap((group) => group.slice(1).map((point) => point.displayRowNumber));
+  const points = [...grouped.entries()].map(([depthM, group]) => {
+    const values = group.map((point) => point.value).sort((left, right) => left - right);
+    const middle = Math.floor(values.length / 2);
+    const value = values.length % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2;
+    return { depthM, value, displayRowNumber: group[0].displayRowNumber };
+  }).sort((left, right) => left.depthM - right.depthM);
+  return { points, duplicateDepthRows };
+}
+
+export function alignSeriesToDepths(
+  targetDepths: number[],
+  sourcePoints: Array<{ depthM: number; value: number }>,
+) {
+  const points = [...sourcePoints].filter((point) => Number.isFinite(point.depthM) && Number.isFinite(point.value)).sort((left, right) => left.depthM - right.depthM);
+  const spacings = points.slice(1).map((point, index) => point.depthM - points[index].depthM).filter((gap) => gap > 0).sort((a, b) => a - b);
+  const typicalSpacing = spacings.length ? (spacings.length % 2 ? spacings[(spacings.length - 1) / 2] : (spacings[spacings.length / 2 - 1] + spacings[spacings.length / 2]) / 2) : null;
+  const maxGap = typicalSpacing === null ? 0 : typicalSpacing * 5;
+  let aligned = 0;
+  let gapMissing = 0;
+  const values = targetDepths.map((depth) => {
+    const exact = points.find((point) => point.depthM === depth);
+    if (exact) return { value: exact.value, state: 'observed' as const };
+    const upperIndex = points.findIndex((point) => point.depthM > depth);
+    if (upperIndex <= 0) return { value: null, state: 'missing' as const };
+    const lower = points[upperIndex - 1];
+    const upper = points[upperIndex];
+    const gap = upper.depthM - lower.depthM;
+    if (!(gap > 0) || gap > maxGap) { gapMissing += 1; return { value: null, state: 'missing' as const }; }
+    aligned += 1;
+    const ratio = (depth - lower.depthM) / gap;
+    return { value: lower.value + (upper.value - lower.value) * ratio, state: 'aligned' as const };
+  });
+  return { values, typicalSpacing, maxGap, aligned, gapMissing };
 }
 
 export function quickPlotQuestionOptionLabel(
@@ -595,10 +750,14 @@ function validateProposal(
     return { ok: false, problem: 'AI 判断的表头位置与数据起始行不一致。' };
   }
 
+  if (!['shared-depth', 'independent-series'].includes(input.layout)) {
+    return { ok: false, problem: 'AI 没有说明数据是共用深度还是各曲线独立深度。' };
+  }
   const allowedTargets = new Set<QuickPlotAssistantField>(['depthM', 'qc', 'fs', 'u2']);
   const allowedUnits = new Set<QuickPlotAssistantUnit>(['m', 'cm', 'mm', 'kPa', 'MPa']);
   const targetCounts = new Map<QuickPlotAssistantField, number>();
   const mappedIndexes = new Set<number>();
+  const usedIndexes = new Set<number>();
   for (const column of input.columns) {
     if (
       !Number.isInteger(column.sourceColumnIndex)
@@ -618,14 +777,27 @@ function validateProposal(
       return { ok: false, problem: '阻力或孔压列必须使用 kPa 或 MPa。' };
     }
     mappedIndexes.add(column.sourceColumnIndex);
+    usedIndexes.add(column.sourceColumnIndex);
+    if (input.layout === 'independent-series' && column.targetField !== 'depthM') {
+      if (
+        !Number.isInteger(column.depthSourceColumnIndex)
+        || Number(column.depthSourceColumnIndex) < 0
+        || Number(column.depthSourceColumnIndex) >= sheet.columnCount
+        || !['m', 'cm', 'mm'].includes(String(column.depthSourceUnit))
+      ) {
+        return { ok: false, problem: `${quickPlotFieldLabel(column.targetField)} 缺少有效的独立深度列或深度单位。` };
+      }
+      usedIndexes.add(Number(column.depthSourceColumnIndex));
+    }
     targetCounts.set(column.targetField, (targetCounts.get(column.targetField) ?? 0) + 1);
   }
-  if (
-    targetCounts.get('depthM') !== 1
-    || targetCounts.get('qc') !== 1
-    || [...targetCounts.values()].some((count) => count > 1)
-  ) {
-    return { ok: false, problem: 'AI 必须唯一识别深度和 qc；fs、u2 可以不导入。' };
+  const targetShapeValid = input.layout === 'shared-depth'
+    ? targetCounts.get('depthM') === 1 && targetCounts.get('qc') === 1
+    : !targetCounts.has('depthM') && targetCounts.get('qc') === 1;
+  if (!targetShapeValid || [...targetCounts.values()].some((count) => count > 1)) {
+    return { ok: false, problem: input.layout === 'shared-depth'
+      ? '共用深度布局必须唯一识别深度和 qc；fs、u2 可以不导入。'
+      : '独立深度布局必须为已选择的每条曲线绑定自己的深度列；qc 必须存在，fs、u2 可以不导入。' };
   }
 
   const header = input.headerRow === null
@@ -649,7 +821,10 @@ function validateProposal(
         && confirmation.targetField === column.targetField
         && confirmation.sourceUnit === column.sourceUnit
       ));
-    if (evidence.explicitConflictTargets.has(column.targetField) && !userConfirmedCorrection) {
+    const acceptedDirectQt = column.targetField === 'qc'
+      && column.tipResistanceKind === 'qt'
+      && evidence.directQt;
+    if (evidence.explicitConflictTargets.has(column.targetField) && !userConfirmedCorrection && !acceptedDirectQt) {
       return {
         ok: false,
         problem: `${headerLabel || `${excelColumnLabel(column.sourceColumnIndex)} 列`}与 ${quickPlotFieldLabel(column.targetField)} 的含义明确冲突，不能导入。`,
@@ -688,7 +863,7 @@ function validateProposal(
       !Number.isInteger(ignored.sourceColumnIndex)
       || ignored.sourceColumnIndex < 0
       || ignored.sourceColumnIndex >= sheet.columnCount
-      || mappedIndexes.has(ignored.sourceColumnIndex)
+      || usedIndexes.has(ignored.sourceColumnIndex)
       || ignoredIndexes.has(ignored.sourceColumnIndex)
       || !ignored.reason
     ) {
@@ -697,7 +872,7 @@ function validateProposal(
     ignoredIndexes.add(ignored.sourceColumnIndex);
   }
   const ignoredColumns = Array.from({ length: sheet.columnCount }, (_, sourceColumnIndex) => sourceColumnIndex)
-    .filter((sourceColumnIndex) => !mappedIndexes.has(sourceColumnIndex))
+    .filter((sourceColumnIndex) => !usedIndexes.has(sourceColumnIndex))
     .map((sourceColumnIndex) => {
       const declared = input.ignoredColumns.find((candidate) => candidate.sourceColumnIndex === sourceColumnIndex);
       return {
@@ -718,6 +893,15 @@ function parseColumns(value: unknown): QuickPlotAssistantColumn[] {
       sourceColumnIndex: Number(record.sourceColumnIndex),
       targetField: record.targetField as QuickPlotAssistantField,
       sourceUnit: record.sourceUnit as QuickPlotAssistantUnit,
+      depthSourceColumnIndex: record.depthSourceColumnIndex === undefined
+        ? undefined
+        : Number(record.depthSourceColumnIndex),
+      depthSourceUnit: ['m', 'cm', 'mm'].includes(String(record.depthSourceUnit))
+        ? record.depthSourceUnit as QuickPlotAssistantColumn['depthSourceUnit']
+        : undefined,
+      tipResistanceKind: ['qc', 'qt'].includes(String(record.tipResistanceKind))
+        ? record.tipResistanceKind as QuickPlotAssistantColumn['tipResistanceKind']
+        : undefined,
       headerLabel: boundedString(record.headerLabel, 80) || undefined,
       reason: boundedString(record.reason, 240),
       evidenceKind: ['source-explicit', 'model-inferred', 'user-corrected'].includes(String(record.evidenceKind))
@@ -756,6 +940,7 @@ function inspectQuickPlotHeader(header: string) {
   if (includesAny(['depth', 'penetrationdepth', 'belowmudline', '贯入深度', '泥面以下深度', '深度']) || compact === 'z') fields.add('depthM');
   if (includesAny(['elevation', 'elev', '标高', '高程'])) explicitConflictTargets.add('depthM');
   if (includesAny(['coneresistance', 'tipresistance', '锥尖阻力', '锥头阻力', '锥阻']) || /^qc(?:kpa|mpa)?$/.test(compact)) fields.add('qc');
+  const directQt = /^(?:qt)(?:kpa|mpa)?$/i.test(compact) || includesAny(['修正锥阻', '修正锥尖阻力']);
   if (/^(?:qt|qnet|qtn)(?:kpa|mpa)?$/i.test(compact) || includesAny(['净锥阻', '修正锥阻'])) explicitConflictTargets.add('qc');
   if (includesAny(['sleevefriction', 'sidefriction', '侧壁摩阻力', '侧摩阻力', '侧摩', '套筒摩阻', '套管摩阻', '摩阻力']) || /^fs(?:kpa|mpa)?$/.test(compact)) fields.add('fs');
   if (/^(?:rf|fr)(?:%|percent)?$/i.test(compact) || includesAny(['摩阻比', '摩擦比'])) explicitConflictTargets.add('fs');
@@ -772,7 +957,7 @@ function inspectQuickPlotHeader(header: string) {
           : /(?:^|[^a-z])m(?:$|[^a-z])/i.test(decoded)
             ? 'm'
             : null;
-  return { fields, explicitConflictTargets, unit, knownNonMeasurement };
+  return { fields, explicitConflictTargets, unit, knownNonMeasurement, directQt };
 }
 
 function convertDepth(value: number, unit: QuickPlotAssistantUnit) {
