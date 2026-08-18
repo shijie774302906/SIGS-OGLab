@@ -1,7 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { strFromU8, unzipSync } from 'fflate';
+import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { expect, test } from './fixtures/isolatedTest';
+import { createMinimalTemplateXlsx } from '../../src/features/import/minimalImportTemplate';
 
 const process137Evidence = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process137-a3-600dpi-pdf');
 
@@ -587,6 +588,124 @@ test('PROCESS132 quick AI organizes synonym columns, excludes extras, imports on
   expect(browserErrors).toEqual([]);
   if (process.env.MILESTONE_EVIDENCE === '1') {
     writeFileSync(path.join(evidenceDirectory, 'browser-check.json'), JSON.stringify({ layouts, browserErrors, mappedRows: 3, ignoredColumns: ['倾角', '温度'] }, null, 2));
+  }
+});
+
+test('PROCESS159 quick AI can read parallel windows, ask naturally, and submit without model-owned identity fields', async ({ page }) => {
+  const trace: Array<{ stage: string; toolResultIds?: string[] }> = [];
+  await installQuickNaturalNegotiationMock(page, trace);
+  await page.reload();
+  await page.getByTestId('new-project-name').fill('自然协商导入');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await page.getByTestId('quick-ai-toggle').click();
+  const assistant = page.getByTestId('quick-ai-assistant');
+  await assistant.locator('input[type="file"]').setInputFiles({
+    name: '多窗口自然协商.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('深度(m),锥尖阻力(MPa),侧摩阻力(kPa),温度\n0.1,1.2,12,21\n0.2,1.5,15,22\n0.3,1.8,18,23'),
+  });
+  await page.getByTestId('quick-ai-start').click();
+  const clarification = page.getByTestId('quick-ai-clarification');
+  await expect(clarification).toBeVisible();
+  await expect(assistant).toContainText('温度列是否仅作为额外字段忽略');
+  await clarification.locator('textarea').fill('是，忽略温度列。');
+  await clarification.getByRole('button', { name: '发送回答' }).click();
+  await expect(page.getByTestId('quick-ai-proposal')).toBeVisible();
+  await expect(page.getByTestId('quick-ai-proposal')).toContainText('温度');
+  expect(trace).toEqual([
+    { stage: 'parallel-read' },
+    { stage: 'clarify', toolResultIds: ['parallel-read-1', 'parallel-read-2'] },
+    { stage: 'proposal' },
+  ]);
+});
+
+test('PROCESS159 multi-sheet quick AI waits for the user and exposes only the selected sheet', async ({ page }, testInfo) => {
+  const browserErrors: string[] = [];
+  page.on('pageerror', (error) => browserErrors.push(`page: ${error.message}`));
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
+  const requestedSheets: string[][] = [];
+  await page.route('**/api/assistant/capabilities', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      serviceId: 'sigs-oglab-assistant',
+      buildId: 'process159-sheet-selection-mock',
+      instanceId: 'process159-sheet-selection-instance',
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
+      serviceAvailable: true,
+      provider: 'mock',
+      model: 'deterministic-mock',
+      requiresApiKey: false,
+    }),
+  }));
+  await page.route('**/api/assistant/turn', async (route) => {
+    const body = route.request().postDataJSON() as {
+      context?: { importSource?: { sheets?: Array<{ sheetName?: string }> } };
+    };
+    requestedSheets.push(body.context?.importSource?.sheets?.map((sheet) => sheet.sheetName ?? '') ?? []);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        kind: 'message',
+        serviceInstanceId: 'process159-sheet-selection-instance',
+        protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
+        model: 'deterministic-mock',
+        content: '请确认这一工作表的 qc 单位。',
+      }),
+    });
+  });
+  await page.reload();
+  await page.getByTestId('new-project-name').fill('多工作表由用户选择');
+  await page.getByTestId('project-mode-quick').click();
+  await page.getByTestId('create-project-submit').click();
+  await page.getByTestId('quick-ai-toggle').click();
+  const assistant = page.getByTestId('quick-ai-assistant');
+  await assistant.locator('input[type="file"]').setInputFiles({
+    name: 'two-sheets.xlsx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    buffer: Buffer.from(createQuickTwoSheetWorkbook()),
+  });
+
+  const selection = page.getByTestId('quick-ai-sheet-selection');
+  await expect(selection).toBeVisible();
+  await expect(page.getByTestId('quick-ai-start')).toBeDisabled();
+  await selection.locator('select').selectOption('CPT复核');
+  await expect(page.getByTestId('quick-ai-start')).toBeEnabled();
+  const layouts = [];
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+    await page.setViewportSize(viewport);
+    const layout = await page.evaluate(() => ({
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+      horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      selectorVisible: Boolean(document.querySelector('[data-testid="quick-ai-sheet-selection"]')),
+      startEnabled: !(document.querySelector<HTMLButtonElement>('[data-testid="quick-ai-start"]')?.disabled ?? true),
+    }));
+    layouts.push(layout);
+    expect(layout.horizontalOverflow).toBe(0);
+    expect(layout.selectorVisible).toBe(true);
+    expect(layout.startEnabled).toBe(true);
+    if (process.env.MILESTONE_EVIDENCE === '1') {
+      const directory = path.resolve('process_logs/playwright-mcp/process159-free-negotiation');
+      mkdirSync(directory, { recursive: true });
+      await page.screenshot({ path: path.join(directory, `sheet-selection-${viewport.width}x${viewport.height}.png`), fullPage: true });
+    }
+  }
+  await page.getByTestId('quick-ai-start').click();
+  await expect(page.getByTestId('quick-ai-clarification')).toBeVisible();
+  expect(requestedSheets).toEqual([['CPT复核']]);
+  expect(browserErrors).toEqual([]);
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    const directory = path.resolve('process_logs/playwright-mcp/process159-free-negotiation');
+    writeFileSync(path.join(directory, 'browser-check.json'), JSON.stringify({
+      process: 159,
+      test: testInfo.title,
+      syntheticWorkbook: true,
+      selectedSheetOnly: requestedSheets,
+      layouts,
+      browserErrors,
+    }, null, 2), 'utf8');
   }
 });
 
@@ -1256,6 +1375,123 @@ test('PROCESS145 regenerating the atlas starts a clean conversation for the new 
   await expect(assistant.locator('.assistant-message.assistant')).toHaveCount(0);
   await expect(assistant).toContainText('可询问当前页、其他页面、方法或某个深度范围');
 });
+
+async function installQuickNaturalNegotiationMock(
+  page: import('@playwright/test').Page,
+  trace: Array<{ stage: string; toolResultIds?: string[] }>,
+) {
+  await page.route('**/api/assistant/capabilities', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      serviceId: 'sigs-oglab-assistant',
+      buildId: 'process159-natural-negotiation-mock',
+      instanceId: 'process159-mock-instance',
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
+      serviceAvailable: true,
+      provider: 'mock',
+      model: 'deterministic-mock',
+      requiresApiKey: false,
+    }),
+  }));
+  await page.route('**/api/assistant/turn', async (route) => {
+    const body = route.request().postDataJSON() as {
+      turns: Array<{ role: string; content?: string; toolCallId?: string }>;
+    };
+    const serviceMeta = {
+      serviceInstanceId: 'process159-mock-instance',
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
+      model: 'deterministic-mock',
+    };
+    const hasClarification = body.turns.some((turn) =>
+      turn.role === 'assistant' && turn.content?.includes('温度列是否仅作为额外字段忽略'),
+    );
+    const toolResultIds = body.turns
+      .filter((turn) => turn.role === 'tool')
+      .map((turn) => turn.toolCallId ?? '');
+    if (!toolResultIds.length) {
+      trace.push({ stage: 'parallel-read' });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          kind: 'tool_calls',
+          ...serviceMeta,
+          content: null,
+          calls: [
+            { id: 'parallel-read-1', name: 'read_quick_plot_source', arguments: JSON.stringify({ sheetName: 'CSV', rowStart: 1, rowCount: 2 }) },
+            { id: 'parallel-read-2', name: 'read_quick_plot_source', arguments: JSON.stringify({ sheetName: 'CSV', rowStart: 3, rowCount: 2 }) },
+          ],
+        }),
+      });
+      return;
+    }
+    if (!hasClarification) {
+      trace.push({ stage: 'clarify', toolResultIds });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          kind: 'message',
+          ...serviceMeta,
+          content: '已识别 depth、qc 和 fs。温度列是否仅作为额外字段忽略？',
+        }),
+      });
+      return;
+    }
+    trace.push({ stage: 'proposal' });
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        kind: 'tool_calls',
+        ...serviceMeta,
+        content: null,
+        calls: [{
+          id: 'natural-proposal',
+          name: 'submit_quick_plot_import_decision',
+          arguments: JSON.stringify({
+            kind: 'proposal',
+            proposal: {
+              proposalId: 'natural-proposal-v1',
+              layout: 'shared-depth',
+              sheetName: 'CSV',
+              headerMode: 'present',
+              headerRow: 1,
+              dataStartRow: 2,
+              dataEndRow: 4,
+              summary: '已根据两段来源证据识别必需字段，并按用户回答忽略温度列。',
+              columns: [
+                { sourceColumnIndex: 0, targetField: 'depthM', sourceUnit: 'm', reason: '表头和数值均为深度。', evidenceKind: 'source-explicit' },
+                { sourceColumnIndex: 1, targetField: 'qc', sourceUnit: 'MPa', reason: '表头明确为锥尖阻力。', evidenceKind: 'source-explicit' },
+                { sourceColumnIndex: 2, targetField: 'fs', sourceUnit: 'kPa', reason: '表头明确为侧摩阻力。', evidenceKind: 'source-explicit' },
+              ],
+              ignoredColumns: [{ sourceColumnIndex: 3, headerLabel: '温度', reason: '用户确认不用于快速出图。' }],
+              warnings: [],
+            },
+          }),
+        }],
+      }),
+    });
+  });
+}
+
+function createQuickTwoSheetWorkbook() {
+  const files = unzipSync(createMinimalTemplateXlsx('example'));
+  const workbook = strFromU8(files['xl/workbook.xml'])
+    .replace('</sheets>', '<sheet name="CPT复核" sheetId="2" r:id="rId3"/></sheets>');
+  const relationships = strFromU8(files['xl/_rels/workbook.xml.rels'])
+    .replace('</Relationships>', '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/></Relationships>');
+  const contentTypes = strFromU8(files['[Content_Types].xml'])
+    .replace('</Types>', '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>');
+  return zipSync({
+    ...files,
+    '[Content_Types].xml': strToU8(contentTypes),
+    'xl/workbook.xml': strToU8(workbook),
+    'xl/_rels/workbook.xml.rels': strToU8(relationships),
+    'xl/worksheets/sheet2.xml': files['xl/worksheets/sheet1.xml'],
+  });
+}
 
 async function installQuickAssistantMock(
   page: import('@playwright/test').Page,

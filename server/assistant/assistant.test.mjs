@@ -339,7 +339,7 @@ test('DeepSeek import turns reject a wrong-page tool as a safe user-facing expla
   assert.match(result.content, /原文件未修改/);
 });
 
-test('DeepSeek quick import enforces one versioned decision even though thinking mode requires automatic tool choice', async () => {
+test('DeepSeek quick import accepts natural clarification and bounded parallel source reads', async () => {
   const base = {
     apiKey: 'sk-quick-test-12345678901234567890',
     turns: [{ role: 'user', content: '请判断这个文件' }],
@@ -358,7 +358,7 @@ test('DeepSeek quick import enforces one versioned decision even though thinking
       deepseekBaseUrl: 'https://api.deepseek.com',
     },
   };
-  await assert.rejects(requestDeepSeekTurn({
+  const clarification = await requestDeepSeekTurn({
     ...base,
     fetchImpl: async (_url, init) => {
       const request = JSON.parse(init.body);
@@ -375,9 +375,11 @@ test('DeepSeek quick import enforces one versioned decision even though thinking
         choices: [{ finish_reason: 'stop', message: { content: '我觉得第二列是 qc。' } }],
       }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     },
-  }), /没有形成可确认的文件判断/);
+  });
+  assert.equal(clarification.kind, 'message');
+  assert.equal(clarification.content, '我觉得第二列是 qc。');
 
-  await assert.rejects(requestDeepSeekTurn({
+  const parallelReads = await requestDeepSeekTurn({
     ...base,
     fetchImpl: async () => new Response(JSON.stringify({
       model: 'deepseek-v4-pro',
@@ -386,13 +388,18 @@ test('DeepSeek quick import enforces one versioned decision even though thinking
         message: {
           content: null,
           tool_calls: [
-            { id: 'decision-1', function: { name: 'submit_quick_plot_import_decision', arguments: '{}' } },
-            { id: 'decision-2', function: { name: 'submit_quick_plot_import_decision', arguments: '{}' } },
+            { id: 'read-1', function: { name: 'read_quick_plot_source', arguments: '{"sheetName":"A","rowStart":1,"rowCount":20}' } },
+            { id: 'read-2', function: { name: 'read_quick_plot_source', arguments: '{"sheetName":"B","rowStart":1,"rowCount":20}' } },
           ],
         },
       }],
     }), { status: 200, headers: { 'Content-Type': 'application/json' } }),
-  }), /唯一的文件判断/);
+  });
+  assert.equal(parallelReads.kind, 'tool_calls');
+  assert.deepEqual(parallelReads.calls.map((call) => call.name), [
+    'read_quick_plot_source',
+    'read_quick_plot_source',
+  ]);
 });
 
 test('DeepSeek import turns use Flash without thinking and preserve prior tool state', async () => {

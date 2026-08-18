@@ -9967,6 +9967,11 @@ p {
 .quick-ai-file-button span { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
 .quick-ai-file-button strong { font-size: 13px; }
 .quick-ai-file-button small { overflow: hidden; color: #716692; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.quick-ai-sheet-select { display: grid; gap: 6px; padding: 10px 11px; border: 1px solid #d9d2f6; border-radius: 7px; background: #fbfaff; }
+.quick-ai-sheet-select > span { color: #2f2658; font-size: 12px; font-weight: 700; }
+.quick-ai-sheet-select select { width: 100%; min-height: 36px; padding: 0 9px; border: 1px solid #c9c2e8; border-radius: 5px; background: #fff; color: #22283a; }
+.quick-ai-sheet-select small { color: #6f6a7f; font-size: 11px; }
+.quick-ai-clarification { position: sticky; bottom: 0; z-index: 2; padding-top: 8px; background: #fff; }
 .quick-ai-proposal { padding: 12px; border: 1px solid #cfc5fa; border-radius: 7px; background: #fff; }
 .quick-ai-proposal > span { color: #6e58d9; font-size: 11px; font-weight: 700; }
 .quick-ai-proposal h3 { margin: 4px 0 5px; font-size: 14px; }

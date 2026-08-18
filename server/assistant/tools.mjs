@@ -285,17 +285,10 @@ export const ASSISTANT_TOOLS = Object.freeze([
     type: 'function',
     function: {
       name: 'submit_quick_plot_import_decision',
-      description: '提交快捷出图当前文件的唯一结构化终态：需要用户回答的一个问题，或一份完整待确认判断。不能同时返回问题和判断，不能返回自由文本替代本工具。',
+      description: '提交快捷出图当前文件的一份完整待确认判断。信息不足时先用普通文本向用户询问一个关键问题，不要用本工具提交半成品。',
       parameters: {
         type: 'object',
-        required: [
-          'protocolVersion',
-          'requestId',
-          'operationId',
-          'sourceFingerprint',
-          'contextHash',
-          'kind',
-        ],
+        required: ['kind'],
         additionalProperties: false,
         properties: {
           protocolVersion: { type: 'string', enum: ['sigs.ai-import/2'] },
@@ -303,7 +296,7 @@ export const ASSISTANT_TOOLS = Object.freeze([
           operationId: { type: 'string', minLength: 1, maxLength: 160 },
           sourceFingerprint: { type: 'string', minLength: 32, maxLength: 96 },
           contextHash: { type: 'string', minLength: 1, maxLength: 160 },
-          kind: { type: 'string', enum: ['question', 'proposal'] },
+          kind: { type: 'string', enum: ['proposal'] },
           question: {
             type: 'object',
             additionalProperties: false,

@@ -196,12 +196,6 @@ export async function requestDeepSeekTurn({
         model: String(payload.model || selectedModel),
       };
     }
-    if (context.scope.route === 'quick-input' && calls.length !== 1) {
-      throw providerProtocolError(
-        'MODEL_TOOL_COUNT',
-        'DeepSeek 这次没有形成唯一的文件判断，请重试；原文件未修改。',
-      );
-    }
     return {
       kind: 'tool_calls',
       calls,
@@ -211,12 +205,6 @@ export async function requestDeepSeekTurn({
         : {}),
       model: String(payload.model || selectedModel),
     };
-  }
-  if (context.scope.route === 'quick-input') {
-    throw providerProtocolError(
-      'MODEL_DECISION_REQUIRED',
-      'DeepSeek 这次没有形成可确认的文件判断，请重试；原文件未修改。',
-    );
   }
   const content = typeof message.content === 'string' ? message.content.trim().slice(0, 8_000) : '';
   if (!content) throw providerError(502);

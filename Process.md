@@ -4,7 +4,14 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process158 双正式站安全发布
+## Current - Process159 快捷 AI 自由协商导入
+- Date: 2026-08-18
+- Status: `closed / implemented / verified`
+- Result: 快捷 AI 支持自由只读探索、自然语言协商和最终结构化提交；多工作表由用户先选，AI 只读取所选工作表。
+- Verification: build、assistant 36/36、domain 57/57、quick UI 29/29、真实 DeepSeek 1/1、双分辨率与 Known Problem Gate 均通过。
+- Detail: `process_logs/Process159.md`
+
+## Recent - Process158 双正式站安全发布
 - Date: 2026-08-18
 - Status: `closed / verified / deployed`
 - Result: Process156/157 已由同一发布提交部署到国际站与国内站；国内 API 经灰度验证后切换到 v2，两个站点均完成快捷部分解译与 Excel 下载线上验收。

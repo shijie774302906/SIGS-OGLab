@@ -595,14 +595,14 @@ function validateDecisionIdentity(
   const operationId = boundedString(args.operationId, 160);
   const sourceFingerprint = boundedString(args.sourceFingerprint, 96);
   const contextHash = boundedString(args.contextHash, 160);
-  if (protocolVersion !== QUICK_PLOT_IMPORT_PROTOCOL) {
+  if (protocolVersion && protocolVersion !== QUICK_PLOT_IMPORT_PROTOCOL) {
     return { ok: false, problem: 'AI 服务版本与当前网页不一致，请重新启动 AI 服务后再试。' };
   }
   if (
-    requestId !== expected.requestId
-    || operationId !== source.operationId
-    || sourceFingerprint !== source.sourceFingerprint
-    || contextHash !== expected.contextHash
+    (requestId && requestId !== expected.requestId)
+    || (operationId && operationId !== source.operationId)
+    || (sourceFingerprint && sourceFingerprint !== source.sourceFingerprint)
+    || (contextHash && contextHash !== expected.contextHash)
   ) {
     return { ok: false, problem: 'AI 返回的是旧文件或旧请求的判断，已自动丢弃，请重新判断当前文件。' };
   }
@@ -610,10 +610,10 @@ function validateDecisionIdentity(
     ok: true,
     identity: {
       protocolVersion: QUICK_PLOT_IMPORT_PROTOCOL,
-      requestId,
-      operationId,
-      sourceFingerprint,
-      contextHash,
+      requestId: expected.requestId,
+      operationId: source.operationId,
+      sourceFingerprint: source.sourceFingerprint,
+      contextHash: expected.contextHash,
     },
   };
 }

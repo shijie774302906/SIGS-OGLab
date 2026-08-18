@@ -84,6 +84,10 @@ type PendingProposal = {
   result: QuickPlotImportBuildResult;
 };
 
+type PendingClarification = {
+  content: string;
+};
+
 export type QuickReportEvidence = {
   toolName: string;
   payload: Record<string, unknown>;
@@ -199,6 +203,15 @@ function messageId(prefix: string) {
   return `${prefix}-${crypto.randomUUID()}`;
 }
 
+function quickInputReadKey(call: AssistantToolCall) {
+  const args = parseArguments(call) ?? {};
+  return JSON.stringify({
+    sheetName: typeof args.sheetName === 'string' ? args.sheetName : '',
+    rowStart: Number.isInteger(args.rowStart) ? Number(args.rowStart) : 1,
+    rowCount: Number.isInteger(args.rowCount) ? Number(args.rowCount) : 30,
+  });
+}
+
 export function QuickPlotAssistantPanel({
   open,
   mode,
@@ -211,9 +224,11 @@ export function QuickPlotAssistantPanel({
 }: Props) {
   const connection = useAssistantConnection();
   const [source, setSource] = useState<ImportAssistantSource | null>(null);
+  const [selectedSheetName, setSelectedSheetName] = useState('');
   const [turns, setTurns] = useState<AssistantWireTurn[]>([]);
   const [messages, setMessages] = useState<AssistantUiMessage[]>([]);
   const [question, setQuestion] = useState<PendingQuestion | null>(null);
+  const [clarification, setClarification] = useState<PendingClarification | null>(null);
   const [proposal, setProposal] = useState<PendingProposal | null>(null);
   const [status, setStatus] = useState<'idle' | 'parsing' | 'reading' | 'saving' | 'success'>('idle');
   const [problem, setProblem] = useState('');
@@ -234,24 +249,32 @@ export function QuickPlotAssistantPanel({
   const automaticRepairCountRef = useRef(0);
   const decisionHistoryRef = useRef<string[]>([]);
   const ambiguityConfirmationsRef = useRef<QuickPlotAmbiguityConfirmation[]>([]);
+  const readWindowsRef = useRef(new Set<string>());
   const commitLockRef = useRef(false);
   const contextKeyRef = useRef('');
   const lastReportQuestionRef = useRef('');
   const sourceIdentityRef = useRef('none');
   const activePage = pages[selectedPage] ?? null;
   const consentScope = mode === 'input' ? 'import' : 'engineering';
+  const assistantSource = useMemo(() => {
+    if (!source) return null;
+    if (source.sheets.length <= 1) return source;
+    if (!selectedSheetName) return null;
+    const selectedSheet = source.sheets.find((sheet) => sheet.sheetName === selectedSheetName);
+    return selectedSheet ? { ...source, sheets: [selectedSheet] } : null;
+  }, [selectedSheetName, source]);
   const context = useMemo(
-    () => buildContext(project, workspace, mode, source, activePage, selectedPage, pages),
-    [activePage, mode, pages, project, selectedPage, source, workspace],
+    () => buildContext(project, workspace, mode, assistantSource, activePage, selectedPage, pages),
+    [activePage, assistantSource, mode, pages, project, selectedPage, workspace],
   );
   const outboundConsent = connection.hasOutboundConsent(consentScope, context.scope.authorityHash);
   const reportPageKey = mode === 'report'
     ? `${selectedPage + 1}:${activePage?.title ?? 'none'}`
     : 'not-report';
-  const contextKey = `${context.scope.route}:${context.scope.authorityHash}:${reportPageKey}:${source?.operationId ?? 'none'}:${connection.generation}`;
+  const contextKey = `${context.scope.route}:${context.scope.authorityHash}:${reportPageKey}:${source?.operationId ?? 'none'}:${selectedSheetName || 'no-sheet'}:${connection.generation}`;
   const assistantSessionKey = mode === 'report'
     ? `${project.projectId}:${context.scope.route}:${context.scope.authorityHash}:${connection.generation}`
-    : `${context.scope.route}:${source?.operationId ?? 'none'}:${connection.generation}`;
+    : `${context.scope.route}:${source?.operationId ?? 'none'}:${selectedSheetName || 'no-sheet'}:${connection.generation}`;
   contextKeyRef.current = contextKey;
   sourceIdentityRef.current = source
     ? `${source.operationId}:${source.sourceFingerprint}`
@@ -274,12 +297,14 @@ export function QuickPlotAssistantPanel({
     setTurns([]);
     setMessages([]);
     setQuestion(null);
+    setClarification(null);
     setProposal(null);
     correctionCountRef.current = 0;
     questionCountRef.current = 0;
     automaticRepairCountRef.current = 0;
     decisionHistoryRef.current = [];
     ambiguityConfirmationsRef.current = [];
+    readWindowsRef.current = new Set();
     setCorrectionOpen(false);
     setCorrectionText('');
     setReplaceReady(false);
@@ -298,17 +323,21 @@ export function QuickPlotAssistantPanel({
     automaticRepairCountRef.current = 0;
     decisionHistoryRef.current = [];
     ambiguityConfirmationsRef.current = [];
+    readWindowsRef.current = new Set();
     setTurns([]);
     setQuestion(null);
+    setClarification(null);
     setProposal(null);
     setReplaceReady(false);
     setMessages([]);
     setProblem('');
+    setInput('');
     setStatus('parsing');
     try {
       const next = await extractImportAssistantSource(file, `quick-ai-${crypto.randomUUID()}`);
       if (fileGeneration !== fileGenerationRef.current) return;
       setSource(next);
+      setSelectedSheetName(next.sheets.length === 1 ? next.sheets[0].sheetName : '');
       setMessages([{
         id: messageId('source'),
         role: 'system',
@@ -332,8 +361,10 @@ export function QuickPlotAssistantPanel({
     automaticRepairCountRef.current = 0;
     decisionHistoryRef.current = [];
     ambiguityConfirmationsRef.current = [];
+    readWindowsRef.current = new Set();
     setTurns([]);
     setQuestion(null);
+    setClarification(null);
     setProposal(null);
     setCorrectionOpen(false);
     setCorrectionText('');
@@ -344,16 +375,19 @@ export function QuickPlotAssistantPanel({
   }
 
   async function startOrganizing() {
-    if (!source || status !== 'idle') return;
+    if (!assistantSource || status !== 'idle') return;
     correctionCountRef.current = 0;
     questionCountRef.current = 0;
     automaticRepairCountRef.current = 0;
     decisionHistoryRef.current = [];
+    readWindowsRef.current = new Set();
     setQuestion(null);
+    setClarification(null);
     setProposal(null);
     setReplaceReady(false);
     setCorrectionOpen(false);
     setProblem('');
+    setInput('');
     const userTurn: AssistantWireTurn = {
       role: 'user',
       content: '请判断当前文件用于快速出图的数据表、是否有表头、数据起止行、共用或独立深度布局，以及 depth、qc/qt、可选 fs、可选 u2 的列和单位。请优先给出一份完整最佳判断；只有无法形成完整判断时才问一个问题。不要修改任何测量值。',
@@ -368,7 +402,8 @@ export function QuickPlotAssistantPanel({
   }
 
   async function advanceInput(nextTurns: AssistantWireTurn[]) {
-    if (!source) return;
+    if (!assistantSource) return;
+    const currentSource = assistantSource;
     requestAbortRef.current?.abort();
     const controller = new AbortController();
     requestAbortRef.current = controller;
@@ -389,7 +424,7 @@ export function QuickPlotAssistantPanel({
     setProblem('');
     try {
       let activeTurns = nextTurns;
-      for (let step = 0; step < 6; step += 1) {
+      for (let step = 0; step < 12; step += 1) {
         const response = await connection.requestTurn({
           turns: activeTurns,
           context: requestContext,
@@ -397,34 +432,97 @@ export function QuickPlotAssistantPanel({
           signal: controller.signal,
         });
         if (requestContextKey !== contextKeyRef.current) return;
-        if (response.kind === 'message') throw new Error('AI 这次没有形成可确认的文件判断，请重新判断。');
-        if (response.calls.length !== 1) throw new Error('一次只能处理一项文件整理操作。');
-        const call = response.calls[0];
+        if (response.kind === 'message') {
+          const content = response.content.trim();
+          if (!content) throw new Error('AI 没有返回可读的问题或判断，请重新判断。');
+          if (questionCountRef.current >= QUICK_PLOT_MAX_AI_QUESTIONS) {
+            throw new Error(`已经协商 ${QUICK_PLOT_MAX_AI_QUESTIONS} 轮，仍不能形成可靠判断。文件没有改变，请使用手动粘贴。`);
+          }
+          questionCountRef.current += 1;
+          const assistantMessage: AssistantWireTurn = { role: 'assistant', content };
+          activeTurns = [...activeTurns, assistantMessage];
+          setTurns(activeTurns);
+          setQuestion(null);
+          setClarification({ content });
+          setMessages((current) => [...current, {
+            id: messageId('clarification'),
+            role: 'assistant',
+            content,
+          }]);
+          return;
+        }
         const assistantTurn: AssistantWireTurn = {
           role: 'assistant',
           content: response.content,
           toolCalls: response.calls,
           reasoningContent: response.reasoningContent,
         };
-        if (call.name === 'read_quick_plot_source') {
-          const result = readImportAssistantSource(source, parseArguments(call) ?? {});
-          const toolTurn: AssistantWireTurn = {
-            role: 'tool',
-            toolCallId: call.id,
-            content: JSON.stringify(result.ok ? result.result : { problem: result.problem }),
-          };
-          activeTurns = [...activeTurns, assistantTurn, toolTurn];
+        const readCalls = response.calls.filter((call) => call.name === 'read_quick_plot_source');
+        const submitCalls = response.calls.filter((call) => call.name === 'submit_quick_plot_import_decision');
+        if (readCalls.length) {
+          const readDetails: string[] = [];
+          const toolTurns = response.calls.map((call): AssistantWireTurn => {
+            if (call.name !== 'read_quick_plot_source') {
+              return {
+                role: 'tool',
+                toolCallId: call.id,
+                content: JSON.stringify({
+                  status: 'deferred',
+                  instruction: '请先使用本轮新读取的证据；下一轮只提交一份完整判断。',
+                }),
+              };
+            }
+            const readKey = quickInputReadKey(call);
+            if (readWindowsRef.current.has(readKey)) {
+              return {
+                role: 'tool',
+                toolCallId: call.id,
+                content: JSON.stringify({
+                  status: 'already-read',
+                  instruction: '这个来源窗口已在当前对话中读取，请使用已有证据或读取其他窗口。',
+                }),
+              };
+            }
+            readWindowsRef.current.add(readKey);
+            const result = readImportAssistantSource(currentSource, parseArguments(call) ?? {});
+            if (result.ok) readDetails.push(result.detail);
+            return {
+              role: 'tool',
+              toolCallId: call.id,
+              content: JSON.stringify(result.ok ? result.result : {
+                status: 'read-failed',
+                problem: result.problem,
+                instruction: '请修正工作表名称或读取范围后继续。',
+              }),
+            };
+          });
+          activeTurns = [...activeTurns, assistantTurn, ...toolTurns];
           setTurns(activeTurns);
-          if (!result.ok) throw new Error(result.problem);
-          setMessages((current) => [...current, {
+          if (readDetails.length) setMessages((current) => [...current, {
             id: messageId('read'),
             role: 'system',
-            content: result.detail,
+            content: readDetails.length === 1
+              ? readDetails[0]
+              : `已按 AI 判断读取 ${readDetails.length} 个来源窗口。`,
           }]);
           continue;
         }
+        if (submitCalls.length !== 1 || response.calls.length !== 1) {
+          const toolTurns = response.calls.map((call): AssistantWireTurn => ({
+            role: 'tool',
+            toolCallId: call.id,
+            content: JSON.stringify({
+              status: 'invalid-terminal-action',
+              instruction: '请只提交一份完整判断；需要更多证据时可以并行调用读取工具。',
+            }),
+          }));
+          activeTurns = [...activeTurns, assistantTurn, ...toolTurns];
+          setTurns(activeTurns);
+          continue;
+        }
+        const call = submitCalls[0];
         if (call.name === 'submit_quick_plot_import_decision') {
-          const validation = quickPlotDecisionFromTool(call, source, {
+          const validation = quickPlotDecisionFromTool(call, currentSource, {
             requestId,
             contextHash: context.scope.authorityHash,
           }, ambiguityConfirmationsRef.current);
@@ -466,10 +564,11 @@ export function QuickPlotAssistantPanel({
             }
             questionCountRef.current += 1;
             setQuestion({ call, question: validation.decision.question });
+            setClarification(null);
             return;
           }
           const proposalDecision = validation.decision.proposal;
-          const built = buildQuickPlotRowsFromProposal(proposalDecision, source);
+          const built = buildQuickPlotRowsFromProposal(proposalDecision, currentSource);
           if ('problem' in built) {
             if (automaticRepairCountRef.current < 1) {
               automaticRepairCountRef.current += 1;
@@ -489,6 +588,7 @@ export function QuickPlotAssistantPanel({
             throw new Error(built.problem);
           }
           setReplaceReady(false);
+          setClarification(null);
           setProposal({ call, proposal: proposalDecision, result: built });
           setMessages((current) => [...current, {
             id: messageId('proposal'),
@@ -497,9 +597,8 @@ export function QuickPlotAssistantPanel({
           }]);
           return;
         }
-        throw new Error('AI 请求了不属于快速出图的操作。');
       }
-      throw new Error('AI 读取步骤过多，仍未形成判断。文件没有改变，请重新判断。');
+      throw new Error('AI 多次读取后仍未形成完整判断。文件没有改变，请重新判断或使用手动粘贴。');
     } catch (error) {
       if (controller.signal.aborted) return;
       setProblem(error instanceof Error ? error.message : 'AI 整理暂时不可用，请稍后重试。');
@@ -557,6 +656,22 @@ export function QuickPlotAssistantPanel({
       content: quickPlotQuestionOptionLabel(option.decisionPatch, source!),
     }]);
     setQuestion(null);
+    await advanceInput(next);
+  }
+
+  async function answerClarification() {
+    const content = input.trim();
+    if (!clarification || !assistantSource || !content || status !== 'idle') return;
+    const userTurn: AssistantWireTurn = { role: 'user', content };
+    const next = [...turns, userTurn];
+    setTurns(next);
+    setMessages((current) => [...current, {
+      id: messageId('clarification-answer'),
+      role: 'user',
+      content,
+    }]);
+    setClarification(null);
+    setInput('');
     await advanceInput(next);
   }
 
@@ -622,6 +737,8 @@ export function QuickPlotAssistantPanel({
     questionCountRef.current = 0;
     automaticRepairCountRef.current = 0;
     decisionHistoryRef.current = [];
+    readWindowsRef.current = new Set();
+    setClarification(null);
     const userTurn: AssistantWireTurn = {
       role: 'user',
       content: `请重新判断当前文件 ${currentSource.fileName}，并严格提交一份结构化问题或完整判断。不要修改测量值。`,
@@ -652,7 +769,7 @@ export function QuickPlotAssistantPanel({
     setStatus('saving');
     setProblem('');
     try {
-      const latest = buildQuickPlotRowsFromProposal(proposal.proposal, source);
+      const latest = buildQuickPlotRowsFromProposal(proposal.proposal, assistantSource ?? source);
       if ('problem' in latest) throw new Error(latest.problem);
       const commitKey = [
         QUICK_PLOT_IMPORT_PROTOCOL,
@@ -890,7 +1007,7 @@ export function QuickPlotAssistantPanel({
           </div>
         ) : null}
         <AssistantPublicQuotaNote quota={connection.publicQuota} usingPersonalKey={connection.usingPersonalKey} />
-        {connection.connected && !outboundConsent ? (
+        {connection.connected && !outboundConsent && (mode !== 'input' || Boolean(assistantSource)) ? (
           <div className="assistant-consent" data-testid="quick-ai-consent">
             <strong>发送哪些内容？</strong>
             <p>{mode === 'input' ? '只发送工作表名称、表头和有限预览行，不发送原文件。' : '发送本图册目录、当前页和本次有限对话；问题需要时，额外发送最多 20 m、120 个源测点。空值保留，不插值。'}</p>
@@ -905,6 +1022,20 @@ export function QuickPlotAssistantPanel({
               <Upload /><span><strong>{status === 'saving' ? '正在保存' : source ? '更换文件' : '上传 CSV 或 Excel'}</strong><small>{status === 'saving' ? '完成后可更换文件' : source ? source.fileName : '支持非标准表头和额外列'}</small></span>
             </button>
             {source ? <div className="import-assistant-source"><span>当前文件</span><strong>{source.fileName}</strong><small>{source.sheets.length} 个工作表</small></div> : null}
+            {source && source.sheets.length > 1 ? (
+              <label className="quick-ai-sheet-select" data-testid="quick-ai-sheet-selection">
+                <span>数据在哪个工作表？</span>
+                <select value={selectedSheetName} onChange={(event) => {
+                  const nextSheet = event.target.value;
+                  setSelectedSheetName(nextSheet);
+                  resetInputSession(nextSheet ? `已选择“${nextSheet}”，AI 只会读取这个工作表。` : undefined);
+                }} disabled={status !== 'idle'}>
+                  <option value="">请选择工作表</option>
+                  {source.sheets.map((sheet) => <option key={sheet.sheetName} value={sheet.sheetName}>{sheet.sheetName} · {sheet.rowCount} 行 × {sheet.columnCount} 列</option>)}
+                </select>
+                <small>选择后，其他工作表不会发送给 AI。</small>
+              </label>
+            ) : null}
           </>
         ) : (
           <div className="import-assistant-source" data-testid="quick-ai-current-page">
@@ -934,6 +1065,12 @@ export function QuickPlotAssistantPanel({
               ))}</div>
               <button type="button" className="toolbar-button" onClick={() => resetInputSession('本次没有采用 AI 选择，文件保持不变。')}>暂不使用 AI</button>
             </article>
+          ) : null}
+          {clarification ? (
+            <form className="assistant-composer quick-ai-clarification" data-testid="quick-ai-clarification" onSubmit={(event) => { event.preventDefault(); void answerClarification(); }}>
+              <textarea rows={3} value={input} onChange={(event) => setInput(event.target.value)} placeholder="回答这个问题…" disabled={status !== 'idle'} />
+              <button type="submit" className="assistant-send" disabled={!input.trim() || status !== 'idle'} aria-label="发送回答"><Send /></button>
+            </form>
           ) : null}
           {proposal ? (
             <article className="quick-ai-proposal" data-testid="quick-ai-proposal">
@@ -982,8 +1119,8 @@ export function QuickPlotAssistantPanel({
           </div> : <><button type="button" className="toolbar-button" disabled={status === 'saving'} onClick={() => { setReplaceReady(false); setCorrectionOpen(true); }}>判断不对</button><button type="button" className="toolbar-button primary" disabled={status === 'saving'} onClick={() => void confirmImport()} data-testid="quick-ai-confirm-import">{status === 'saving' ? '正在保存…' : workspace.rows.length ? replaceReady ? '替换当前数据' : '确认这份整理结果' : `确认并导入 ${proposal.result.rows.length} 行`}</button></>}
         </div> : null}
 
-        {mode === 'input' && !proposal && !question && source ? (
-          <button type="button" className="toolbar-button primary import-assistant-start" disabled={!canUseAi || status !== 'idle'} onClick={() => void startOrganizing()} data-testid="quick-ai-start"><Bot />让 AI 判断</button>
+        {mode === 'input' && !proposal && !question && !clarification && source ? (
+          <button type="button" className="toolbar-button primary import-assistant-start" disabled={!canUseAi || !assistantSource || status !== 'idle'} onClick={() => void startOrganizing()} data-testid="quick-ai-start"><Bot />让 AI 判断</button>
         ) : null}
         {mode === 'report' ? (
           <>
