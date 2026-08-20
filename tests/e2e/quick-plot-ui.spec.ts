@@ -1613,7 +1613,7 @@ async function installQuickAssistantMock(
           await new Promise((resolve) => setTimeout(resolve, 350));
         } else if (reportMode === 'stoppable-direct' && !stoppableDelayConsumed) {
           stoppableDelayConsumed = true;
-          await new Promise((resolve) => setTimeout(resolve, 5_000));
+          await new Promise((resolve) => setTimeout(resolve, 30_000));
         }
         await route.fulfill({
           status: 200,
