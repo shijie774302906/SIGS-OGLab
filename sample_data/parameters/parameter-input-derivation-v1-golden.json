@@ -1,0 +1,152 @@
+{
+  "schemaVersion": "sigs-oglab.parameter-input-golden.v1",
+  "algorithmId": "CPTU-Input-Derivation-Mayne-FirstPass",
+  "algorithmVersion": "v1",
+  "oracle": {
+    "implementation": "independent PowerShell System.Math calculation",
+    "generatedAt": "2026-07-10T00:00:00.000Z",
+    "intermediateTolerance": 1e-9,
+    "finalTolerance": 1e-6
+  },
+  "settings": {
+    "netAreaRatio": 0.8,
+    "soilTotalUnitWeightKnM3": 18,
+    "waterUnitWeightKnM3": 10.05,
+    "atmosphericPressureKpa": 100,
+    "minEffectiveStressKpa": 5,
+    "iterationCount": 4,
+    "qtSourcePolicy": "derive-only-when-missing"
+  },
+  "vectors": [
+    {
+      "caseId": "imported-qt",
+      "waterDepthM": 20,
+      "input": {
+        "sourceRowId": "golden-imported-qt",
+        "depthM": 2,
+        "qcKpa": 5300,
+        "qtKpa": 5500,
+        "fsKpa": 50,
+        "u2Kpa": 200,
+        "importedFrPercent": 0.95
+      },
+      "expected": {
+        "qtSource": "imported",
+        "qtKpa": 5500,
+        "sigmaV0Kpa": 237,
+        "u0Kpa": 221.10000000000002,
+        "sigmaV0EffectiveKpa": 15.899999999999977,
+        "qnetKpa": 5263,
+        "frPercent": 0.9500285008550257,
+        "floorApplied": false,
+        "qtn": 140.00532619838506,
+        "ic": 1.7852636435772207,
+        "finalExponentN": 0.538135448202921,
+        "iterations": [
+          { "iteration": 1, "exponentN": 1, "qtn": 331.0062893081766, "ic": 1.5288506157177972, "nextExponentN": 0.4404420845884808 },
+          { "iteration": 2, "exponentN": 0.4404420845884808, "qtn": 118.29644275806679, "ic": 1.8401796534988459, "nextExponentN": 0.5590584479830603 },
+          { "iteration": 3, "exponentN": 0.5590584479830603, "qtn": 147.12926121832757, "ic": 1.7693390852213282, "nextExponentN": 0.532068191469326 },
+          { "iteration": 4, "exponentN": 0.532068191469326, "qtn": 140.00532619838506, "ic": 1.7852636435772207, "nextExponentN": 0.538135448202921 }
+        ]
+      }
+    },
+    {
+      "caseId": "derived-qt",
+      "waterDepthM": 25,
+      "input": {
+        "sourceRowId": "golden-derived-qt",
+        "depthM": 6,
+        "qcKpa": 2500,
+        "qtKpa": null,
+        "fsKpa": 35,
+        "u2Kpa": 500,
+        "importedFrPercent": 1.6
+      },
+      "expected": {
+        "qtSource": "derived",
+        "qtKpa": 2600,
+        "sigmaV0Kpa": 359.25,
+        "u0Kpa": 311.55,
+        "sigmaV0EffectiveKpa": 47.69999999999999,
+        "qnetKpa": 2240.75,
+        "frPercent": 1.5619770166238982,
+        "floorApplied": false,
+        "qtn": 39.552132199857525,
+        "ic": 2.3464800375520123,
+        "finalExponentN": 0.7678588943073167,
+        "iterations": [
+          { "iteration": 1, "exponentN": 1, "qtn": 46.97589098532496, "ic": 2.2872974025251276, "nextExponentN": 0.7453103103620736 },
+          { "iteration": 2, "exponentN": 0.7453103103620736, "qtn": 38.904243230285076, "ic": 2.3522090408291034, "nextExponentN": 0.7700416445558884 },
+          { "iteration": 3, "exponentN": 0.7700416445558884, "qtn": 39.62302616147768, "ic": 2.345859335038284, "nextExponentN": 0.7676224066495863 },
+          { "iteration": 4, "exponentN": 0.7676224066495863, "qtn": 39.552132199857525, "ic": 2.3464800375520123, "nextExponentN": 0.7678588943073167 }
+        ]
+      }
+    },
+    {
+      "caseId": "effective-stress-floor",
+      "waterDepthM": 10,
+      "input": {
+        "sourceRowId": "golden-effective-stress-floor",
+        "depthM": 0.1,
+        "qcKpa": 1900,
+        "qtKpa": 2000,
+        "fsKpa": 20,
+        "u2Kpa": 150,
+        "importedFrPercent": 1.05
+      },
+      "expected": {
+        "qtSource": "imported",
+        "qtKpa": 2000,
+        "sigmaV0Kpa": 102.3,
+        "u0Kpa": 101.50500000000001,
+        "sigmaV0EffectiveKpa": 5,
+        "qnetKpa": 1897.7,
+        "frPercent": 1.0539073615429204,
+        "floorApplied": true,
+        "qtn": 100.68475718960936,
+        "ic": 1.9226942882798397,
+        "finalExponentN": 0.5850465238346189,
+        "iterations": [
+          { "iteration": 1, "exponentN": 1, "qtn": 379.53999999999996, "ic": 1.529045455994517, "nextExponentN": 0.4350663187339109 },
+          { "iteration": 2, "exponentN": 0.4350663187339109, "qtn": 69.86535793376937, "ic": 2.046358303835121, "nextExponentN": 0.6321625137611812 },
+          { "iteration": 3, "exponentN": 0.6321625137611812, "qtn": 126.09270169533222, "ic": 1.849207374184761, "nextExponentN": 0.5570480095643938 },
+          { "iteration": 4, "exponentN": 0.5570480095643938, "qtn": 100.68475718960936, "ic": 1.9226942882798397, "nextExponentN": 0.5850465238346189 }
+        ]
+      }
+    }
+  ],
+  "invalidVectors": [
+    {
+      "caseId": "invalid-imported-qt-strict",
+      "waterDepthM": 20,
+      "input": { "sourceRowId": "invalid-qt", "depthM": 2, "qcKpa": 2500, "qtKpa": -10, "fsKpa": 25, "u2Kpa": 300, "importedFrPercent": 1 },
+      "expected": { "status": "invalid-input", "reasonCode": "PAR-QT-IMPORTED-INVALID" }
+    },
+    {
+      "caseId": "missing-qt-inputs",
+      "waterDepthM": 20,
+      "input": { "sourceRowId": "missing-qt", "depthM": 2, "qcKpa": 2500, "qtKpa": null, "fsKpa": 25, "u2Kpa": null, "importedFrPercent": 1 },
+      "expected": { "status": "invalid-input", "reasonCode": "PAR-QT-MISSING" }
+    },
+    {
+      "caseId": "zero-sleeve-friction",
+      "waterDepthM": 20,
+      "input": { "sourceRowId": "zero-fs", "depthM": 2, "qcKpa": 2500, "qtKpa": 3000, "fsKpa": 0, "u2Kpa": 300, "importedFrPercent": 0 },
+      "expected": { "status": "invalid-input", "reasonCode": "PAR-FS-INVALID" }
+    },
+    {
+      "caseId": "non-positive-qnet",
+      "waterDepthM": 20,
+      "input": { "sourceRowId": "negative-qnet", "depthM": 2, "qcKpa": 100, "qtKpa": 100, "fsKpa": 10, "u2Kpa": 10, "importedFrPercent": 1 },
+      "expected": { "status": "undefined", "reasonCode": "PAR-QNET-NON-POSITIVE" }
+    }
+  ],
+  "invalidSetupVectors": [
+    {
+      "caseId": "negative-water-depth",
+      "waterDepthM": -0.01,
+      "input": { "sourceRowId": "negative-water", "depthM": 1, "qcKpa": 2000, "qtKpa": 2100, "fsKpa": 20, "u2Kpa": 100, "importedFrPercent": 1 },
+      "expectedProblem": "水深必须是大于或等于 0 m 的有限数值。"
+    }
+  ]
+}

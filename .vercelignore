@@ -1,0 +1,30 @@
+.git/
+.vercel/
+node_modules/
+dist/
+build/
+coverage/
+.env
+.env.*
+mishi.md
+
+# Private engineering sources and retired temporary pages never enter deployment uploads.
+sample_data/source/yingkou/
+sample_data/source/**/*.csv
+sample_data/source/**/*.xls
+sample_data/source/**/*.xlsx
+sample_data/source/**/*.zip
+sample_data/**/*yingkou*
+public/leadership/
+process_logs/
+playwright-report/
+playwright-results/
+test-results/
+tests/
+docs/
+image/
+public/reference-screenshots/
+
+CPeT-IT data report.pdf
+Braintrust Web 150.png
+process*-feedback-*.png

@@ -1,0 +1,16 @@
+import { _ as _export_sfc, o as openBlock, c as createElementBlock, a2 as createStaticVNode } from "./chunks/framework.ZXCZ9mzl.js";
+const _imports_0 = "/help/images/workflow/professional-import-location.png";
+const _imports_1 = "/help/images/workflow/professional-water-guide.png";
+const _imports_2 = "/help/images/gog6/professional-ai-review.png";
+const __pageData = JSON.parse('{"title":"专业解译：项目与数据导入","description":"","frontmatter":{},"headers":[],"relativePath":"professional/import.md","filePath":"professional/import.md","lastUpdated":1785585521000}');
+const _sfc_main = { name: "professional/import.md" };
+function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", null, [..._cache[0] || (_cache[0] = [
+    createStaticVNode('<h1 id="专业解译-项目与数据导入" tabindex="-1">专业解译：项目与数据导入 <a class="header-anchor" href="#专业解译-项目与数据导入" aria-label="Permalink to &quot;专业解译：项目与数据导入&quot;">​</a></h1><figure class="manual-shot"><img src="' + _imports_0 + '" alt="专业解译数据导入页，左侧为固定工作流，中间为导入草稿，右侧为导入工具"><figcaption>左侧确认所处步骤，中间核对导入草稿，右侧处理字段、单位和来源。</figcaption></figure><h2 id="project" tabindex="-1">建立项目和点位 <a class="header-anchor" href="#project" aria-label="Permalink to &quot;建立项目和点位 {#project}&quot;">​</a></h2><p>新建项目后建立点位。先确认点位名称、测量路线、探头信息、水深和压力基准。这里的选择会影响后续计算，不要只填写占位值。</p><h2 id="standard-import" tabindex="-1">普通导入 <a class="header-anchor" href="#standard-import" aria-label="Permalink to &quot;普通导入 {#standard-import}&quot;">​</a></h2><p>上传 CSV 或 <code>.xlsx</code>。在字段映射中确认深度、qc、fs 和可选 u2。确认单位后预览数值和深度范围，再生成导入草稿。</p><figure class="manual-shot manual-shot-compact"><img src="' + _imports_1 + '" alt="确认水深与孔压的引导窗口，提供完整 CPTU 和无孔压 CPT 两个明确选择"><figcaption>检测到 u2 时，按现场条件选择孔压路线并确认水深。</figcaption></figure><h2 id="ai-import" tabindex="-1">AI 整理 <a class="header-anchor" href="#ai-import" aria-label="Permalink to &quot;AI 整理 {#ai-import}&quot;">​</a></h2><p>文件表头、工作表或字段名不标准时，打开“AI 整理数据”。AI 可以建议：</p><ul><li>使用哪个工作表和表头行</li><li>中文或英文同义字段对应什么</li><li>哪些额外列应排除</li><li>单位如何映射</li></ul><p>AI 只创建草稿。用户确认后，浏览器从未修改的源文件重新读取并导入。失败时可以重试、改手动映射或更换文件。</p><h2 id="gog6" tabindex="-1">GoG 6 怎么处理 <a class="header-anchor" href="#gog6" aria-label="Permalink to &quot;GoG 6 怎么处理 {#gog6}&quot;">​</a></h2><p>选择 Sheet1，第 11 行为字段，第 12 行为单位。使用后四列：Depth、qc、fs、u2。</p><p>源表的 <code>qt</code> 表头是误写，数据提供者已确认实际为 <code>qc</code>。AI 会先询问，选择“是，实际是 qc”后再生成导入草稿。这里只修正字段身份，不修改源工作簿或测量值；导入后保留原工作簿哈希和源行位置，后续 <code>qt</code> 由系统根据 qc、u2 和确认的探头面积比计算。</p><figure class="manual-shot manual-shot-compact"><img src="' + _imports_2 + '" alt="GoG 6 专业导入草稿，源 qt 列映射为 qc，并显示数据起止行"><figcaption>草稿读取第 14 至 73 行数据，跳过单位行和空行；展开“查看字段与改动”可核对修正理由。</figcaption></figure><h2 id="完成信号" tabindex="-1">完成信号 <a class="header-anchor" href="#完成信号" aria-label="Permalink to &quot;完成信号&quot;">​</a></h2><div class="task-check">页面显示真实项目和点位名称、有效数据行数、深度范围，并出现“运行数据检查”。</div><h2 id="出现问题" tabindex="-1">出现问题 <a class="header-anchor" href="#出现问题" aria-label="Permalink to &quot;出现问题&quot;">​</a></h2><div class="task-recovery">导入草稿有问题时不要继续。返回字段映射修正，或下载模板重新整理。失败导入不应产生半个点位或替换已有测量修订。</div>', 19)
+  ])]);
+}
+const _import = /* @__PURE__ */ _export_sfc(_sfc_main, [["render", _sfc_render]]);
+export {
+  __pageData,
+  _import as default
+};

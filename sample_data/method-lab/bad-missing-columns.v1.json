@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "method-lab-input.v1",
+  "runId": "methodlab-fixture-bad-missing-columns",
+  "engineId": "contract-fixture",
+  "methodId": "method-lab-contract-fixture",
+  "identity": "Experimental",
+  "projectId": "synthetic-demo",
+  "projectName": "通用合成示例",
+  "testPointId": "CPT09",
+  "testPointName": "CPT09",
+  "waterDepthM": 7.2,
+  "sourceOfficialRunId": 61,
+  "createdAt": "2026-06-29T00:00:00+08:00",
+  "canonicalInputSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+  "settings": {},
+  "sourceImportFiles": [],
+  "rows": [
+    {
+      "sourceRowIndex": 1,
+      "sourceRecordId": "bad-row-1",
+      "depthM": 0.1,
+      "depthFromM": 0.0,
+      "depthToM": 0.2
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "method-run-result.v1",
+  "runId": "methodlab-fixture-pycpt-experimental",
+  "engineId": "pycpt",
+  "methodName": "pyCPT auto stratification",
+  "methodVersion": "repo-b8f4c04",
+  "status": "Completed",
+  "identity": "Experimental",
+  "officialWriteAllowed": false,
+  "outputChannels": [
+    {
+      "channelId": "pycpt-entropy",
+      "name": "Point entropy",
+      "symbol": "H",
+      "unit": "1",
+      "valueType": "Number",
+      "depthMode": "Point",
+      "identity": "Experimental",
+      "sourceEngine": "pycpt",
+      "sourceMethod": "pyCPT.CPT.segmentation",
+      "formulaRef": "pyCPT HMRF entropy",
+      "confidence": null,
+      "values": [
+        {
+          "sourceRowIndex": 1,
+          "sourceRecordId": "fixture-row-1",
+          "depthM": 0.1,
+          "value": 0.12,
+          "status": "Valid",
+          "reasonCode": "",
+          "sourceChannelIds": ["frPercent", "qnetKpa", "sigmaV0EffectiveKpa"]
+        }
+      ]
+    }
+  ],
+  "layerCandidates": [
+    {
+      "candidateId": "pycpt-layer-1",
+      "runId": "methodlab-fixture-pycpt-experimental",
+      "depthFromM": 0.0,
+      "depthToM": 0.4,
+      "boundaryDepthM": 0.4,
+      "boundaryType": "Hard",
+      "sourceEngine": "pycpt",
+      "sourceMethod": "segmentation-label-map",
+      "sbtType": "Sand-like",
+      "sbtProbabilities": [0.02, 0.03, 0.04, 0.05, 0.08, 0.7, 0.04, 0.02, 0.02],
+      "probability": 0.7,
+      "entropy": 0.12,
+      "entropyMean": 0.12,
+      "entropyMax": 0.2,
+      "clusterLabel": "cluster-1",
+      "sourcePointCount": 2,
+      "identity": "Experimental"
+    },
+    {
+      "candidateId": "pycpt-layer-2",
+      "runId": "methodlab-fixture-pycpt-experimental",
+      "depthFromM": 0.4,
+      "depthToM": 0.6,
+      "boundaryDepthM": 0.6,
+      "boundaryType": "Soft",
+      "sourceEngine": "pycpt",
+      "sourceMethod": "segmentation-label-map",
+      "sbtType": "Transitional",
+      "sbtProbabilities": [0.05, 0.05, 0.1, 0.3, 0.25, 0.15, 0.05, 0.03, 0.02],
+      "probability": 0.3,
+      "entropy": 0.34,
+      "entropyMean": 0.34,
+      "entropyMax": 0.34,
+      "clusterLabel": "cluster-2",
+      "sourcePointCount": 1,
+      "identity": "Experimental"
+    }
+  ],
+  "classificationPoints": [
+    {
+      "depthM": 0.1,
+      "chartType": "Robertson1990",
+      "x": 1.75,
+      "y": 1066.667,
+      "xAxis": "FrPercent",
+      "yAxis": "QtDimensionless",
+      "xUnit": "%",
+      "yUnit": "1",
+      "logBase": 10,
+      "label": "cluster-1 / Sand-like",
+      "labelProbability": 0.7,
+      "entropy": 0.12,
+      "sourceEngine": "pycpt",
+      "sourceMethod": "segmentation",
+      "identity": "Experimental"
+    }
+  ],
+  "parameterSeries": [],
+  "summaryMetrics": [
+    {
+      "metricId": "officialLayerCount",
+      "name": "Official layer count",
+      "value": 2,
+      "unit": "count"
+    },
+    {
+      "metricId": "pycptLayerCount",
+      "name": "pyCPT layer count",
+      "value": 2,
+      "unit": "count"
+    },
+    {
+      "metricId": "meanBoundaryOffsetM",
+      "name": "Mean boundary offset",
+      "value": 0.05,
+      "unit": "m"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "ExperimentalOnly",
+      "message": "pyCPT output is Experimental and cannot replace Official layers."
+    }
+  ],
+  "logs": [
+    {
+      "level": "Info",
+      "message": "Fixture result for R0 contract validation."
+    }
+  ],
+  "artifacts": [],
+  "error": null,
+  "provenance": {
+    "engineId": "pycpt",
+    "engineVersion": "repo-b8f4c04",
+    "engineLicense": "LGPL-3.0",
+    "engineSource": "https://github.com/hwang051785/pyCPT",
+    "engineRepoCommit": "b8f4c04f9cfb8b1f3f434f232deb522569d29f0c",
+    "pythonVersion": "3.x",
+    "runnerVersion": "method-lab-runner.v1",
+    "runnerScriptSha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "commandLine": "python tools/method-lab/runners/pycpt_experimental_runner.py --input input.json --output output.json",
+    "inputJsonPath": "sample_data/synthetic/workflow-method-input.v1.json",
+    "outputJsonPath": "sample_data/method-lab/pycpt-experimental-output.v1.json",
+    "canonicalInputSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "createdAt": "2026-06-29T00:02:00+08:00",
+    "completedAt": "2026-06-29T00:02:08+08:00",
+    "durationMs": 8000,
+    "notForOfficialResult": true,
+    "legalReviewRequired": false
+  }
+}

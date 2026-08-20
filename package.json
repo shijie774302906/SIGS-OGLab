@@ -1,0 +1,59 @@
+{
+  "name": "sigs-oglab",
+  "version": "1.0.0",
+  "description": "SIGS-OGLab browser workbench for CPT/CPTU data review, stratification, parameter interpretation and reporting.",
+  "scripts": {
+    "dev": "node scripts/dev-full.mjs",
+    "dev:web": "vite --host 127.0.0.1",
+    "dev:assistant": "node server/assistant/server.mjs",
+    "dev:assistant:mock": "set ASSISTANT_PROVIDER=mock&& node server/assistant/server.mjs",
+    "start": "node server/assistant/server.mjs",
+    "test:assistant-server": "node --test server/assistant/assistant.test.mjs server/analytics/visitor-analytics.test.mjs server/storage/cloudbase-postgres.test.mjs",
+    "test:assistant-deepseek-smoke": "node server/assistant/deepseek-smoke.mjs",
+    "build": "tsc -b && vite build",
+    "build:release": "npm run build && npm run release:manifest",
+    "preview": "vite preview --host 127.0.0.1",
+    "test:e2e": "playwright test",
+    "test:e2e:core": "playwright test tests/e2e/project-onboarding.spec.ts tests/e2e/import-pipeline.spec.ts tests/e2e/quick-plot-ui.spec.ts tests/e2e/assistant-ui.spec.ts tests/e2e/report-rendering-ui.spec.ts --project=chromium --workers=4",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:compatibility": "playwright test tests/e2e/release-compatibility.spec.ts --config playwright.compat.config.ts --project=chromium --project=edge",
+    "test:compatibility:webkit": "playwright test tests/e2e/release-compatibility.spec.ts --config playwright.compat.config.ts --project=webkit-smoke",
+    "test:compatibility:firefox": "playwright test tests/e2e/release-compatibility.spec.ts --config playwright.compat.config.ts --project=firefox-smoke",
+    "playwright:version": "playwright --version",
+    "release:manifest": "node scripts/release-manifest.mjs",
+    "cloudbase:preflight": "node scripts/cloudbase-preflight.mjs",
+    "cloudbase:runtime-check": "node scripts/cloudbase-runtime-check.mjs",
+    "docs:mirror:sync": "node scripts/sync-help-mirror.mjs",
+    "docs:mirror:verify": "node scripts/verify-help-mirror.mjs"
+  },
+  "keywords": [
+    "cpt",
+    "cptu",
+    "geotechnical",
+    "soil-classification",
+    "offshore-wind"
+  ],
+  "author": "SIGS-OGLab",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.3"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "jsep": "^1.4.0",
+    "lucide-react": "^1.23.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-markdown": "^10.1.0",
+    "read-excel-file": "^9.3.1",
+    "remark-gfm": "^4.0.1"
+  }
+}

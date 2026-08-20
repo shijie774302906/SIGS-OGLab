@@ -1,0 +1,13 @@
+import { _ as _export_sfc, o as openBlock, c as createElementBlock, a2 as createStaticVNode } from "./chunks/framework.ZXCZ9mzl.js";
+const __pageData = JSON.parse('{"title":"常见问题","description":"","frontmatter":{},"headers":[],"relativePath":"troubleshooting/index.md","filePath":"troubleshooting/index.md","lastUpdated":1785583660000}');
+const _sfc_main = { name: "troubleshooting/index.md" };
+function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+  return openBlock(), createElementBlock("div", null, [..._cache[0] || (_cache[0] = [
+    createStaticVNode('<h1 id="常见问题" tabindex="-1">常见问题 <a class="header-anchor" href="#常见问题" aria-label="Permalink to &quot;常见问题&quot;">​</a></h1><p>先找最接近的现象。每个处理都回到具体责任位置，不要求从头开始。</p><h2 id="import-failed" tabindex="-1">导入失败 <a class="header-anchor" href="#import-failed" aria-label="Permalink to &quot;导入失败 {#import-failed}&quot;">​</a></h2><p><strong>现象</strong>：没有预览行、缺少 Depth/qc、表头识别为报告标题。</p><p><strong>处理</strong>：确认文件为 CSV 或静态值 <code>.xlsx</code>，选择正确工作表、表头行和单位。非标准表头使用 AI 整理，确认草稿后再导入。</p><p><strong>不要做</strong>：不要直接删除源文件前几行，也不要批量改单位数值。</p><h2 id="cannot-stratify" tabindex="-1">无法分层 <a class="header-anchor" href="#cannot-stratify" aria-label="Permalink to &quot;无法分层 {#cannot-stratify}&quot;">​</a></h2><p><strong>现象</strong>：生成候选按钮不可用，或提示缺少可用分类证据。</p><p><strong>处理</strong>：从提示进入数据检查，处理真正影响分类的连续区间。孤立点可以保留或按规则忽略。复检后返回分层页继续原任务。</p><h2 id="parameter-unavailable" tabindex="-1">参数无法计算 <a class="header-anchor" href="#parameter-unavailable" aria-label="Permalink to &quot;参数无法计算 {#parameter-unavailable}&quot;">​</a></h2><p><strong>现象</strong>：参数灰色，或条带显示“存在问题”。</p><p><strong>处理</strong>：点击该参数查看原因。整层土类不适用时回分层页；少量无效点时在当前参数内忽略后继续。</p><h2 id="ai-unavailable" tabindex="-1">AI 不可用 <a class="header-anchor" href="#ai-unavailable" aria-label="Permalink to &quot;AI 不可用 {#ai-unavailable}&quot;">​</a></h2><p><strong>现象</strong>：服务暂时不可用、公共额度用完、没有生成可确认草稿。</p><p><strong>处理</strong>：重试一次。仍失败时关闭 AI，改用普通导入或手动映射。当前文件不会丢失。</p><h2 id="export-problem" tabindex="-1">导出问题 <a class="header-anchor" href="#export-problem" aria-label="Permalink to &quot;导出问题 {#export-problem}&quot;">​</a></h2><p><strong>现象</strong>：导出按钮不可用、进度中断、文件内容是旧结果。</p><p><strong>处理</strong>：检查来源是否当前。输入改变时先重新生成图册或参数结果；网络或浏览器中断时保留当前页面，直接重试导出。</p><h2 id="cannot-scroll" tabindex="-1">页面无法滚动 <a class="header-anchor" href="#cannot-scroll" aria-label="Permalink to &quot;页面无法滚动 {#cannot-scroll}&quot;">​</a></h2><p>先刷新当前页面。如果快捷输入内容仍无法向下滚动，缩小浏览器缩放到 100%，关闭 AI 侧栏后重试，并通过页面底部“反馈与建议”提交截图。</p>', 20)
+  ])]);
+}
+const index = /* @__PURE__ */ _export_sfc(_sfc_main, [["render", _sfc_render]]);
+export {
+  __pageData,
+  index as default
+};

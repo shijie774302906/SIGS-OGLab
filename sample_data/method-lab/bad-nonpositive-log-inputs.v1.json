@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "method-lab-input.v1",
+  "runId": "methodlab-fixture-bad-nonpositive-log-inputs",
+  "engineId": "contract-fixture",
+  "methodId": "method-lab-contract-fixture",
+  "identity": "Experimental",
+  "projectId": "synthetic-demo",
+  "projectName": "通用合成示例",
+  "testPointId": "CPT09",
+  "testPointName": "CPT09",
+  "waterDepthM": 7.2,
+  "sourceOfficialRunId": 61,
+  "createdAt": "2026-06-29T00:00:00+08:00",
+  "canonicalInputSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+  "settings": {},
+  "sourceImportFiles": [],
+  "rows": [
+    {
+      "sourceRowIndex": 1,
+      "sourceRecordId": "bad-row-1",
+      "depthM": 0.1,
+      "depthFromM": 0.0,
+      "depthToM": 0.2,
+      "qcKpa": 1200,
+      "qtKpa": 1220,
+      "u2Kpa": 20,
+      "sleeveKpa": 22,
+      "frPercent": 0,
+      "qnetKpa": -10,
+      "qtn": 30,
+      "sigmaV0Kpa": 5,
+      "sigmaV0EffectiveKpa": 3,
+      "soilTypeOfficial": "Sand-like",
+      "icOfficial": 1.7
+    }
+  ]
+}

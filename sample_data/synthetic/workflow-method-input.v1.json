@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "method-lab-input.v1",
+  "projectId": "synthetic-demo",
+  "projectName": "通用合成示例",
+  "testPointId": "DEMO-01",
+  "testPointName": "DEMO-01",
+  "waterDepthM": 8,
+  "createdAt": "2026-08-04T00:00:00Z",
+  "sourceImportFiles": [{ "fileName": "synthetic-cptu.csv" }],
+  "rows": [
+    { "depthM": 1, "qcKpa": 900, "qtKpa": 920, "sleeveKpa": 36, "u2Kpa": 85, "frPercent": 4, "qtn": 16 },
+    { "depthM": 3, "qcKpa": 1300, "qtKpa": 1330, "sleeveKpa": 46, "u2Kpa": 110, "frPercent": 3.5, "qtn": 24 },
+    { "depthM": 5, "qcKpa": 4200, "qtKpa": 4250, "sleeveKpa": 70, "u2Kpa": 95, "frPercent": 1.7, "qtn": 58 },
+    { "depthM": 7, "qcKpa": 7200, "qtKpa": 7280, "sleeveKpa": 78, "u2Kpa": 80, "frPercent": 1.1, "qtn": 92 },
+    { "depthM": 9, "qcKpa": 9800, "qtKpa": 9890, "sleeveKpa": 92, "u2Kpa": 72, "frPercent": 0.9, "qtn": 118 }
+  ]
+}
