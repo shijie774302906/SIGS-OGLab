@@ -14,7 +14,7 @@
     "build:release": "npm run build && npm run release:manifest",
     "preview": "vite preview --host 127.0.0.1",
     "test:e2e": "playwright test",
-    "test:e2e:core": "playwright test tests/e2e/project-onboarding.spec.ts tests/e2e/import-pipeline.spec.ts tests/e2e/quick-plot-ui.spec.ts tests/e2e/assistant-ui.spec.ts tests/e2e/report-rendering-ui.spec.ts --project=chromium --workers=2 --timeout=120000",
+    "test:e2e:core": "playwright test tests/e2e/project-onboarding.spec.ts tests/e2e/import-pipeline.spec.ts tests/e2e/quick-plot-ui.spec.ts tests/e2e/assistant-ui.spec.ts tests/e2e/report-rendering-ui.spec.ts --project=chromium --workers=1 --timeout=120000",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:ui": "playwright test --ui",
     "test:compatibility": "playwright test tests/e2e/release-compatibility.spec.ts --config playwright.compat.config.ts --project=chromium --project=edge",

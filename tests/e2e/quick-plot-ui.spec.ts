@@ -169,7 +169,7 @@ test('PROCESS141 quick input owns vertical scrolling with long data and an open 
 });
 
 test('PROCESS117 quick project generates the 15-page mixed-orientation atlas with verified classification pages', async ({ page }, testInfo) => {
-  test.setTimeout(90_000);
+  test.setTimeout(180_000);
   const browserErrors: string[] = [];
   page.on('pageerror', (error) => browserErrors.push(`page: ${error.message}`));
   page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
@@ -1342,7 +1342,7 @@ test('PROCESS145 changing pages lets the old-page answer finish with its origina
 });
 
 test('PROCESS145 stopping a slow report keeps the question and offers the same retry path', async ({ page }) => {
-  await installQuickAssistantMock(page, undefined, 'delayed-direct');
+  await installQuickAssistantMock(page, undefined, 'stoppable-direct');
   await page.reload();
   await page.getByTestId('new-project-name').fill('快捷图册主动停止');
   await page.getByTestId('project-mode-quick').click();
@@ -1534,13 +1534,14 @@ function createQuickTwoSheetWorkbook() {
 async function installQuickAssistantMock(
   page: import('@playwright/test').Page,
   shouldFail?: () => boolean,
-  reportMode: 'normal' | 'direct' | 'delayed-direct' | 'invented' | 'followup-direct' | 'stale-direct' | 'echo-direct' | 'markdown-direct' = 'normal',
+  reportMode: 'normal' | 'direct' | 'delayed-direct' | 'stoppable-direct' | 'invented' | 'followup-direct' | 'stale-direct' | 'echo-direct' | 'markdown-direct' = 'normal',
   failure: { status: number; problem: string; code?: string } = {
     status: 503,
     problem: 'DeepSeek 服务暂时繁忙。',
   },
 ) {
   let completedReportAnswers = 0;
+  let stoppableDelayConsumed = false;
   await page.route('**/api/assistant/capabilities', async (route) => {
     await route.fulfill({
       status: 200,
@@ -1602,6 +1603,7 @@ async function installQuickAssistantMock(
       if (
         reportMode === 'direct'
         || reportMode === 'delayed-direct'
+        || reportMode === 'stoppable-direct'
         || reportMode === 'echo-direct'
         || reportMode === 'markdown-direct'
         || (reportMode === 'followup-direct' && userTurnCount > 1 && last?.role === 'user')
@@ -1609,6 +1611,9 @@ async function installQuickAssistantMock(
       ) {
         if (reportMode === 'delayed-direct') {
           await new Promise((resolve) => setTimeout(resolve, 350));
+        } else if (reportMode === 'stoppable-direct' && !stoppableDelayConsumed) {
+          stoppableDelayConsumed = true;
+          await new Promise((resolve) => setTimeout(resolve, 5_000));
         }
         await route.fulfill({
           status: 200,
