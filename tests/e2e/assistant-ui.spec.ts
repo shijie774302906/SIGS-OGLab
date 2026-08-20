@@ -744,9 +744,15 @@ async function prepareManualStratification(page: Page, testInfo: TestInfo) {
 }
 
 async function openAssistant(page: Page) {
+  await page.waitForLoadState('domcontentloaded');
   const show = page.getByTestId('right-panel-show');
-  if (await show.isVisible().catch(() => false)) await show.click();
-  await page.getByTestId('right-panel-assistant-tab').click();
+  const assistantTab = page.getByTestId('right-panel-assistant-tab');
+  if (!await assistantTab.isVisible().catch(() => false)) {
+    await expect(show).toBeVisible({ timeout: 30_000 });
+    await show.click();
+  }
+  await expect(assistantTab).toBeVisible({ timeout: 30_000 });
+  await assistantTab.click();
   await expect(page.getByTestId('professional-assistant-panel')).toBeVisible();
 }
 
