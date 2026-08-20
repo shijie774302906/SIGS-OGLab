@@ -92,12 +92,26 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
   const capabilityAbortRef = useRef<AbortController | null>(null);
   const validationAbortRef = useRef<AbortController | null>(null);
   const turnAbortControllersRef = useRef(new Set<AbortController>());
+  const outboundConsentReceiptsRef = useRef(new Set<string>());
   const generationRef = useRef(0);
   const [capability, setCapability] = useState<AssistantCapability | null>(null);
   const [status, setStatus] = useState<AssistantConnectionStatus>('checking-service');
   const [outboundConsentReceipts, setOutboundConsentReceipts] = useState<string[]>([]);
   const [usingPersonalKey, setUsingPersonalKey] = useState(false);
   const [generation, setGeneration] = useState(0);
+
+  const clearOutboundConsent = useCallback(() => {
+    outboundConsentReceiptsRef.current.clear();
+    setOutboundConsentReceipts([]);
+  }, []);
+
+  const grantOutboundConsent = useCallback((scope: 'engineering' | 'import', authorityHash: string) => {
+    const receipt = `${scope}:${authorityHash}`;
+    outboundConsentReceiptsRef.current.add(receipt);
+    setOutboundConsentReceipts((current) => (
+      current.includes(receipt) ? current : [...current, receipt]
+    ));
+  }, []);
 
   const abortTurns = useCallback(() => {
     for (const controller of turnAbortControllersRef.current) controller.abort('assistant-connection-changed');
@@ -127,7 +141,7 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
         if (!nextCapability.requiresApiKey) {
           apiKeyRef.current = '';
           setUsingPersonalKey(false);
-          setOutboundConsentReceipts([]);
+          clearOutboundConsent();
           setStatus('connected');
           bumpGeneration();
           return;
@@ -145,7 +159,7 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
         });
         setStatus('service-error');
       });
-  }, [bumpGeneration, capability]);
+  }, [bumpGeneration, capability, clearOutboundConsent]);
 
   useEffect(() => () => {
     capabilityAbortRef.current?.abort();
@@ -176,11 +190,11 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
     }
     apiKeyRef.current = normalized;
     setUsingPersonalKey(true);
-    setOutboundConsentReceipts([]);
+    clearOutboundConsent();
     setStatus('connected');
     bumpGeneration();
     return { ok: true };
-  }, [abortTurns, bumpGeneration, capability]);
+  }, [abortTurns, bumpGeneration, capability, clearOutboundConsent]);
 
   const cancelConnection = useCallback(() => {
     validationAbortRef.current?.abort('cancelled-by-user');
@@ -194,12 +208,12 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
     abortTurns();
     apiKeyRef.current = '';
     setUsingPersonalKey(false);
-    setOutboundConsentReceipts([]);
+    clearOutboundConsent();
     setStatus(capability?.serviceAvailable
       ? capability.requiresApiKey ? 'idle' : 'connected'
       : 'service-error');
     bumpGeneration();
-  }, [abortTurns, bumpGeneration, capability]);
+  }, [abortTurns, bumpGeneration, capability, clearOutboundConsent]);
   const usePublicAccess = useCallback(() => {
     if (!capability?.serviceAvailable || capability.requiresApiKey) return;
     disconnect();
@@ -221,7 +235,7 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
     const accessProblem = getAssistantTurnAccessProblem({
       capability,
       status,
-      outboundConsent: capability?.provider === 'mock' || outboundConsentReceipts.includes(consentReceipt),
+      outboundConsent: capability?.provider === 'mock' || outboundConsentReceiptsRef.current.has(consentReceipt),
       hasApiKey: capability?.provider === 'mock' || Boolean(apiKey),
       requiresApiKey: Boolean(capability?.requiresApiKey),
       usingPersonalKey,
@@ -270,7 +284,7 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
       turnAbortControllersRef.current.delete(controller);
       input.signal?.removeEventListener('abort', abortFromCaller);
     }
-  }, [capability, outboundConsentReceipts, status, usingPersonalKey]);
+  }, [capability, status, usingPersonalKey]);
 
   const value = useMemo<AssistantConnectionValue>(() => ({
     capability,
@@ -280,7 +294,7 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
     publicQuota: capability?.serviceAvailable ? capability.publicQuota ?? null : null,
     hasOutboundConsent: (scope, authorityHash) => (
       capability?.provider === 'mock'
-      || outboundConsentReceipts.includes(`${scope}:${authorityHash}`)
+      || outboundConsentReceiptsRef.current.has(`${scope}:${authorityHash}`)
     ),
     generation,
     serviceProblem: capability && !capability.serviceAvailable ? capability.reason : null,
@@ -290,9 +304,7 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
     usePublicAccess,
     ensureService,
     retryService,
-    grantOutboundConsent: (scope, authorityHash) => setOutboundConsentReceipts((current) => (
-      current.includes(`${scope}:${authorityHash}`) ? current : [...current, `${scope}:${authorityHash}`]
-    )),
+    grantOutboundConsent,
     requestTurn,
   }), [
     capability,
@@ -301,6 +313,7 @@ export function AssistantConnectionProvider({ children }: { children: ReactNode 
     connect,
     disconnect,
     generation,
+    grantOutboundConsent,
     outboundConsentReceipts,
     requestTurn,
     retryService,

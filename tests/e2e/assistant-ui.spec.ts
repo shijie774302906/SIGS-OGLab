@@ -7,6 +7,7 @@ import { confirmPendingStratificationLayers } from './stratification-guide-helpe
 const process127EvidenceEnabled = process.env.PROCESS127_EVIDENCE === '1' || process.env.MILESTONE_EVIDENCE === '1';
 const process127EvidenceDirectory = join(process.cwd(), 'process_logs', 'playwright-mcp', 'process127-assistant-connection');
 const process140EvidenceDirectory = join(process.cwd(), 'process_logs', 'playwright-mcp', 'process140-public-quota-demo');
+const process162EvidenceDirectory = join(process.cwd(), 'process_logs', 'playwright-mcp', 'process162-assistant-scroll');
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -56,7 +57,8 @@ test('PROCESS140 public quota shows remaining calls and disables public input wh
   await page.getByTestId('create-project-submit').click();
   await openAssistant(page);
   await expect(page.getByTestId('assistant-public-quota')).toHaveText('今日剩余 1 次');
-  await page.getByRole('button', { name: '同意上述发送范围并启用' }).click();
+  await expect(page.getByTestId('assistant-outbound-consent')).toHaveCount(0);
+  await expect(page.getByTestId('assistant-input')).toBeEnabled();
   await page.getByTestId('assistant-input').fill('当前状态？');
   await page.getByTestId('assistant-send').click();
   await expect(page.getByTestId('assistant-messages')).toContainText('当前项目尚未导入数据');
@@ -86,6 +88,21 @@ test('professional assistant reads automatically, previews edits, cancels, then 
 
   const before = await readCurrentLayerGroup(page);
   await openAssistant(page);
+  const professionalScroll = page.getByTestId('professional-assistant-scroll');
+  const professionalFooter = page.getByTestId('professional-assistant-footer');
+  const rightPanel = page.getByTestId('right-panel');
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+    await page.setViewportSize(viewport);
+    await expect(professionalScroll).toBeVisible();
+    await expect(professionalFooter).toBeInViewport();
+    expect(await professionalScroll.evaluate((element) => getComputedStyle(element).overscrollBehaviorY)).toBe('contain');
+    expect(await rightPanel.evaluate((element) => getComputedStyle(element).overflowY)).toBe('hidden');
+    if (process.env.MILESTONE_EVIDENCE === '1') {
+      mkdirSync(process162EvidenceDirectory, { recursive: true });
+      await page.screenshot({ path: join(process162EvidenceDirectory, `professional-general-${viewport.width}x${viewport.height}.png`) });
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
   await expect(page.getByTestId('assistant-provider-status')).toContainText('测试模型 · 已连接');
   await expect(page.getByTestId('assistant-outbound-consent')).toHaveCount(0);
 
@@ -155,9 +172,10 @@ test('professional assistant reads automatically, previews edits, cancels, then 
   }
 });
 
-test('DeepSeek mode requires one-session outbound-data consent before sending', async ({ page }) => {
+test('DeepSeek mode treats the first AI action as consent and sends nothing before it', async ({ page }) => {
   const apiKey = 'sk-ui-connect-12345678901234567890';
   let connectBody: string | null = 'not-called';
+  let assistantTurns = 0;
   await page.route('**/api/assistant/capabilities', async (route) => {
     await route.fulfill({
       status: 200,
@@ -183,6 +201,21 @@ test('DeepSeek mode requires one-session outbound-data consent before sending', 
       body: JSON.stringify({ connected: true, provider: 'deepseek', model: 'deepseek-chat' }),
     });
   });
+  await page.route('**/api/assistant/turn', async (route) => {
+    assistantTurns += 1;
+    expect(route.request().headers()['x-deepseek-api-key']).toBe(apiKey);
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        kind: 'message',
+        model: 'deepseek-chat',
+        content: '已读取当前页面。',
+        serviceInstanceId: 'playwright-mock-instance',
+        protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
+      }),
+    });
+  });
   await page.getByTestId('new-project-name').fill(`DeepSeek consent ${Date.now()}`);
   await page.getByTestId('project-mode-professional').click();
   await page.getByTestId('create-project-submit').click();
@@ -206,13 +239,14 @@ test('DeepSeek mode requires one-session outbound-data consent before sending', 
     localStorage.getItem('assistant-api-key') === secret
     || sessionStorage.getItem('assistant-api-key') === secret
     || document.body.textContent?.includes(secret) === true, apiKey)).toBe(false);
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
-  await expect(page.getByTestId('assistant-outbound-consent')).toContainText('不会发送上传文件或整孔数据');
-  await expect(page.getByTestId('assistant-input')).toBeDisabled();
-  await page.getByRole('button', { name: '同意上述发送范围并启用' }).click();
-  await expect(page.getByTestId('assistant-outbound-consent')).toHaveCount(0);
   await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key');
+  await expect(page.getByTestId('assistant-outbound-consent')).toHaveCount(0);
   await expect(page.getByTestId('assistant-input')).toBeEnabled();
+  expect(assistantTurns).toBe(0);
+  await page.getByTestId('assistant-input').fill('解释当前页面');
+  await page.getByTestId('assistant-send').click();
+  await expect(page.getByTestId('assistant-messages')).toContainText('已读取当前页面');
+  expect(assistantTurns).toBe(1);
   if (process127EvidenceEnabled) {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.waitForTimeout(100);
@@ -245,13 +279,13 @@ test('DeepSeek mode requires one-session outbound-data consent before sending', 
   await page.getByTestId('project-mode-professional').click();
   await page.getByTestId('create-project-submit').click();
   await openAssistant(page);
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
-  await expect(page.getByTestId('assistant-outbound-consent')).toBeVisible();
-  await expect(page.getByTestId('assistant-input')).toBeDisabled();
+  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key');
+  await expect(page.getByTestId('assistant-outbound-consent')).toHaveCount(0);
+  await expect(page.getByTestId('assistant-input')).toBeEnabled();
   if (process127EvidenceEnabled) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.screenshot({
-      path: join(process127EvidenceDirectory, 'assistant-second-scope-consent-1440x900.png'),
+      path: join(process127EvidenceDirectory, 'assistant-second-scope-ready-1440x900.png'),
       fullPage: true,
     });
   }
@@ -293,11 +327,11 @@ test('DeepSeek key stays in tab memory, survives dock switches, and clears on di
   await page.getByTestId('assistant-open-key-dialog').click();
   await page.getByTestId('assistant-api-key-input').fill(validKey);
   await page.getByTestId('assistant-connect-submit').click();
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
+  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key');
 
   await page.getByTestId('right-panel-tools-tab').click();
   await page.getByTestId('right-panel-assistant-tab').click();
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
+  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key');
 
   await page.getByTestId('assistant-provider-status').getByRole('button', { name: '更换密钥' }).click();
   await expect(page.getByTestId('assistant-key-dialog')).toContainText('失败或取消仍使用原连接');
@@ -313,7 +347,7 @@ test('DeepSeek key stays in tab memory, survives dock switches, and clears on di
     });
   }
   await page.getByRole('button', { name: '关闭连接窗口' }).click();
-  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key待启用');
+  await expect(page.getByTestId('assistant-provider-status')).toContainText('DeepSeek · 自己的 Key');
 
   await page.getByTestId('assistant-provider-status').getByRole('button', { name: '断开' }).click();
   await expect(page.getByTestId('assistant-connect-card')).toBeVisible();

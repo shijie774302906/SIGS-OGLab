@@ -16,6 +16,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useAssistantConnection } from './AssistantConnectionProvider';
 import { AssistantPublicQuotaNote, publicAssistantQuotaReady } from './AssistantPublicQuotaNote';
 import { AssistantMarkdown } from './AssistantMarkdown';
+import { scrollAssistantPanelToEnd } from './assistantPanelScroll';
 import { assistantSessionReducer, initialAssistantSessionState } from './assistantState';
 import {
   executeAssistantReadTool,
@@ -49,11 +50,11 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
   const [state, dispatch] = useReducer(assistantSessionReducer, initialAssistantSessionState);
   const requestAbortRef = useRef<AbortController | null>(null);
   const messageEndRef = useRef<HTMLDivElement | null>(null);
+  const panelScrollRef = useRef<HTMLDivElement | null>(null);
   const keyInputRef = useRef<HTMLInputElement | null>(null);
   const connectionGenerationRef = useRef(connection.generation);
   const context = port.getContext();
   const contextKey = `${context.scope.projectId}:${context.scope.pointId}:${context.scope.route}:${context.scope.authorityHash}`;
-  const outboundConsent = connection.hasOutboundConsent('engineering', context.scope.authorityHash);
   const currentContextKeyRef = useRef(contextKey);
   const previousContextScopeRef = useRef({
     projectId: context.scope.projectId,
@@ -67,7 +68,8 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
   }, [connection.ensureService]);
 
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ block: 'nearest' });
+    const frame = requestAnimationFrame(() => scrollAssistantPanelToEnd(panelScrollRef.current));
+    return () => cancelAnimationFrame(frame);
   }, [state.messages.length, state.proposal, state.status]);
 
   useEffect(() => {
@@ -120,14 +122,13 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
     if (!connection.connected) return 'DeepSeek · 尚未连接';
     if (capability.provider === 'deepseek') {
       const access = connection.usingPersonalKey ? '自己的 Key' : '公共额度';
-      return outboundConsent ? `DeepSeek · ${access}` : `DeepSeek · ${access}待启用`;
+      return `DeepSeek · ${access}`;
     }
     return '测试模型 · 已连接';
-  }, [capability, connection.connected, connection.status, connection.usingPersonalKey, outboundConsent]);
+  }, [capability, connection.connected, connection.status, connection.usingPersonalKey]);
   const assistantEnabled = Boolean(
     capability?.serviceAvailable
     && connection.connected
-    && (capability.provider === 'mock' || outboundConsent)
     && publicAssistantQuotaReady({
       provider: capability?.provider,
       usingPersonalKey: connection.usingPersonalKey,
@@ -276,10 +277,17 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
     const turn: AssistantWireTurn = { role: 'user', content: normalized };
     const message: AssistantUiMessage = { id: messageId('user'), role: 'user', content: normalized };
     const nextTurns = [...state.turns, turn];
+    connection.grantOutboundConsent('engineering', port.getContext().scope.authorityHash);
     visibleScopeResetPendingRef.current = false;
     dispatch({ type: 'send', message, turn });
     setInput('');
     void advance(nextTurns);
+  }
+
+  function retryLastTurn() {
+    connection.grantOutboundConsent('engineering', port.getContext().scope.authorityHash);
+    dispatch({ type: 'retry' });
+    void advance(state.turns);
   }
 
   function cancelProposal(proposal: AssistantProposal) {
@@ -346,6 +354,7 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
         <div className="assistant-dock-icon"><Bot aria-hidden="true" /></div>
         <div><strong>当前范围</strong><span>{context.scope.pointName} · {context.scope.routeLabel}</span></div>
       </header>
+      <div className="assistant-panel-scroll" ref={panelScrollRef} data-testid="professional-assistant-scroll">
       <div className="assistant-safety-note">
         <ShieldCheck aria-hidden="true" />
         <div><strong>建议，不代表工程采纳</strong><span>启用后，助手可按你的提问读取当前范围；任何修改都先预览并由你确认。</span></div>
@@ -395,19 +404,6 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
           </button>
         </div>
       ) : null}
-      {capability?.serviceAvailable && capability.provider === 'deepseek' && connection.connected && !outboundConsent ? (
-        <div className="assistant-consent" data-testid="assistant-outbound-consent">
-          <strong>发送哪些数据？</strong>
-          <p>提问时会发送当前项目/点位的工程摘要。不会发送上传文件或整孔数据。</p>
-          <details className="assistant-consent-details">
-            <summary>查看发送范围</summary>
-            <p>包括项目/点位名称、当前页面、流程状态、土层编号与深度、土类、待复核状态及当前选中对象，最多 80 层。只有查看曲线时，才会额外发送不超过 20 m、最多 120 行的 qc、fs、u2 数据窗口。切换项目、点位或修订会结束当前对话。</p>
-          </details>
-          <button type="button" className="toolbar-button primary" onClick={() => connection.grantOutboundConsent('engineering', context.scope.authorityHash)}>
-            同意上述发送范围并启用
-          </button>
-        </div>
-      ) : null}
       <div className="assistant-messages" aria-live="polite" data-testid="assistant-messages">
         {state.messages.map((message) => (
           <article key={message.id} className={`assistant-message ${message.role}`}>
@@ -453,11 +449,13 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
         {state.error ? (
           <article className="assistant-error" data-testid="assistant-error">
             <strong>AI 回答未完成</strong><p>{state.error}</p>
-            <button type="button" className="toolbar-button" disabled={!connection.connected} onClick={() => { dispatch({ type: 'retry' }); void advance(state.turns); }}><RotateCcw aria-hidden="true" />重试</button>
+            <button type="button" className="toolbar-button" disabled={!connection.connected} onClick={retryLastTurn}><RotateCcw aria-hidden="true" />重试</button>
           </article>
         ) : null}
         <div ref={messageEndRef} />
       </div>
+      </div>
+      <footer className="assistant-panel-footer" data-testid="professional-assistant-footer">
       {!state.turns.length && !state.proposal ? (
         <div className="assistant-quick-prompts" data-testid="assistant-quick-prompts">
           {quickPrompts.map((prompt) => (
@@ -477,7 +475,7 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
               ? '请先启动本机 AI 服务'
               : !connection.connected
                 ? '请先连接 DeepSeek'
-                : '请先确认本次工程数据发送范围'}
+                : '描述你想查看或调整的内容'}
           rows={3}
           disabled={!assistantEnabled || Boolean(state.proposal) || state.status === 'applying'}
           data-testid="assistant-input"
@@ -494,6 +492,7 @@ export function ProfessionalAssistantPanel({ port }: { port: AssistantWorkspaceP
           <button type="submit" className="assistant-send" disabled={!input.trim() || !assistantEnabled || Boolean(state.proposal)} aria-label="发送" data-testid="assistant-send"><Send /></button>
         )}
       </form>
+      </footer>
       {connectionDialogOpen ? (
         <div className="assistant-key-dialog-backdrop" onMouseDown={(event) => {
           if (event.target === event.currentTarget && connection.status !== 'validating') closeConnectionDialog();

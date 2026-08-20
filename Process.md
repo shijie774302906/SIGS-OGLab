@@ -4,7 +4,14 @@ This is the lightweight closure index for `D:\CPT-UIQA-WebPrototype`.
 
 Detailed closure records live in `process_logs/ProcessNNN.md`. The complete former Process001-051 index is preserved in `process_logs/Process-index-archive-001-051.md`.
 
-## Current - Process161 双站图册可读性发布
+## Current - Process162 AI 侧栏双滚动隔离与双站发布
+- Date: 2026-08-20
+- Status: `active / verified locally / production deployment authorized`
+- Goal: 统一快捷和专业 AI 侧栏滚动责任，并将独立发送授权合并到明确的 AI 用户动作；单表自动判断、多表选择后自动判断。
+- Deployment: 本地验收已通过；正在把同一受审计构建发布到 `sigs-oglabx.com` 与 `sigs-oglab.com`。
+- Plan: `plan.md`
+
+## Recent - Process161 双站图册可读性发布
 - Date: 2026-08-18
 - Status: `closed / verified / deployed`
 - Result: Process159/160 已由同一构建发布到国际站与国内站；两站 manifest 一致，双站双分辨率线上流程 4/4 通过。

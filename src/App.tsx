@@ -7709,7 +7709,11 @@ function ProjectWorkspaceApp({
           <ProfessionalFirstUseGuide route={activeRoute as ProfessionalGuideRoute} replayToken={professionalGuideReplayToken} />
         </section>
       </main>
-      <aside className={`right-panel ${rightPanelOpen ? 'is-open' : 'is-collapsed'}`} data-testid="right-panel" data-state={rightPanelOpen ? 'open' : 'collapsed'}>
+      <aside
+        className={`right-panel ${rightPanelOpen ? 'is-open' : 'is-collapsed'} ${(rightPanelView === 'assistant' && activeRoute !== 'import') || (activeRoute === 'import' && importDockMode === 'assistant') ? 'assistant-active' : ''}`}
+        data-testid="right-panel"
+        data-state={rightPanelOpen ? 'open' : 'collapsed'}
+      >
         {rightPanelOpen ? (
           <>
             <div className="right-panel-control">

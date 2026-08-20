@@ -1,5 +1,4 @@
 import {
-  Bot,
   Check,
   Download,
   Eye,
@@ -16,6 +15,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAssistantConnection } from '../assistant/AssistantConnectionProvider';
 import { AssistantProcessingStatus } from '../assistant/AssistantProcessingStatus';
 import { AssistantPublicQuotaNote, publicAssistantQuotaReady } from '../assistant/AssistantPublicQuotaNote';
+import { resetAssistantPanelScroll, scrollAssistantPanelToTarget } from '../assistant/assistantPanelScroll';
 import type {
   AssistantContextSnapshot,
   AssistantToolCall,
@@ -84,6 +84,7 @@ export function ImportAssistantPanel({
   const [question, setQuestion] = useState<PendingQuestion | null>(null);
   const [cleanup, setCleanup] = useState<PendingCleanup | null>(null);
   const [allowMeasurementEdits, setAllowMeasurementEdits] = useState(false);
+  const [selectedSheetName, setSelectedSheetName] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'building' | 'saving' | 'success'>('idle');
   const [problem, setProblem] = useState('');
   const [input, setInput] = useState('');
@@ -95,7 +96,16 @@ export function ImportAssistantPanel({
   const [showKey, setShowKey] = useState(false);
   const keyInputRef = useRef<HTMLInputElement | null>(null);
   const requestAbortRef = useRef<AbortController | null>(null);
+  const panelScrollRef = useRef<HTMLDivElement | null>(null);
   const contextKeyRef = useRef('');
+  const autoStartKeyRef = useRef('');
+  const assistantSource = useMemo(() => {
+    if (!source) return null;
+    if (source.sheets.length <= 1) return source;
+    if (!selectedSheetName) return null;
+    const selectedSheet = source.sheets.find((sheet) => sheet.sheetName === selectedSheetName);
+    return selectedSheet ? { ...source, sheets: [selectedSheet] } : null;
+  }, [selectedSheetName, source]);
   const requestContext = useMemo<AssistantContextSnapshot>(() => ({
     ...context,
     assistantProfile: 'professional-governed',
@@ -103,11 +113,10 @@ export function ImportAssistantPanel({
       ...context.scope,
       route: 'import',
       routeLabel: '数据导入',
-      authorityHash: `${context.scope.authorityHash}:${source?.operationId ?? 'none'}:${source?.sourceFingerprint ?? 'none'}:${allowMeasurementEdits ? 'edit' : 'format-only'}`,
+      authorityHash: `${context.scope.authorityHash}:${source?.operationId ?? 'none'}:${source?.sourceFingerprint ?? 'none'}:${selectedSheetName || 'single-sheet'}:${allowMeasurementEdits ? 'edit' : 'format-only'}`,
     },
-    importSource: source ? summarizeImportAssistantSource(source, allowMeasurementEdits) : undefined,
-  }), [allowMeasurementEdits, context, source]);
-  const importConsent = connection.hasOutboundConsent('import', requestContext.scope.authorityHash);
+    importSource: assistantSource ? summarizeImportAssistantSource(assistantSource, allowMeasurementEdits) : undefined,
+  }), [allowMeasurementEdits, assistantSource, context, selectedSheetName, source]);
   const contextKey = `${requestContext.scope.projectId}:${requestContext.scope.pointId}:${requestContext.scope.authorityHash}:${connection.generation}`;
   contextKeyRef.current = contextKey;
 
@@ -117,6 +126,7 @@ export function ImportAssistantPanel({
 
   useEffect(() => {
     requestAbortRef.current?.abort('import-source-changed');
+    resetAssistantPanelScroll(panelScrollRef.current);
     setTurns([]);
     setMessages([]);
     setQuestion(null);
@@ -126,7 +136,24 @@ export function ImportAssistantPanel({
     setShowPreview(false);
     setCellEditsReviewed(false);
     setConfirmationRetryAvailable(false);
+    setSelectedSheetName(source?.sheets.length === 1 ? source.sheets[0].sheetName : '');
   }, [source?.operationId, source?.sourceFingerprint, connection.generation]);
+
+  useEffect(() => {
+    const selector = question
+      ? '[data-testid="import-assistant-question"]'
+      : cleanup
+        ? '[data-testid="import-assistant-cleanup"]'
+        : problem
+          ? '[data-testid="import-assistant-error"]'
+          : null;
+    if (!selector) return;
+    const frame = requestAnimationFrame(() => {
+      const container = panelScrollRef.current;
+      scrollAssistantPanelToTarget(container, container?.querySelector<HTMLElement>(selector) ?? null);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [cleanup?.call.id, problem, question?.call.id]);
 
   useEffect(() => () => requestAbortRef.current?.abort('import-assistant-unmounted'), []);
   useEffect(() => {
@@ -140,7 +167,7 @@ export function ImportAssistantPanel({
   }
 
   async function advance(initialTurns: AssistantWireTurn[]) {
-    if (!source || !sourceAttachment || !pipelineContext || baseWorkspaceRevision === null) {
+    if (!assistantSource || !sourceAttachment || !pipelineContext || baseWorkspaceRevision === null) {
       setProblem('请先上传可读取的 CSV 或 Excel 文件。');
       return;
     }
@@ -186,7 +213,7 @@ export function ImportAssistantPanel({
           for (const call of readCalls) {
             const args = parseArguments(call);
             if (!args) throw new Error('AI 读取参数无效。');
-            const result = readImportAssistantSource(source, args);
+            const result = readImportAssistantSource(assistantSource, args);
             toolTurns.push({
               role: 'tool',
               toolCallId: call.id,
@@ -216,17 +243,17 @@ export function ImportAssistantPanel({
           return;
         }
         if (cleanupCalls.length === 1 && !questionCalls.length && response.calls.length === 1) {
-          const parsed = cleanupProposalFromImportTool(cleanupCalls[0], source, allowMeasurementEdits);
+          const parsed = cleanupProposalFromImportTool(cleanupCalls[0], assistantSource, allowMeasurementEdits);
           if (!parsed.ok) throw new Error(parsed.problem);
           setStatus('building');
           const pipeline = await createPipelineFromImportCleanup({
             proposal: parsed.proposal,
-            source,
+            source: assistantSource,
             sourceAttachment,
             context: pipelineContext,
             baseWorkspaceRevision,
             measurementAuthorization: {
-              sourceFingerprint: source.sourceFingerprint,
+              sourceFingerprint: assistantSource.sourceFingerprint,
               allowed: allowMeasurementEdits,
             },
           });
@@ -268,6 +295,7 @@ export function ImportAssistantPanel({
     const normalized = content.trim();
     if (!normalized || status !== 'idle' || question || cleanup) return;
     const turn: AssistantWireTurn = { role: 'user', content: normalized };
+    connection.grantOutboundConsent('import', requestContext.scope.authorityHash);
     append([turn], [{ id: messageId('user'), role: 'user', content: normalized }]);
     setInput('');
     void advance([...turns, turn]);
@@ -309,9 +337,9 @@ export function ImportAssistantPanel({
   }
 
   async function confirmImport() {
-    if (!cleanup || !source || status !== 'idle') return;
-    const confirmation = validateImportCleanupConfirmation(cleanup.proposal, source, {
-      sourceFingerprint: source.sourceFingerprint,
+    if (!cleanup || !assistantSource || status !== 'idle') return;
+    const confirmation = validateImportCleanupConfirmation(cleanup.proposal, assistantSource, {
+      sourceFingerprint: assistantSource.sourceFingerprint,
       allowed: allowMeasurementEdits,
       cellEditsReviewed,
     });
@@ -359,10 +387,21 @@ export function ImportAssistantPanel({
     usingPersonalKey: connection.usingPersonalKey,
     quota: connection.publicQuota,
   });
-  const canAsk = Boolean(source && sourceAttachment && pipelineContext && baseWorkspaceRevision !== null && quotaReady);
+  const canAsk = Boolean(assistantSource && sourceAttachment && pipelineContext && baseWorkspaceRevision !== null && quotaReady);
   const connectedLabel = connection.capability?.provider === 'mock'
     ? '测试模型 · 已连接'
     : `文件整理 · ${connection.capability?.taskModels?.import ?? 'DeepSeek Flash'} · ${connection.usingPersonalKey ? '自己的 Key' : '公共额度'}`;
+
+  useEffect(() => {
+    if (!canAsk || !connection.connected || status !== 'idle' || turns.length || question || cleanup || problem) return;
+    const autoStartKey = `${source?.operationId ?? 'none'}:${source?.sourceFingerprint ?? 'none'}:${selectedSheetName || assistantSource?.sheets[0]?.sheetName || 'single'}:${allowMeasurementEdits ? 'edit' : 'format-only'}:${connection.generation}`;
+    if (autoStartKeyRef.current === autoStartKey) return;
+    autoStartKeyRef.current = autoStartKey;
+    const frame = requestAnimationFrame(() => {
+      sendMessage('请帮我识别并整理这个文件，使其符合当前数据导入标准。');
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [allowMeasurementEdits, assistantSource, canAsk, cleanup, connection.connected, connection.generation, problem, question, selectedSheetName, source?.operationId, source?.sourceFingerprint, status, turns.length]);
 
   return (
     <section className="import-assistant-panel" data-testid="import-assistant-panel">
@@ -370,9 +409,10 @@ export function ImportAssistantPanel({
         <div><span>数据导入</span><h2>AI 整理数据</h2></div>
         <button type="button" className="icon-button" onClick={onClose} aria-label="返回导入工具"><X /></button>
       </header>
+      <div className="assistant-panel-scroll" ref={panelScrollRef} data-testid="import-assistant-scroll">
       <div className="assistant-safety-note">
         <ShieldCheck aria-hidden="true" />
-        <div><strong>原文件不变</strong><span>AI 只生成新的导入草稿，确认后才进入现有导入流程。</span></div>
+        <div><strong>原文件不变</strong><span>打开 AI 整理即发送有限表格预览；确认导入前不会改动当前数据。</span></div>
       </div>
       {connection.capability && !connection.capability.serviceAvailable ? (
         <div className="assistant-consent assistant-disconnected">
@@ -403,19 +443,25 @@ export function ImportAssistantPanel({
         </div>
       ) : null}
       <AssistantPublicQuotaNote quota={connection.publicQuota} usingPersonalKey={connection.usingPersonalKey} />
-      {connection.connected && !importConsent ? (
-        <div className="assistant-consent" data-testid="import-assistant-consent">
-          <strong>发送哪些内容？</strong>
-          <p>只发送工作表名称、表头和少量预览行，不发送原文件。</p>
-          <details><summary>查看范围</summary><p>每次最多读取 40 行、20 列。项目、点位或来源变化后，旧建议立即失效。</p></details>
-          <button type="button" className="toolbar-button primary" onClick={() => connection.grantOutboundConsent('import', requestContext.scope.authorityHash)}>同意发送</button>
-        </div>
-      ) : null}
       <div className="import-assistant-source" data-testid="import-assistant-source">
         <span>当前文件</span>
         <strong>{source?.fileName ?? '尚未上传文件'}</strong>
         {source ? <small>{source.sheets.length} 个工作表</small> : <small>请先在中心区上传 CSV 或 Excel</small>}
       </div>
+      {source && source.sheets.length > 1 ? (
+        <label className="quick-ai-sheet-select" data-testid="import-assistant-sheet-selection">
+          <span>数据在哪个工作表？</span>
+          <select value={selectedSheetName} onChange={(event) => {
+            const nextSheet = event.target.value;
+            setSelectedSheetName(nextSheet);
+            resetSession(nextSheet ? `已选择“${nextSheet}”，AI 只会读取这个工作表。` : '请选择包含数据的工作表。');
+          }} disabled={status !== 'idle'}>
+            <option value="">请选择工作表</option>
+            {source.sheets.map((sheet) => <option key={sheet.sheetName} value={sheet.sheetName}>{sheet.sheetName} · {sheet.rowCount} 行 × {sheet.columnCount} 列</option>)}
+          </select>
+          <small>选择后自动开始整理；其他工作表不会发送给 AI。</small>
+        </label>
+      ) : null}
       <details className="import-assistant-advanced">
         <summary>高级：允许提出测量值修改</summary>
         <label>
@@ -442,7 +488,6 @@ export function ImportAssistantPanel({
             mode="import"
             phase={status === 'building' ? 'building' : 'reading'}
             testId="import-assistant-running"
-            action={<button type="button" className="toolbar-button" onClick={() => requestAbortRef.current?.abort('cancelled-by-user')}>停止</button>}
           />
         ) : null}
         {question ? (
@@ -490,14 +535,6 @@ export function ImportAssistantPanel({
               {cleanup.proposal.cellEdits.length ? `查看并确认 ${cleanup.proposal.cellEdits.length} 项改动` : '查看字段与改动'}
             </button>
             {cleanup.proposal.cellEdits.length && cellEditsReviewed ? <small className="import-assistant-review-complete"><Check />已查看全部测量值改动</small> : null}
-            {status !== 'success' && !confirmationRetryAvailable ? (
-              <div className="assistant-proposal-actions">
-                <button type="button" className="toolbar-button" disabled={status === 'saving'} onClick={() => resetSession()}>取消</button>
-                <button type="button" className="toolbar-button primary" disabled={status === 'saving' || !cleanup.pipeline.readiness.canGenerateDrafts || (cleanup.proposal.cellEdits.length > 0 && !cellEditsReviewed)} onClick={() => void confirmImport()} data-testid="import-assistant-confirm-import">
-                  {status === 'saving' ? '正在导入…' : cleanup.proposal.cellEdits.length && !cellEditsReviewed ? '先查看测量值改动' : '确认并导入'}
-                </button>
-              </div>
-            ) : null}
           </article>
         ) : null}
         {problem ? (
@@ -510,47 +547,51 @@ export function ImportAssistantPanel({
               : confirmationRetryAvailable
                 ? '文件和 AI 整理结果仍在，无需重新调用 AI。'
                 : problem}</p>
-            <div className="assistant-proposal-actions">
-              {confirmationRetryAvailable ? (
-                saveFailure?.code === 'conflict' ? (
-                  <button type="button" className="toolbar-button" onClick={onOpenSaveFailureHelp} data-testid="import-assistant-open-save-help">打开保存冲突说明</button>
-                ) : (
-                  <button type="button" className="toolbar-button primary" disabled={status !== 'idle'} onClick={() => void confirmImport()} data-testid="import-assistant-retry-confirm"><RotateCcw />再次确认导入</button>
-                )
-              ) : (
-                <>
-                  <button type="button" className="toolbar-button" onClick={() => { resetSession('已返回手动字段映射，原始文件保持不变。'); onClose(); }} data-testid="import-assistant-manual-fallback">手动映射或换文件</button>
-                  <button type="button" className="toolbar-button primary" disabled={!canAsk || !connection.connected || !importConsent} onClick={() => { setProblem(''); sendMessage('请重新整理当前文件。'); }}><RotateCcw />重试</button>
-                </>
-              )}
-            </div>
           </article>
         ) : null}
       </div>
-      {!cleanup && !question && status === 'idle' && !turns.length ? (
-        <button
-          type="button"
-          className="toolbar-button primary import-assistant-start"
-          disabled={!canAsk || !connection.connected || !importConsent}
-          onClick={() => sendMessage('请帮我识别并整理这个文件，使其符合当前数据导入标准。')}
-          data-testid="import-assistant-start"
-        >
-          <Bot />开始整理
-        </button>
-      ) : null}
-      <form className="assistant-composer" onSubmit={(event) => { event.preventDefault(); sendMessage(input); }}>
-        <textarea
-          rows={2}
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          placeholder={cleanup ? '请先确认或取消当前整理草稿' : '也可以说：帮我整理这个文件'}
-          disabled={!canAsk || !connection.connected || !importConsent || status !== 'idle' || Boolean(question) || Boolean(cleanup)}
-          data-testid="import-assistant-input"
-        />
-        {status === 'loading' || status === 'building' ? null : (
-          <button type="submit" className="assistant-send" disabled={!input.trim()} aria-label="发送"><Send /></button>
-        )}
-      </form>
+      </div>
+      <footer className="assistant-panel-footer" data-testid="import-assistant-footer">
+        {status === 'loading' || status === 'building' ? (
+          <button type="button" className="toolbar-button assistant-panel-primary-action" onClick={() => requestAbortRef.current?.abort('cancelled-by-user')} data-testid="import-assistant-stop">停止</button>
+        ) : problem ? (
+          <div className="assistant-proposal-actions">
+            {confirmationRetryAvailable ? (
+              saveFailure?.code === 'conflict' ? (
+                <button type="button" className="toolbar-button" onClick={onOpenSaveFailureHelp} data-testid="import-assistant-open-save-help">打开保存冲突说明</button>
+              ) : (
+                <button type="button" className="toolbar-button primary" disabled={status !== 'idle'} onClick={() => void confirmImport()} data-testid="import-assistant-retry-confirm"><RotateCcw />再次确认导入</button>
+              )
+            ) : (
+              <>
+                <button type="button" className="toolbar-button" onClick={() => { resetSession('已返回手动字段映射，原始文件保持不变。'); onClose(); }} data-testid="import-assistant-manual-fallback">手动映射或换文件</button>
+                <button type="button" className="toolbar-button primary" disabled={!canAsk || !connection.connected} onClick={() => { setProblem(''); sendMessage('请重新整理当前文件。'); }}><RotateCcw />重试</button>
+              </>
+            )}
+          </div>
+        ) : cleanup && status !== 'success' && !confirmationRetryAvailable ? (
+          <div className="assistant-proposal-actions">
+            <button type="button" className="toolbar-button" disabled={status === 'saving'} onClick={() => resetSession()}>取消</button>
+            <button type="button" className="toolbar-button primary" disabled={status === 'saving' || !cleanup.pipeline.readiness.canGenerateDrafts || (cleanup.proposal.cellEdits.length > 0 && !cellEditsReviewed)} onClick={() => void confirmImport()} data-testid="import-assistant-confirm-import">
+              {status === 'saving' ? '正在导入…' : cleanup.proposal.cellEdits.length && !cellEditsReviewed ? '先查看测量值改动' : '确认并导入'}
+            </button>
+          </div>
+        ) : !question && !cleanup ? (
+          <>
+            <form className="assistant-composer" onSubmit={(event) => { event.preventDefault(); sendMessage(input); }}>
+              <textarea
+                rows={2}
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                placeholder="也可以说：帮我整理这个文件"
+                disabled={!canAsk || !connection.connected || status !== 'idle'}
+                data-testid="import-assistant-input"
+              />
+              <button type="submit" className="assistant-send" disabled={!input.trim()} aria-label="发送"><Send /></button>
+            </form>
+          </>
+        ) : null}
+      </footer>
       {showPreview && cleanup ? (
         <div className="assistant-key-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowPreview(false); }}>
           <section className="import-assistant-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="import-assistant-preview-title" data-testid="import-assistant-preview">

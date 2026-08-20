@@ -233,7 +233,6 @@ test.describe('Process142 public GoG 6 documentation case', () => {
     await page.getByTestId('import-file-input').setInputFiles(sourcePath);
     await expect(page.getByTestId('import-assistant-source')).toContainText('GoG 6 from NGI-UWA 2006.xlsx', { timeout: 30_000 });
 
-    await page.getByTestId('import-assistant-start').click();
     const question = page.getByTestId('import-assistant-question');
     await expect(question).toContainText('实际是不是 qc', { timeout: 30_000 });
     await page.getByTestId('import-assistant-option-confirmed-qc').click();
@@ -303,7 +302,6 @@ test.describe('Process142 public GoG 6 documentation case', () => {
     await page.getByTestId('quick-ai-toggle').click();
     const assistant = page.getByTestId('quick-ai-assistant');
     await assistant.locator('input[type="file"]').setInputFiles(sourcePath);
-    await page.getByTestId('quick-ai-start').click();
     const question = page.getByTestId('quick-ai-question');
     await expect(question).toContainText('实际是不是 qc', { timeout: 30_000 });
     await question.getByRole('button', { name: /J 列“qt” → 锥尖阻力 qc.*推荐/ }).click();

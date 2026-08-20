@@ -9,7 +9,7 @@ const viewport = {
   width: Number(process.env.PRODUCTION_VIEWPORT_WIDTH ?? 1440),
   height: Number(process.env.PRODUCTION_VIEWPORT_HEIGHT ?? 900),
 };
-const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process161-dual-production-deployment');
+const evidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process162-dual-production-deployment');
 
 async function pasteGrid(page: import('@playwright/test').Page, text: string) {
   await page.getByTestId('quick-paste-grid').evaluate((element, value) => {
@@ -49,7 +49,7 @@ async function gotoWithRecovery(page: import('@playwright/test').Page, url: stri
   throw lastError;
 }
 
-test('PROCESS161 production site exposes the release and completes the quick workflow', async ({ page, request }) => {
+test('PROCESS162 production site exposes the release and completes the quick workflow', async ({ page, request }) => {
   test.setTimeout(90_000);
   const browserErrors: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
@@ -59,7 +59,7 @@ test('PROCESS161 production site exposes the release and completes the quick wor
   const releaseResponse = await getWithRecovery(request, '/release-manifest.json');
   expect(releaseResponse.ok()).toBe(true);
   const release = await releaseResponse.json();
-  expect(release.process).toBe('Process161');
+  expect(release.process).toBe('Process162');
   if (expectedCommit) expect(release.source.commit).toBe(expectedCommit);
   expect(release.capabilities.standaloneAgentLab).toBe(false);
 
@@ -90,7 +90,7 @@ test('PROCESS161 production site exposes the release and completes the quick wor
   });
   await page.reload();
 
-  await page.getByTestId('new-project-name').fill(`Process161 ${siteLabel}`);
+  await page.getByTestId('new-project-name').fill(`Process162 ${siteLabel}`);
   await page.getByTestId('project-mode-quick').click();
   await page.getByTestId('create-project-submit').click();
   await pasteGrid(page, '深度\tqc\tfs\n1\t2.0\t20\n2\t2.2\t\n3\t2.4\t24');

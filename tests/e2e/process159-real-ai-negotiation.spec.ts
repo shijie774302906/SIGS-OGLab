@@ -52,11 +52,7 @@ test.describe('PROCESS159 real DeepSeek negotiation', () => {
     const sheetSelection = page.getByTestId('quick-ai-sheet-selection');
     await expect(sheetSelection).toBeVisible();
     await sheetSelection.locator('select').selectOption('Raw Data');
-    const consent = page.getByTestId('quick-ai-consent');
-    await expect(consent).toBeVisible({ timeout: 15_000 });
-    await consent.getByRole('button', { name: '同意发送' }).click();
-    await expect(page.getByTestId('quick-ai-start')).toBeEnabled({ timeout: 15_000 });
-    await page.getByTestId('quick-ai-start').click();
+    await expect(page.getByTestId('quick-ai-consent')).toHaveCount(0);
 
     for (let round = 0; round < 6; round += 1) {
       const outcome = await Promise.race([
