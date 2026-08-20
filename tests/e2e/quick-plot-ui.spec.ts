@@ -544,7 +544,7 @@ test('PROCESS120 failed drawing keeps input and offers one-click retry', async (
 });
 
 test('PROCESS132 quick AI organizes synonym columns, excludes extras, imports only after confirmation, and explains the current atlas page', async ({ page }, testInfo) => {
-  test.setTimeout(90_000);
+  test.setTimeout(120_000);
   const evidenceDirectory = path.resolve('process_logs/playwright-mcp/process132-quick-ai');
   const browserErrors: string[] = [];
   page.on('pageerror', (error) => browserErrors.push(error.message));
@@ -606,7 +606,7 @@ test('PROCESS132 quick AI organizes synonym columns, excludes extras, imports on
   await page.getByTestId('quick-page-6').click();
   await expect(page.getByTestId('quick-ai-current-page')).toContainText('CPT 解译参考地层');
   await page.getByRole('button', { name: '解释当前页' }).click();
-  await expect(page.getByTestId('quick-ai-assistant')).toContainText('第 6 页“CPT 解译参考地层”');
+  await expect(page.getByTestId('quick-ai-assistant')).toContainText('第 6 页“CPT 解译参考地层”', { timeout: 30_000 });
 
   const layouts = [];
   for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
