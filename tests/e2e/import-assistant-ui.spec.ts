@@ -11,6 +11,121 @@ const process131EvidenceEnabled = process.env.PROCESS131_EVIDENCE === '1' || pro
 const process131EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process131-import-integrity');
 const process155EvidenceEnabled = process.env.PROCESS155_EVIDENCE === '1' || process.env.MILESTONE_EVIDENCE === '1';
 const process155EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process155-ai-timeout-copy');
+const process162EvidenceDirectory = path.join(process.cwd(), 'process_logs', 'playwright-mcp', 'process162-assistant-scroll');
+
+test('PROCESS162 professional import keeps long AI negotiation inside the dock', async ({ page }, testInfo) => {
+  const browserErrors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(`console: ${message.text()}`); });
+  page.on('pageerror', (error) => browserErrors.push(`pageerror: ${error.message}`));
+  let turnCount = 0;
+  await page.route('**/api/assistant/capabilities', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      serviceId: 'sigs-oglab-assistant',
+      buildId: 'process162-scroll-mock',
+      instanceId: 'process162-import-scroll',
+      protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
+      serviceAvailable: true,
+      provider: 'mock',
+      model: 'deterministic-mock',
+      requiresApiKey: false,
+    }),
+  }));
+  await page.route('**/api/assistant/turn', (route) => {
+    turnCount += 1;
+    const body = route.request().postDataJSON() as { turns?: Array<{ role?: string; toolCallId?: string }> };
+    const last = body.turns?.at(-1);
+    const response = last?.role === 'tool'
+      ? {
+          kind: 'tool_calls',
+          model: 'deterministic-mock',
+          serviceInstanceId: 'process162-import-scroll',
+          protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
+          content: null,
+          calls: [{
+            id: `process162-question-${turnCount}`,
+            name: 'ask_import_question',
+            arguments: JSON.stringify({
+              questionId: `scroll-question-${turnCount}`,
+              prompt: `请确认第 ${turnCount - 1} 项来源判断`,
+              reason: '这是用于长内容验收的确定性说明。请逐项核对工作表、表头、字段含义、单位、数据起止行、附加列、空值和重复深度；原文件始终保持不变。'.repeat(3),
+              options: [
+                { optionId: `confirm-${turnCount}`, label: '按当前来源继续', description: '保留文件原文，只继续下一项确认。', recommended: true },
+                { optionId: `manual-${turnCount}`, label: '返回手动处理', description: '不采用本次 AI 判断。', recommended: false },
+              ],
+            }),
+          }],
+        }
+      : {
+          kind: 'tool_calls',
+          model: 'deterministic-mock',
+          serviceInstanceId: 'process162-import-scroll',
+          protocolVersions: ['sigs.assistant/1', 'sigs.ai-import/2'],
+          content: null,
+          calls: [{ id: 'process162-read-source', name: 'read_import_source', arguments: JSON.stringify({ sheetName: 'CSV', rowStart: 1, rowCount: 10 }) }],
+        };
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(response),
+    });
+  });
+  await page.reload();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.getByTestId('new-project-name').fill(`AI 滚动 ${Date.now()}`);
+  await page.getByTestId('project-mode-professional').click();
+  await page.getByTestId('create-project-submit').click();
+  await page.getByTestId('explorer-import').click();
+  const filePath = testInfo.outputPath('process162-standard.csv');
+  writeFileSync(filePath, ['现场导出结果,,,,', '点位,深度(m),锥尖阻力(MPa),侧摩阻(kPa),孔压(kPa)', 'CPT-01,0.5,1.2,12,20', 'CPT-01,1.0,1.5,15,25'].join('\n'), 'utf8');
+  await page.getByTestId('import-file-input').setInputFiles(filePath);
+  const showDock = page.getByTestId('right-panel-show');
+  if (await showDock.isVisible().catch(() => false)) await showDock.click();
+  await openImportAssistantPanel(page);
+  for (let index = 1; index <= 4; index += 1) {
+    const question = page.getByTestId('import-assistant-question');
+    await expect(question).toContainText(`请确认第 ${index} 项来源判断`);
+    await question.getByRole('button', { name: /按当前来源继续/ }).click();
+  }
+  await expect(page.getByTestId('import-assistant-question')).toContainText('请确认第 5 项来源判断');
+
+  const scroll = page.getByTestId('import-assistant-scroll');
+  const footer = page.getByTestId('import-assistant-footer');
+  const rightPanel = page.getByTestId('right-panel');
+  const layouts = [];
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+    await page.setViewportSize(viewport);
+    await expect(footer).toBeInViewport();
+    await scroll.evaluate((element) => { element.scrollTop = 0; });
+    const panelBefore = await rightPanel.evaluate((element) => element.scrollTop);
+    await scroll.hover();
+    await page.mouse.wheel(0, 10_000);
+    await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await page.mouse.wheel(0, 1_000);
+    expect(await rightPanel.evaluate((element) => element.scrollTop)).toBe(panelBefore);
+    const layout = await scroll.evaluate((element) => ({
+      scrollTop: element.scrollTop,
+      scrollMax: element.scrollHeight - element.clientHeight,
+      overscrollBehaviorY: getComputedStyle(element).overscrollBehaviorY,
+      rightPanelOverflowY: getComputedStyle(element.closest('[data-testid="right-panel"]')!).overflowY,
+      horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+    }));
+    expect(layout.scrollTop).toBeGreaterThanOrEqual(layout.scrollMax - 2);
+    expect(layout.overscrollBehaviorY).toBe('contain');
+    expect(layout.rightPanelOverflowY).toBe('hidden');
+    expect(layout.horizontalOverflow).toBe(0);
+    layouts.push({ viewport, ...layout });
+    if (process.env.MILESTONE_EVIDENCE === '1') {
+      mkdirSync(process162EvidenceDirectory, { recursive: true });
+      await page.screenshot({ path: path.join(process162EvidenceDirectory, `professional-import-scroll-${viewport.width}x${viewport.height}.png`) });
+    }
+  }
+  expect(browserErrors).toEqual([]);
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    writeFileSync(path.join(process162EvidenceDirectory, 'professional-import-scroll-check.json'), JSON.stringify({ turnCount, layouts, browserErrors }, null, 2), 'utf8');
+  }
+});
 
 test('AI import asks one structured question, previews a new draft, and imports only after confirmation', async ({ page }, testInfo) => {
   const browserErrors: string[] = [];
@@ -36,12 +151,11 @@ test('AI import asks one structured question, previews a new draft, and imports 
   const filePath = testInfo.outputPath('messy-ai-import.csv');
   writeFileSync(filePath, csv, 'utf8');
   await page.getByTestId('import-file-input').setInputFiles(filePath);
-  await expect(page.getByTestId('import-ai-entry')).toBeVisible();
-  await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
+  expect(turnBodies).toHaveLength(0);
+  await openImportAssistantPanel(page);
   await expect(page.getByTestId('import-assistant-panel')).toBeVisible();
   await expect(page.getByTestId('import-assistant-provider')).toContainText('测试模型');
 
-  await page.getByTestId('import-assistant-start').click();
   await expect(page.getByTestId('import-assistant-question')).toContainText('哪一行是数据表头');
   await page.getByTestId('import-assistant-option-header-2').click();
   await expect(page.getByTestId('import-assistant-cleanup')).toContainText('AI 草稿待确认');
@@ -184,14 +298,12 @@ test('PROCESS155 professional import stays active beyond 55 seconds and then sho
   writeFileSync(filePath, ['深度(m),锥尖阻力(MPa),侧摩阻(kPa),孔压(kPa)', '0.5,1.2,12,20', '1.0,1.5,15,25'].join('\n'), 'utf8');
   await page.getByTestId('import-file-input').setInputFiles(filePath);
   await expect(page.getByTestId('import-template-actions')).not.toBeVisible();
-  await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
+  await openImportAssistantPanel(page);
   await expect(page.getByTestId('import-assistant-provider')).toContainText('测试模型');
-  await page.getByTestId('import-assistant-start').click();
-
   const running = page.getByTestId('import-assistant-running');
   await expect(running).toBeVisible();
   await expect(page.getByTestId('import-assistant-start')).toHaveCount(0);
-  await expect(running.getByRole('button', { name: '停止' })).toBeVisible();
+  await expect(page.getByTestId('import-assistant-footer').getByRole('button', { name: '停止' })).toBeVisible();
   await page.waitForTimeout(55_200);
   await expect(running).toContainText(/已等待 5[45] 秒/);
   await expect(running).toContainText('AI 正在分析文件');
@@ -252,13 +364,12 @@ test('measurement edits require review, persist with confirmed provenance, and k
   const filePath = testInfo.outputPath('value-edit-ai-import.csv');
   writeFileSync(filePath, csv, 'utf8');
   await page.getByTestId('import-file-input').setInputFiles(filePath);
-  await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
+  await openImportAssistantPanel(page);
 
   const advanced = page.locator('details.import-assistant-advanced');
   await expect(advanced).not.toHaveAttribute('open', '');
   await advanced.locator('summary').click();
   await page.getByTestId('import-assistant-allow-value-edits').check();
-  await page.getByTestId('import-assistant-start').click();
   await expect(page.getByTestId('import-assistant-cleanup')).toContainText('待复核 1 项');
   const confirm = page.getByTestId('import-assistant-confirm-import');
   await expect(confirm).toBeDisabled();
@@ -311,7 +422,11 @@ test('measurement edits require review, persist with confirmed provenance, and k
     firstOverride: { originalValue: '1.20', replacementValue: '1.25' },
   });
   expect(browserErrors).toEqual([]);
-  expect(turnBodies).toHaveLength(2);
+  expect(turnBodies).toHaveLength(4);
+  const editPermissions = turnBodies.map((body) => (
+    body.context as { importSource?: { allowMeasurementEdits?: boolean } }
+  ).importSource?.allowMeasurementEdits);
+  expect(editPermissions).toEqual([false, false, true, true]);
   if (evidenceEnabled) {
     writeFileSync(path.join(evidenceDirectory, 'preview-browser-check.json'), JSON.stringify({
       process: 'Process128',
@@ -345,8 +460,7 @@ test('an uncertain structured question can return to manual tools without changi
   await page.getByTestId('import-file-input').setInputFiles(filePath);
   await expect.poll(() => readActiveImportBatch(page, projectName)).not.toBeNull();
   const before = await readActiveImportBatch(page, projectName);
-  await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
-  await page.getByTestId('import-assistant-start').click();
+  await openImportAssistantPanel(page);
   await expect(page.getByTestId('import-assistant-question')).toBeVisible();
   await page.getByRole('button', { name: /都不是，手动选择/ }).click();
   await expect(page.getByTestId('import-assistant-panel')).toHaveCount(0);
@@ -371,11 +485,9 @@ test('a late AI response is discarded after the user returns to manual import', 
     'CPT-AI,0.5,1.2,12,20',
   ].join('\n'), 'utf8');
   await page.getByTestId('import-file-input').setInputFiles(filePath);
-  await expect(page.getByTestId('import-ai-entry')).toBeVisible();
   await expect.poll(() => readActiveImportBatch(page, projectName)).not.toBeNull();
   const before = await readActiveImportBatch(page, projectName);
-  await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
-  await page.getByTestId('import-assistant-start').click();
+  await openImportAssistantPanel(page);
   await expect(page.getByTestId('import-assistant-running')).toBeVisible();
   await page.getByRole('button', { name: '返回导入工具' }).click();
   await expect(page.getByTestId('import-assistant-panel')).toHaveCount(0);
@@ -400,11 +512,10 @@ test('a workspace revision conflict leaves the AI proposal and current import au
     'CPT-AI,0.50,1.20,12,20',
   ].join('\n'), 'utf8');
   await page.getByTestId('import-file-input').setInputFiles(filePath);
-  await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
+  await openImportAssistantPanel(page);
   const advanced = page.locator('details.import-assistant-advanced');
   await advanced.locator('summary').click();
   await page.getByTestId('import-assistant-allow-value-edits').check();
-  await page.getByTestId('import-assistant-start').click();
   await page.getByRole('button', { name: '查看并确认 1 项改动' }).click();
   await page.getByTestId('import-assistant-preview').getByRole('button', { name: '返回确认' }).click();
   const before = await readActiveImportBatch(page, projectName);
@@ -497,8 +608,7 @@ test('a temporary AI import save failure keeps the proposal and succeeds without
     'CPT-RETRY,1.00,1.50,15,25',
   ].join('\n'), 'utf8');
   await page.getByTestId('import-file-input').setInputFiles(filePath);
-  await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
-  await page.getByTestId('import-assistant-start').click();
+  await openImportAssistantPanel(page);
   await page.getByTestId('import-assistant-option-header-2').click();
   await expect(page.getByTestId('import-assistant-cleanup')).toContainText('AI 草稿待确认');
   const before = await readActiveImportBatch(page, projectName);
@@ -692,19 +802,14 @@ test(`Process129 sends five generated 100-row CSV layouts through the AI review 
   await page.getByTestId('new-project-name').fill(projectName);
   await page.getByTestId('project-mode-professional').click();
   await page.getByTestId('create-project-submit').click();
-  await page.getByTestId('create-point').click();
-  await page.getByTestId('point-name-input').fill('CPT-P129');
-  await page.getByTestId('confirm-point-command').click();
-  await page.getByTestId('probe-guide-recommended').click();
+  await page.getByTestId('explorer-import').click();
 
   for (const [index, generated] of generatedCases.entries()) {
     const filePath = testInfo.outputPath(generated.fileName);
     writeFileSync(filePath, generated.text, 'utf8');
     await page.getByTestId('import-file-input').setInputFiles(filePath);
     await dismissWaterGuideIfVisible(page);
-    await expect(page.getByTestId('import-ai-entry')).toBeVisible();
-    await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
-    await page.getByTestId('import-assistant-start').click();
+    await openImportAssistantPanel(page);
     const cleanup = page.getByTestId('import-assistant-cleanup');
     await expect(cleanup).toContainText('100 行');
     await expect(cleanup).toContainText('原始单元格未修改');
@@ -821,8 +926,7 @@ test('Process129 turns an unusable AI operation into plain recovery choices', as
   writeFileSync(filePath, generated.text, 'utf8');
   await page.getByTestId('import-file-input').setInputFiles(filePath);
   await dismissWaterGuideIfVisible(page);
-  await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
-  await page.getByTestId('import-assistant-start').click();
+  await openImportAssistantPanel(page);
   const error = page.getByTestId('import-assistant-error');
   await expect(error).toContainText('没有生成可确认的字段整理草稿');
   await expect(error).toContainText('原始文件未修改');
@@ -999,4 +1103,13 @@ async function inspectPreviewLayout(page: Page) {
       dialogInsideViewport: Boolean(rect && rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight),
     };
   });
+}
+
+async function openImportAssistantPanel(page: Page) {
+  const showDock = page.getByTestId('right-panel-show');
+  if (await showDock.isVisible().catch(() => false)) await showDock.click();
+  const entry = page.getByTestId('import-ai-entry');
+  await expect(entry).toBeVisible();
+  await entry.getByRole('button', { name: 'AI 整理数据' }).click();
+  await expect(page.getByTestId('import-assistant-panel')).toBeVisible();
 }

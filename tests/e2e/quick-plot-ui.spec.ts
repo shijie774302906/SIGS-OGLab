@@ -565,7 +565,6 @@ test('PROCESS132 quick AI organizes synonym columns, excludes extras, imports on
     buffer: Buffer.from('\uFEFF导出说明,测试数据\n贯入深度(cm),锥尖阻力(kPa),侧摩阻力(kPa),孔隙水压力(kPa),倾角,温度\n1,2000,12,,0.1,22\n2,2500,14,3,0.2,23\n3,3000,16,4,0.3,24'),
   });
   await expect(assistant).toContainText('中文非标准字段.csv');
-  await page.getByTestId('quick-ai-start').click();
   const question = page.getByTestId('quick-ai-question');
   await expect(question).toContainText('哪一列作为侧摩阻力 fs？');
   await question.getByRole('button', { name: /C 列.*侧摩阻力.*推荐/ }).click();
@@ -643,7 +642,6 @@ test('PROCESS159 quick AI can read parallel windows, ask naturally, and submit w
     mimeType: 'text/csv',
     buffer: Buffer.from('深度(m),锥尖阻力(MPa),侧摩阻力(kPa),温度\n0.1,1.2,12,21\n0.2,1.5,15,22\n0.3,1.8,18,23'),
   });
-  await page.getByTestId('quick-ai-start').click();
   const clarification = page.getByTestId('quick-ai-clarification');
   await expect(clarification).toBeVisible();
   await expect(assistant).toContainText('温度列是否仅作为额外字段忽略');
@@ -701,16 +699,18 @@ test('PROCESS159 multi-sheet quick AI waits for the user and exposes only the se
   await page.getByTestId('quick-ai-toggle').click();
   const assistant = page.getByTestId('quick-ai-assistant');
   await assistant.locator('input[type="file"]').setInputFiles({
-    name: 'two-sheets.xlsx',
+    name: 'fifteen-sheets.xlsx',
     mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    buffer: Buffer.from(createQuickTwoSheetWorkbook()),
+    buffer: Buffer.from(createQuickManySheetWorkbook(15)),
   });
 
   const selection = page.getByTestId('quick-ai-sheet-selection');
   await expect(selection).toBeVisible();
-  await expect(page.getByTestId('quick-ai-start')).toBeDisabled();
+  await expect(selection.locator('select option')).toHaveCount(16);
+  await expect(page.getByTestId('quick-ai-start')).toHaveCount(0);
+  expect(requestedSheets).toEqual([]);
   await selection.locator('select').selectOption('CPT复核');
-  await expect(page.getByTestId('quick-ai-start')).toBeEnabled();
+  await expect(page.getByTestId('quick-ai-clarification')).toBeVisible();
   const layouts = [];
   for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
     await page.setViewportSize(viewport);
@@ -718,20 +718,18 @@ test('PROCESS159 multi-sheet quick AI waits for the user and exposes only the se
       viewport: { width: window.innerWidth, height: window.innerHeight },
       horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
       selectorVisible: Boolean(document.querySelector('[data-testid="quick-ai-sheet-selection"]')),
-      startEnabled: !(document.querySelector<HTMLButtonElement>('[data-testid="quick-ai-start"]')?.disabled ?? true),
+      separateStartControlPresent: Boolean(document.querySelector('[data-testid="quick-ai-start"]')),
     }));
     layouts.push(layout);
     expect(layout.horizontalOverflow).toBe(0);
     expect(layout.selectorVisible).toBe(true);
-    expect(layout.startEnabled).toBe(true);
+    expect(layout.separateStartControlPresent).toBe(false);
     if (process.env.MILESTONE_EVIDENCE === '1') {
       const directory = path.resolve('process_logs/playwright-mcp/process159-free-negotiation');
       mkdirSync(directory, { recursive: true });
       await page.screenshot({ path: path.join(directory, `sheet-selection-${viewport.width}x${viewport.height}.png`), fullPage: true });
     }
   }
-  await page.getByTestId('quick-ai-start').click();
-  await expect(page.getByTestId('quick-ai-clarification')).toBeVisible();
   expect(requestedSheets).toEqual([['CPT复核']]);
   expect(browserErrors).toEqual([]);
   if (process.env.MILESTONE_EVIDENCE === '1') {
@@ -765,11 +763,10 @@ test('PROCESS132 quick AI failure keeps the uploaded file and allows a clean ret
     mimeType: 'text/csv',
     buffer: Buffer.from('深度(m),锥尖阻力(MPa),温度\n0,1,22\n1,2,23'),
   });
-  await page.getByTestId('quick-ai-start').click();
   await expect(page.getByTestId('quick-ai-error')).toContainText('DeepSeek 服务暂时繁忙');
   await expect(assistant).toContainText('重试数据.csv');
   await expect(page.getByText('等待粘贴')).toBeVisible();
-  await page.getByTestId('quick-ai-start').click();
+  await page.getByTestId('quick-ai-retry').click();
   await expect(page.getByTestId('quick-ai-proposal')).toBeVisible();
   await page.getByTestId('quick-ai-confirm-import').click();
   await expect(page.getByText(/2 行 · 重试数据\.csv/)).toBeVisible();
@@ -796,7 +793,6 @@ test('PROCESS134 headerless AI proposal replaces existing rows once and remains 
     mimeType: 'text/csv',
     buffer: Buffer.from('0.10,2.1,21,5\n0.20,2.2,22,6\n0.30,2.3,23,7'),
   });
-  await page.getByTestId('quick-ai-start').click();
   const proposal = page.getByTestId('quick-ai-proposal');
   await expect(proposal).toContainText('没有表头');
   await expect(proposal).toContainText('AI 推测，请重点确认');
@@ -862,7 +858,6 @@ test('PROCESS134 a temporary save failure preserves the proposal and retries wit
     mimeType: 'text/csv',
     buffer: Buffer.from('0.10,2.1,21,5\n0.20,2.2,22,6\n0.30,2.3,23,7'),
   });
-  await page.getByTestId('quick-ai-start').click();
   await expect(page.getByTestId('quick-ai-proposal')).toBeVisible();
   const turnCountBeforeSave = turnCount;
   await page.evaluate(() => {
@@ -907,7 +902,6 @@ test('PROCESS134 saving locks file replacement and a queued file change cannot r
     mimeType: 'text/csv',
     buffer: Buffer.from('0.10,2.1,21,5\n0.20,2.2,22,6\n0.30,2.3,23,7'),
   });
-  await page.getByTestId('quick-ai-start').click();
   await expect(page.getByTestId('quick-ai-proposal')).toBeVisible();
   await page.evaluate(() => {
     const upload = document.querySelector<HTMLButtonElement>('[data-testid="quick-ai-upload"]');
@@ -1069,6 +1063,7 @@ test('PROCESS136 quick report keeps three different answers for three different 
 
 test('PROCESS136 long report conversations stay within the server limit without splitting tool exchanges', async ({ page }) => {
   test.setTimeout(90_000);
+  const evidenceDirectory = path.resolve('process_logs/playwright-mcp/process162-assistant-scroll');
   const turnLengths: number[] = [];
   page.on('request', (request) => {
     if (!request.url().includes('/api/assistant/turn')) return;
@@ -1097,6 +1092,64 @@ test('PROCESS136 long report conversations stay within the server limit without 
   expect(turnLengths.length).toBe(18);
   expect(Math.max(...turnLengths)).toBeLessThanOrEqual(24);
   await expect(page.getByTestId('quick-ai-error')).toHaveCount(0);
+
+  const scrollChecks = [];
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
+    await page.setViewportSize(viewport);
+    const panelScroll = page.getByTestId('quick-assistant-scroll');
+    const mainScroll = page.locator('.quick-shell');
+    const footer = page.getByTestId('quick-assistant-footer');
+    await expect(panelScroll).toBeVisible();
+    await expect(footer).toBeInViewport();
+    await panelScroll.evaluate((element) => { element.scrollTop = 0; });
+    await mainScroll.evaluate((element) => { element.scrollTop = 0; });
+    const mainBeforePanelWheel = await mainScroll.evaluate((element) => element.scrollTop);
+    await panelScroll.hover();
+    await page.mouse.wheel(0, 10_000);
+    await expect.poll(() => panelScroll.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    const panelAtBottom = await panelScroll.evaluate((element) => ({
+      top: element.scrollTop,
+      max: element.scrollHeight - element.clientHeight,
+      overscrollBehaviorY: getComputedStyle(element).overscrollBehaviorY,
+    }));
+    expect(panelAtBottom.top).toBeGreaterThanOrEqual(panelAtBottom.max - 2);
+    expect(panelAtBottom.overscrollBehaviorY).toBe('contain');
+    await page.mouse.wheel(0, 1_200);
+    const mainAfterPanelWheel = await mainScroll.evaluate((element) => element.scrollTop);
+    expect(mainAfterPanelWheel).toBe(mainBeforePanelWheel);
+
+    const panelBeforeMainWheel = await panelScroll.evaluate((element) => element.scrollTop);
+    const mainScrollable = await mainScroll.evaluate((element) => element.scrollHeight > element.clientHeight + 1);
+    await page.locator('.quick-report-main').hover({ position: { x: 20, y: 120 } });
+    await page.mouse.wheel(0, 500);
+    const panelAfterMainWheel = await panelScroll.evaluate((element) => element.scrollTop);
+    expect(panelAfterMainWheel).toBe(panelBeforeMainWheel);
+    if (mainScrollable) {
+      await expect.poll(() => mainScroll.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    }
+    const check = {
+      viewport,
+      mainScrollable,
+      mainBeforePanelWheel,
+      mainAfterPanelWheel,
+      panelAtBottom,
+      footerInsideViewport: await footer.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.top >= 0 && rect.bottom <= window.innerHeight + 1;
+      }),
+      horizontalOverflow: await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)),
+    };
+    expect(check.footerInsideViewport).toBe(true);
+    expect(check.horizontalOverflow).toBe(0);
+    scrollChecks.push(check);
+    if (process.env.MILESTONE_EVIDENCE === '1') {
+      mkdirSync(evidenceDirectory, { recursive: true });
+      await page.screenshot({ path: path.join(evidenceDirectory, `quick-report-scroll-${viewport.width}x${viewport.height}.png`) });
+    }
+  }
+  if (process.env.MILESTONE_EVIDENCE === '1') {
+    writeFileSync(path.join(evidenceDirectory, 'quick-report-scroll-check.json'), JSON.stringify({ scrollChecks }, null, 2), 'utf8');
+  }
 });
 
 test('PROCESS145 switching atlas pages keeps one conversation and uses the new page for the next question', async ({ page }, testInfo) => {
@@ -1191,8 +1244,9 @@ test('PROCESS136 report request shows a running state and prevents duplicate sen
   const assistant = page.getByTestId('quick-ai-assistant');
   const currentPageButton = page.getByRole('button', { name: '解释当前页' });
   await currentPageButton.click();
-  await expect(currentPageButton).toBeDisabled();
-  await expect(page.getByPlaceholder('询问图册内容…')).toBeDisabled();
+  await expect(page.getByTestId('quick-report-processing')).toBeVisible();
+  await expect(currentPageButton).toHaveCount(0);
+  await expect(page.getByPlaceholder('询问图册内容…')).toHaveCount(0);
   await expect(assistant.locator('.assistant-message.user')).toHaveCount(1);
   await expect(assistant.locator('.assistant-message.assistant')).toHaveCount(1);
   await expect(currentPageButton).toBeEnabled();
@@ -1515,19 +1569,27 @@ async function installQuickNaturalNegotiationMock(
 }
 
 function createQuickTwoSheetWorkbook() {
+  return createQuickManySheetWorkbook(2);
+}
+
+function createQuickManySheetWorkbook(count: number) {
   const files = unzipSync(createMinimalTemplateXlsx('example'));
-  const workbook = strFromU8(files['xl/workbook.xml'])
-    .replace('</sheets>', '<sheet name="CPT复核" sheetId="2" r:id="rId3"/></sheets>');
-  const relationships = strFromU8(files['xl/_rels/workbook.xml.rels'])
-    .replace('</Relationships>', '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/></Relationships>');
-  const contentTypes = strFromU8(files['[Content_Types].xml'])
-    .replace('</Types>', '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>');
+  let workbook = strFromU8(files['xl/workbook.xml']);
+  let relationships = strFromU8(files['xl/_rels/workbook.xml.rels']);
+  let contentTypes = strFromU8(files['[Content_Types].xml']);
+  const output: Record<string, Uint8Array> = { ...files };
+  for (let sheet = 2; sheet <= count; sheet += 1) {
+    const name = sheet === 2 ? 'CPT复核' : `CPT复核${sheet}`;
+    workbook = workbook.replace('</sheets>', `<sheet name="${name}" sheetId="${sheet}" r:id="rId${sheet + 1}"/></sheets>`);
+    relationships = relationships.replace('</Relationships>', `<Relationship Id="rId${sheet + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${sheet}.xml"/></Relationships>`);
+    contentTypes = contentTypes.replace('</Types>', `<Override PartName="/xl/worksheets/sheet${sheet}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`);
+    output[`xl/worksheets/sheet${sheet}.xml`] = files['xl/worksheets/sheet1.xml'];
+  }
   return zipSync({
-    ...files,
+    ...output,
     '[Content_Types].xml': strToU8(contentTypes),
     'xl/workbook.xml': strToU8(workbook),
     'xl/_rels/workbook.xml.rels': strToU8(relationships),
-    'xl/worksheets/sheet2.xml': files['xl/worksheets/sheet1.xml'],
   });
 }
 

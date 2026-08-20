@@ -1,5 +1,4 @@
 import {
-  Bot,
   Check,
   Eye,
   EyeOff,
@@ -17,6 +16,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAssistantConnection } from '../assistant/AssistantConnectionProvider';
 import { AssistantProcessingStatus } from '../assistant/AssistantProcessingStatus';
 import { AssistantPublicQuotaNote, publicAssistantQuotaReady } from '../assistant/AssistantPublicQuotaNote';
+import { resetAssistantPanelScroll, scrollAssistantPanelToTarget } from '../assistant/assistantPanelScroll';
 import { AssistantRequestError } from '../assistant/assistantClient';
 import type {
   AssistantContextSnapshot,
@@ -242,6 +242,8 @@ export function QuickPlotAssistantPanel({
   const [showKey, setShowKey] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const keyInputRef = useRef<HTMLInputElement | null>(null);
+  const panelScrollRef = useRef<HTMLDivElement | null>(null);
+  const autoStartKeyRef = useRef('');
   const requestAbortRef = useRef<AbortController | null>(null);
   const fileGenerationRef = useRef(0);
   const correctionCountRef = useRef(0);
@@ -255,7 +257,6 @@ export function QuickPlotAssistantPanel({
   const lastReportQuestionRef = useRef('');
   const sourceIdentityRef = useRef('none');
   const activePage = pages[selectedPage] ?? null;
-  const consentScope = mode === 'input' ? 'import' : 'engineering';
   const assistantSource = useMemo(() => {
     if (!source) return null;
     if (source.sheets.length <= 1) return source;
@@ -267,7 +268,6 @@ export function QuickPlotAssistantPanel({
     () => buildContext(project, workspace, mode, assistantSource, activePage, selectedPage, pages),
     [activePage, assistantSource, mode, pages, project, selectedPage, workspace],
   );
-  const outboundConsent = connection.hasOutboundConsent(consentScope, context.scope.authorityHash);
   const reportPageKey = mode === 'report'
     ? `${selectedPage + 1}:${activePage?.title ?? 'none'}`
     : 'not-report';
@@ -291,6 +291,29 @@ export function QuickPlotAssistantPanel({
     requestAbortRef.current?.abort('quick-assistant-closed');
     if (status === 'reading') setStatus('idle');
   }, [open, status]);
+
+  useEffect(() => {
+    resetAssistantPanelScroll(panelScrollRef.current);
+  }, [source?.operationId, source?.sourceFingerprint]);
+
+  useEffect(() => {
+    if (!open) return;
+    const selector = question
+      ? '[data-testid="quick-ai-question"]'
+      : clarification
+        ? '[data-testid="quick-ai-clarification-context"]'
+        : proposal
+          ? '[data-testid="quick-ai-proposal"]'
+          : problem
+            ? '[data-testid="quick-ai-error"]'
+            : null;
+    if (!selector) return;
+    const frame = requestAnimationFrame(() => {
+      const container = panelScrollRef.current;
+      scrollAssistantPanelToTarget(container, container?.querySelector<HTMLElement>(selector) ?? null);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [clarification?.content, open, problem, proposal?.call.id, question?.call.id]);
 
   useEffect(() => {
     requestAbortRef.current?.abort('quick-assistant-context-changed');
@@ -376,6 +399,7 @@ export function QuickPlotAssistantPanel({
 
   async function startOrganizing() {
     if (!assistantSource || status !== 'idle') return;
+    connection.grantOutboundConsent('import', context.scope.authorityHash);
     correctionCountRef.current = 0;
     questionCountRef.current = 0;
     automaticRepairCountRef.current = 0;
@@ -733,6 +757,7 @@ export function QuickPlotAssistantPanel({
 
   async function startOrganizingFromSource(currentSource: ImportAssistantSource) {
     if (status === 'reading' || status === 'saving') return;
+    connection.grantOutboundConsent('import', context.scope.authorityHash);
     correctionCountRef.current = 0;
     questionCountRef.current = 0;
     automaticRepairCountRef.current = 0;
@@ -805,6 +830,7 @@ export function QuickPlotAssistantPanel({
     if (!content || !activePage || status !== 'idle') return;
     const requestReport = context.quickPlotReport;
     if (!requestReport) return;
+    connection.grantOutboundConsent('engineering', context.scope.authorityHash);
     const userTurn: AssistantWireTurn = {
       role: 'user',
       content: `[提问时页面：第 ${requestReport.pageNumber} 页「${requestReport.pageTitle}」]\n${content}`,
@@ -959,7 +985,6 @@ export function QuickPlotAssistantPanel({
       · ${connection.usingPersonalKey ? '自己的 Key' : '公共额度'}`;
   const canUseAi = Boolean(
     connection.connected
-    && outboundConsent
     && connection.capability?.serviceAvailable
     && publicAssistantQuotaReady({
       provider: connection.capability?.provider,
@@ -968,6 +993,27 @@ export function QuickPlotAssistantPanel({
     }),
   );
 
+  useEffect(() => {
+    if (
+      mode !== 'input'
+      || !open
+      || !source
+      || !assistantSource
+      || !canUseAi
+      || status !== 'idle'
+      || turns.length
+      || question
+      || clarification
+      || proposal
+      || problem
+    ) return;
+    const autoStartKey = `${source.operationId}:${source.sourceFingerprint}:${selectedSheetName || assistantSource.sheets[0]?.sheetName || 'single'}:${connection.generation}`;
+    if (autoStartKeyRef.current === autoStartKey) return;
+    autoStartKeyRef.current = autoStartKey;
+    const frame = requestAnimationFrame(() => void startOrganizing());
+    return () => cancelAnimationFrame(frame);
+  }, [assistantSource, canUseAi, clarification, connection.generation, mode, open, problem, proposal, question, selectedSheetName, source, status, turns.length]);
+
   return (
     <>
       <aside className={`quick-assistant-drawer${open ? ' open' : ''}`} hidden={!open} data-testid="quick-ai-assistant">
@@ -975,9 +1021,10 @@ export function QuickPlotAssistantPanel({
           <div><span>{mode === 'input' ? '快速出图 · 文件整理' : '快捷图册'}</span><h2>{mode === 'input' ? 'AI 整理数据' : '图册解读'}</h2></div>
           <button type="button" className="icon-button" onClick={onClose} aria-label={mode === 'input' ? '关闭 AI 整理数据' : '关闭图册解读'}><X /></button>
         </header>
+        <div className="assistant-panel-scroll" ref={panelScrollRef} data-testid="quick-assistant-scroll">
         <div className="assistant-safety-note">
           <ShieldCheck />
-          <div><strong>{mode === 'input' ? '原文件不变' : '只读，不改图册'}</strong><span>{mode === 'input' ? '确认后才导入；AI 不修改测量值。' : '可按问题读取页面、方法和有限深度数据；不能导入、修改或重算。回答仅用于理解图册，不代替工程复核。'}</span></div>
+          <div><strong>{mode === 'input' ? '原文件不变' : '只读，不改图册'}</strong><span>{mode === 'input' ? '选择文件即发送有限表格预览；确认后才导入，AI 不修改测量值。' : '发送问题即允许读取当前图册范围；不能导入、修改或重算。回答仅用于理解图册，不代替工程复核。'}</span></div>
         </div>
 
         {connection.capability && !connection.capability.serviceAvailable ? (
@@ -1007,19 +1054,11 @@ export function QuickPlotAssistantPanel({
           </div>
         ) : null}
         <AssistantPublicQuotaNote quota={connection.publicQuota} usingPersonalKey={connection.usingPersonalKey} />
-        {connection.connected && !outboundConsent && (mode !== 'input' || Boolean(assistantSource)) ? (
-          <div className="assistant-consent" data-testid="quick-ai-consent">
-            <strong>发送哪些内容？</strong>
-            <p>{mode === 'input' ? '只发送工作表名称、表头和有限预览行，不发送原文件。' : '发送本图册目录、当前页和本次有限对话；问题需要时，额外发送最多 20 m、120 个源测点。空值保留，不插值。'}</p>
-            <button type="button" className="toolbar-button primary" onClick={() => connection.grantOutboundConsent(consentScope, context.scope.authorityHash)}>同意发送</button>
-          </div>
-        ) : null}
-
         {mode === 'input' ? (
           <>
             <input ref={fileRef} type="file" accept=".csv,.xlsx" hidden disabled={status === 'saving'} onChange={(event) => void selectFile(event.target.files?.[0] ?? null)} />
             <button type="button" className="quick-ai-file-button" disabled={status === 'saving'} onClick={() => fileRef.current?.click()} data-testid="quick-ai-upload">
-              <Upload /><span><strong>{status === 'saving' ? '正在保存' : source ? '更换文件' : '上传 CSV 或 Excel'}</strong><small>{status === 'saving' ? '完成后可更换文件' : source ? source.fileName : '支持非标准表头和额外列'}</small></span>
+              <Upload /><span><strong>{status === 'saving' ? '正在保存' : source ? '更换文件并重新整理' : '选择文件并让 AI 整理'}</strong><small>{status === 'saving' ? '完成后可更换文件' : source ? source.fileName : '文件内容将发送至 DeepSeek，用于本次整理'}</small></span>
             </button>
             {source ? <div className="import-assistant-source"><span>当前文件</span><strong>{source.fileName}</strong><small>{source.sheets.length} 个工作表</small></div> : null}
             {source && source.sheets.length > 1 ? (
@@ -1051,9 +1090,6 @@ export function QuickPlotAssistantPanel({
           {status === 'reading' ? <AssistantProcessingStatus
             mode={mode === 'input' ? 'import' : 'report'}
             testId={mode === 'input' ? 'quick-ai-processing' : 'quick-report-processing'}
-            action={mode === 'input'
-              ? <button type="button" className="toolbar-button" onClick={stopRequest}><Square />停止判断</button>
-              : <button type="button" className="toolbar-button" onClick={stopReportRequest}><Square />停止</button>}
           /> : null}
           {question ? (
             <article className="import-assistant-question" data-testid="quick-ai-question">
@@ -1067,10 +1103,9 @@ export function QuickPlotAssistantPanel({
             </article>
           ) : null}
           {clarification ? (
-            <form className="assistant-composer quick-ai-clarification" data-testid="quick-ai-clarification" onSubmit={(event) => { event.preventDefault(); void answerClarification(); }}>
-              <textarea rows={3} value={input} onChange={(event) => setInput(event.target.value)} placeholder="回答这个问题…" disabled={status !== 'idle'} />
-              <button type="submit" className="assistant-send" disabled={!input.trim() || status !== 'idle'} aria-label="发送回答"><Send /></button>
-            </form>
+            <article className="assistant-message system" data-testid="quick-ai-clarification-context">
+              <p>{clarification.content}</p>
+            </article>
           ) : null}
           {proposal ? (
             <article className="quick-ai-proposal" data-testid="quick-ai-proposal">
@@ -1108,8 +1143,16 @@ export function QuickPlotAssistantPanel({
               {workspace.rows.length && status !== 'success' ? <p className="quick-ai-replace-note">{replaceReady ? '请确认替换。替换后已有图册需要重新生成。' : `先预览新数据；下一步将确认是否用 ${proposal.result.rows.length} 行替换当前 ${workspace.rows.length} 行。`}</p> : null}
             </article>
           ) : null}
-          {problem ? <article className="assistant-error" data-testid="quick-ai-error"><strong>{mode === 'input' ? '本次判断未完成' : '本次解读未完成'}</strong><p>{problem}</p>{mode === 'input' && source ? <div><button type="button" className="toolbar-button" onClick={() => void retryCurrentJudgement()}><RotateCcw />重新判断当前文件</button><button type="button" className="toolbar-button" onClick={() => resetInputSession('已保留文件，可以重新开始。')}>保留文件，暂不判断</button></div> : <div><button type="button" className="toolbar-button primary" data-testid="quick-ai-retry-report" disabled={!lastReportQuestionRef.current} onClick={() => void askReport(lastReportQuestionRef.current, true)}><RotateCcw />重新解读</button><button type="button" className="toolbar-button" onClick={() => setProblem('')}>关闭</button></div>}</article> : null}
+          {problem ? <article className="assistant-error" data-testid="quick-ai-error"><strong>{mode === 'input' ? '本次判断未完成' : '本次解读未完成'}</strong><p>{problem}</p></article> : null}
         </div>
+        </div>
+
+        <footer className="assistant-panel-footer" data-testid="quick-assistant-footer">
+        {status === 'reading' ? (
+          mode === 'input'
+            ? <button type="button" className="toolbar-button" onClick={stopRequest}><Square />停止判断</button>
+            : <button type="button" className="toolbar-button" onClick={stopReportRequest}><Square />停止</button>
+        ) : null}
 
         {proposal && status !== 'success' ? <div className="quick-ai-sticky-actions">
           {correctionOpen ? <div className="quick-ai-correction" data-testid="quick-ai-correction">
@@ -1119,10 +1162,15 @@ export function QuickPlotAssistantPanel({
           </div> : <><button type="button" className="toolbar-button" disabled={status === 'saving'} onClick={() => { setReplaceReady(false); setCorrectionOpen(true); }}>判断不对</button><button type="button" className="toolbar-button primary" disabled={status === 'saving'} onClick={() => void confirmImport()} data-testid="quick-ai-confirm-import">{status === 'saving' ? '正在保存…' : workspace.rows.length ? replaceReady ? '替换当前数据' : '确认这份整理结果' : `确认并导入 ${proposal.result.rows.length} 行`}</button></>}
         </div> : null}
 
-        {mode === 'input' && !proposal && !question && !clarification && source ? (
-          <button type="button" className="toolbar-button primary import-assistant-start" disabled={!canUseAi || !assistantSource || status !== 'idle'} onClick={() => void startOrganizing()} data-testid="quick-ai-start"><Bot />让 AI 判断</button>
+        {clarification ? (
+          <form className="assistant-composer quick-ai-clarification" data-testid="quick-ai-clarification" onSubmit={(event) => { event.preventDefault(); void answerClarification(); }}>
+            <textarea rows={3} value={input} onChange={(event) => setInput(event.target.value)} placeholder="回答这个问题…" disabled={status !== 'idle'} />
+            <button type="submit" className="assistant-send" disabled={!input.trim() || status !== 'idle'} aria-label="发送回答"><Send /></button>
+          </form>
         ) : null}
-        {mode === 'report' ? (
+        {problem && mode === 'input' && source ? <div className="assistant-footer-actions"><button type="button" className="toolbar-button" data-testid="quick-ai-retry" onClick={() => void retryCurrentJudgement()}><RotateCcw />重新判断当前文件</button><button type="button" className="toolbar-button" onClick={() => resetInputSession('已保留文件，可以重新开始。')}>保留文件，暂不判断</button></div> : null}
+        {problem && mode === 'report' ? <div className="assistant-footer-actions"><button type="button" className="toolbar-button primary" data-testid="quick-ai-retry-report" disabled={!lastReportQuestionRef.current} onClick={() => void askReport(lastReportQuestionRef.current, true)}><RotateCcw />重新解读</button><button type="button" className="toolbar-button" onClick={() => setProblem('')}>关闭</button></div> : null}
+        {mode === 'report' && !problem && status !== 'reading' ? (
           <>
             <div className="quick-ai-prompts">
               <button type="button" disabled={!canUseAi || status !== 'idle' || !activePage} onClick={() => void askReport('请用简单语言解释当前页在看什么。')}>解释当前页</button>
@@ -1134,6 +1182,7 @@ export function QuickPlotAssistantPanel({
             </form>
           </>
         ) : null}
+        </footer>
       </aside>
       {connectionDialogOpen ? (
         <div className="assistant-key-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && connection.status !== 'validating') setConnectionDialogOpen(false); }}>

@@ -390,8 +390,9 @@ test('PROCESS155 professional UI turns a 5000-row upload into a reviewable draft
   writeFileSync(filePath, createUiScaleCsv(), 'utf8');
   const started = performance.now();
   await page.getByTestId('import-file-input').setInputFiles(filePath);
+  const showDock = page.getByTestId('right-panel-show');
+  if (await showDock.isVisible().catch(() => false)) await showDock.click();
   await page.getByTestId('import-ai-entry').getByRole('button', { name: 'AI 整理数据' }).click();
-  await page.getByTestId('import-assistant-start').click();
   const cleanup = page.getByTestId('import-assistant-cleanup');
   await expect(cleanup).toContainText('5000 行');
   await expect(cleanup).toContainText('数据值未修改');
